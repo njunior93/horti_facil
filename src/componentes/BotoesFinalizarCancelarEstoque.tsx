@@ -1,0 +1,122 @@
+import {  Button } from '@mui/material'
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import CheckIcon from '@mui/icons-material/Check';
+import { AppContext } from '../context/context';
+import { useContext, useState } from 'react';
+import CirculoProgresso from '../componentes/circuloProgresso';
+import ErrorIcon from '@mui/icons-material/Error';
+import alertaMensagem from '../utils/alertaMensagem';
+import { useNavigate } from 'react-router-dom';
+
+const BotoesFinalizarCancelarEstoque = () => {
+
+  const navigate = useNavigate();	
+  const setEstoqueSalvo = useContext(AppContext).setEstoqueSalvo;
+  const {setListaProdutoEstoque, listaProdutoEstoque} = useContext(AppContext);
+  const {contQtdEstoque, setContQtdEstoque} = useContext(AppContext);
+  const [progresso, setProgresso] = useState(0);
+  const [mostraProgresso, setMostraProgresso] = useState(false);
+  const [mensagemEstoqueSalvo, setMensagemEstoqueSalvo] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState(false);
+
+  const salvarEstoque = () => {
+
+    const produtoSemUnidade = listaProdutoEstoque.some(produto => !produto.uniMedida);
+
+    if (produtoSemUnidade) {
+      setMensagemErro(true);
+      return;
+    }
+
+    try {
+      if (listaProdutoEstoque.length === 0 || contQtdEstoque === 0) {
+        alert("Não há produtos no estoque para salvar.");
+        return;
+      }
+
+      const estoqueSalvo = {
+        id: Math.random().toString(36).substring(2, 10),
+        data: new Date().toLocaleDateString(),
+        listaProdutos: listaProdutoEstoque,
+        contQtdEstoque: Number(contQtdEstoque)
+      };
+
+      document.body.style.pointerEvents = "none";
+      setMostraProgresso(true);
+      setProgresso(0);
+      let progressoAtual = 0;
+      const intervalo = setInterval(() => {
+        progressoAtual += 10;
+        setProgresso(progressoAtual);
+        if (progressoAtual >= 100) {
+          clearInterval(intervalo);
+          setEstoqueSalvo(estoqueSalvo);
+          setMensagemErro(false)
+          setMensagemEstoqueSalvo(true);
+          setListaProdutoEstoque([]);
+          setContQtdEstoque(0);
+          setMostraProgresso(false);
+          document.body.style.pointerEvents=""
+        }
+      }, 1000);
+      return;
+
+    } catch (error) {
+      setMensagemEstoqueSalvo(false)
+      setMensagemErro(true)  
+      console.log(`Ocorreu um erro ao salvar o estoque. Tente novamente. ${error}`);
+    }
+  }
+  
+  const cancelarEstoque = () =>{
+    setListaProdutoEstoque([]);
+    setContQtdEstoque(0);
+  }
+
+  const sairEstoque = () =>{
+    navigate("/")
+  }
+  return (
+    <>
+
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
+      {mostraProgresso && (
+        <div className="bg-white/80 rounded-full shadow-lg p-6 pointer-events-auto">
+        <CirculoProgresso progresso={progresso} />
+        </div>
+      )}
+      </div>
+      
+      <div className="mt-4 w-full flex justify-end gap-2">     
+      <Button variant="contained" startIcon={<SaveIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#06D001", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#059212",},}} onClick={salvarEstoque}>Finalizar</Button>
+      <Button variant="contained" startIcon={<CancelIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#C70039", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#900C3F",},}} onClick={cancelarEstoque}>Cancelar</Button>
+      <Button variant="contained" startIcon={<ExitToAppIcon/>} sx={{ backgroundColor: "#393E46", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#222831",},}} onClick={sairEstoque} >Sair</Button>
+      </div>
+
+      {mensagemEstoqueSalvo && (
+      <div className="fixed inset-0 flex items-center justify-center z-[1301] pointer-events-none font-size: 1.5rem ">
+        <div className="pointer-events-auto">
+          {alertaMensagem("Estoque salvo com sucesso", 'success', <CheckIcon/>)}
+        </div>
+      </div>
+      )}
+
+      {mensagemErro && (
+      <div className="fixed inset-0 flex items-center justify-center z-[1301] pointer-events-none font-size: 1.5rem ">
+        <div className="pointer-events-auto">
+          {alertaMensagem("Ocorreu um erro ao salvar o estoque! Tente novamente", "error", <ErrorIcon/> )}
+        </div>
+      </div>
+      )}
+ 
+      {mensagemEstoqueSalvo && setTimeout(() => setMensagemEstoqueSalvo(false), 3000)}
+      {mensagemErro && setTimeout(() => setMensagemErro(false), 3000)}
+
+
+    </>
+  )
+}
+
+export default BotoesFinalizarCancelarEstoque
