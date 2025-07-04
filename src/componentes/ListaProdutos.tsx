@@ -1,8 +1,8 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext,  useState } from 'react'
 import { AppContext } from '../context/context';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Box, Button, InputLabel, MenuItem, Modal, Select, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button,  MenuItem, Modal, Select, Stack, TextField, Typography } from '@mui/material';
 import type { iProduto } from '../type/iProduto';
 import { unidadesMedida } from '../context/context';
 
@@ -11,12 +11,10 @@ function ListaProdutos() {
 
   const {listaProdutoEstoque, setListaProdutoEstoque}  = useContext(AppContext);
   const [modalAberto, setModalAberto] = useState(false);
-  const [unidadeAberta, setUnidadeAberta] = useState(false);
   const [produtoSelecionadoEdicao, setProdutoSelecionadoEdicao] = useState<iProduto>({} as iProduto);
   const [estoqueMinimo, setEstoqueMinimo] = useState<number>(0);
   const [estoqueMaximo, setEstoqueMaximo] = useState<number>(0);
   const [estoqueAtual, setEstoqueAtual] = useState<number>(0);
-  const [unidade, setUnidade] = useState("");
   // const {contSuficiente, setContSuficiente} = useContext(AppContext);
   // const {contInsuficiente, setContInsuficiente} = useContext(AppContext);
   // const {contQtdEstoque, setContQtdEstoque} = useContext(AppContext);

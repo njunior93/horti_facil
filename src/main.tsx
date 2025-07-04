@@ -5,7 +5,6 @@ import App from './App.tsx';
 import { AppProvider } from './context/context.tsx'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import CriarEstoque from './paginas/CriarEstoque.tsx';
-import VisualizarEstoque from './componentes/VisualizarEstoque.tsx';
 import GerenciarEstoque from './paginas/GerenciarEstoque.tsx';
 
 

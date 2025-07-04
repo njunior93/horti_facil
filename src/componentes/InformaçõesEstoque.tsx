@@ -9,7 +9,7 @@ const InformaçõesEstoque = ({telaAtual}: Props) => {
   const {contSuficiente, setContSuficiente} = useContext(AppContext);
   const {contInsuficiente, setContInsuficiente} = useContext(AppContext);
   const {contQtdEstoque, setContQtdEstoque} = useContext(AppContext);
-  const {listaProdutoEstoque, setListaProdutoEstoque}  = useContext(AppContext);
+  const listaProdutoEstoque  = useContext(AppContext).listaProdutoEstoque;
   const { estoqueSalvo } = useContext(AppContext);
 
 
