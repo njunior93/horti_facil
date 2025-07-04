@@ -31,7 +31,7 @@ const PaginalInicial = () => {
       </div>
 
       <div>
-        <img src="src\img\logo.png" alt="Logo Inicial" width="600" height="400"/>
+        <img src="/logo.png" alt="Logo Inicial" width="600" height="400"/>
       </div>
    
       {alertaEstoque && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alertaEstoque}</Box>}
