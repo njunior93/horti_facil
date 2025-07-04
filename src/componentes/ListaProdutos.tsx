@@ -172,7 +172,7 @@ function ListaProdutos() {
 
       <Modal
         open={modalAberto}
-        onClose={(e, reason) => {
+        onClose={(reason) => {
           if (reason === 'backdropClick') return;
           fecharModal();
         }}
