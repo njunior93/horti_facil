@@ -1,10 +1,11 @@
-import {  Button, FormControl, FormControlLabel, MenuItem, Radio, RadioGroup, Select, TextField, type SelectChangeEvent } from '@mui/material';
+import {  Box, Button, Divider, FormControl, FormControlLabel, MenuItem, Radio, RadioGroup, Select, Stack, TextField, type SelectChangeEvent } from '@mui/material';
 import { useContext, useEffect, useState } from 'react';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { AppContext } from '../context/context';
 import type { iProduto } from '../type/iProduto';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import  alertaMensagem  from '../utils/alertaMensagem';
+import caixaDialogo from '../utils/caixaDialogo';
 
 const formulario = () => {
   const [estoqueAtual, setEstoqueAtual] = useState('');
@@ -17,7 +18,14 @@ const formulario = () => {
   const [produtoNome, setProdutoNome] = useState<string>('');
   const [produtoSelecionado, setProdutoSelecionado] = useState<iProduto>({} as iProduto);
   const [produtosSelecionados , setProdutosSelecionados] = useState<any[]>([]);
-  const [mensagemErro, setMensagemErro] = useState(false); 
+  const [alertaAddProduto, setAlertaAddProduto] = useState<React.ReactNode | null>(null);
+
+  
+  setTimeout(() =>{
+    if(alertaAddProduto){
+      setAlertaAddProduto(null)
+    }
+  },4000);
 
   useEffect(() => {
     if (categoria === 'horta') {
@@ -56,9 +64,17 @@ const formulario = () => {
 
   const calcularEstoque = () => {
   
+    const produtoJaExiste = listaProdutoEstoque.some(
+      (produto) => produto.id === produtoSelecionado.id
+    );
+
+    if (produtoJaExiste) {
+      setAlertaAddProduto(alertaMensagem("Produto ja adicionado!", "warning", <ReportProblemIcon/>));
+      return;
+    }
 
     if (!estoqueAtual || !vendaMensal || !loteReposicao || !tempoReposicao) {
-      setMensagemErro(true)
+      setAlertaAddProduto(alertaMensagem('Preencha todos os campos', 'warning', <ReportProblemIcon/>));
       return;
     }
 
@@ -97,16 +113,16 @@ const formulario = () => {
 
   return (
     <>
-      <FormControl className='formulario-estoque'>
-        <div className='formulario-estoque-categorias'>
+      <FormControl>
+        <Stack direction="column" spacing={1}>
           <span className="formulario-estoque-categorias-label">Categoria</span>
           <RadioGroup row aria-label='Categoria' defaultValue='horta' name='formulario-estoque-categorias' onChange={selecaoCategoria}>
             <FormControlLabel value='horta' control={<Radio />} label="Hortaliças"/>
             <FormControlLabel value='fruta' control={<Radio />} label="Frutas"/>
           </RadioGroup>
-        </div>
+        </Stack>
         
-        <div className="formulario-estoque-inputs flex flex-row gap-4 justify-between">
+        <Stack direction="row" spacing={2} divider={<Divider orientation='vertical' flexItem/>}>
           <Select labelId="formulario-estoque-inputs-produto-label" id="formulario-estoque-inputs-produto" label="Produto" value={produtoNome} onChange={selecaoProduto} displayEmpty>
             <MenuItem value="" disabled>
               Produto
@@ -123,18 +139,10 @@ const formulario = () => {
           <TextField id="formulario-estoque-inputs-lote" disabled={!produtoSelecionado.id}  type='number' value={loteReposicao} onChange={(e) => setLoteReposicao(e.target.value)} label="Lote de Reposiçao" variant="outlined"/>
           <TextField id="formulario-estoque-inputs-tempo" disabled={!produtoSelecionado.id} type='number' value= {tempoReposicao}  onChange={(e) => setTempoReposicao(e.target.value)} label="Tempo de Reposição" variant="outlined"/>
           <Button variant="contained" disabled={!produtoSelecionado.id} startIcon={<AddCircleIcon />} onClick={calcularEstoque} sx={{ backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#6FE6FC",},}}>Adicionar</Button>
-        </div>   
+        </Stack>   
       </FormControl>
         
-        {mensagemErro && setTimeout(() => setMensagemErro(false), 2000)}
-
-        {mensagemErro && (
-          <div className="fixed inset-0 flex items-center justify-center z-[1301] pointer-events-none font-size:1.5rem ">
-            <div className="pointer-events-auto">
-              {alertaMensagem('Preencha todos os campos', 'warning', <ReportProblemIcon/>)}           
-            </div>
-          </div>
-          )}
+      {alertaAddProduto && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alertaAddProduto}</Box>}
     </>
   )
   

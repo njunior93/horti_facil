@@ -1,4 +1,4 @@
-import {  Button } from '@mui/material'
+import {  Button, Stack } from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
@@ -9,6 +9,8 @@ import CirculoProgresso from '../componentes/circuloProgresso';
 import ErrorIcon from '@mui/icons-material/Error';
 import alertaMensagem from '../utils/alertaMensagem';
 import { useNavigate } from 'react-router-dom';
+import CaixaDialogo from '../utils/caixaDialogo';
+import { ca } from 'date-fns/locale';
 
 const BotoesFinalizarCancelarEstoque = () => {
 
@@ -20,6 +22,8 @@ const BotoesFinalizarCancelarEstoque = () => {
   const [mostraProgresso, setMostraProgresso] = useState(false);
   const [mensagemEstoqueSalvo, setMensagemEstoqueSalvo] = useState(false);
   const [mensagemErro, setMensagemErro] = useState(false);
+  const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
+
 
   const salvarEstoque = () => {
 
@@ -53,8 +57,8 @@ const BotoesFinalizarCancelarEstoque = () => {
         if (progressoAtual >= 100) {
           clearInterval(intervalo);
           setEstoqueSalvo(estoqueSalvo);
+          setMostrarCaixaDialogo(true);
           setMensagemErro(false)
-          setMensagemEstoqueSalvo(true);
           setListaProdutoEstoque([]);
           setContQtdEstoque(0);
           setMostraProgresso(false);
@@ -78,9 +82,9 @@ const BotoesFinalizarCancelarEstoque = () => {
   const sairEstoque = () =>{
     navigate("/")
   }
+
   return (
     <>
-
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
       {mostraProgresso && (
         <div className="bg-white/80 rounded-full shadow-lg p-6 pointer-events-auto">
@@ -89,11 +93,11 @@ const BotoesFinalizarCancelarEstoque = () => {
       )}
       </div>
       
-      <div className="mt-4 w-full flex justify-end gap-2">     
-      <Button variant="contained" startIcon={<SaveIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#06D001", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#059212",},}} onClick={salvarEstoque}>Finalizar</Button>
-      <Button variant="contained" startIcon={<CancelIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#C70039", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#900C3F",},}} onClick={cancelarEstoque}>Cancelar</Button>
-      <Button variant="contained" startIcon={<ExitToAppIcon/>} sx={{ backgroundColor: "#393E46", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#222831",},}} onClick={sairEstoque} >Sair</Button>
-      </div>
+      <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end"}}>     
+        <Button variant="contained" startIcon={<SaveIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#06D001", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#059212",},}} onClick={salvarEstoque}>Finalizar</Button>
+        <Button variant="contained" startIcon={<CancelIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#C70039", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#900C3F",},}} onClick={cancelarEstoque}>Cancelar</Button>
+        <Button variant="contained" startIcon={<ExitToAppIcon/>} sx={{ backgroundColor: "#393E46", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#222831",},}} onClick={sairEstoque} >Sair</Button>
+      </Stack>
 
       {mensagemEstoqueSalvo && (
       <div className="fixed inset-0 flex items-center justify-center z-[1301] pointer-events-none font-size: 1.5rem ">
@@ -114,6 +118,11 @@ const BotoesFinalizarCancelarEstoque = () => {
       {mensagemEstoqueSalvo && setTimeout(() => setMensagemEstoqueSalvo(false), 3000)}
       {mensagemErro && setTimeout(() => setMensagemErro(false), 3000)}
 
+      <CaixaDialogo
+        titulo="Estoque criado com sucesso!"
+        texto="O que deseja fazer agora?"
+        botão="Gerenciar Estoque"
+      />
 
     </>
   )

@@ -102,10 +102,14 @@ function ListaProdutos() {
   }
 
   const deletarProduto = (produto: iProduto) => {
-    const index = listaProdutoEstoque.findIndex(p => p.id_produto_estoque === produto.id_produto_estoque);
-    if (index !== -1) {
-      listaProdutoEstoque.splice(index, 1);
-      setListaProdutoEstoque([...listaProdutoEstoque]);
+    // if (!window.confirm(`Deseja realmente excluir o produto ${produto.nome}?`)) {
+    //   return;
+    // }
+    const id_localizado = listaProdutoEstoque.find(p => p.id_produto_estoque === produto.id_produto_estoque);
+
+    if(id_localizado !== undefined) {
+      const novaLista = listaProdutoEstoque.filter((p) => p.id_produto_estoque !== produto.id_produto_estoque);
+      setListaProdutoEstoque(novaLista);
     }
   }
   

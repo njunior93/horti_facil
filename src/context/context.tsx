@@ -19,14 +19,30 @@ interface IContext {
   setContInsuficiente: (cont: number) => void;
   estoqueSalvo: iEstoque;
   setEstoqueSalvo: (estoque: iEstoque) => void;
+  listaProdutoMovTemp: iProdutoMov[];
+  setListaProdutoMovTemp: (item: iProdutoMov[]) => void;
   listaProdutoMov: iProdutoMov[];
   setListaProdutoMov: (item: iProdutoMov[]) => void;
   tipoModal: string;
   setTipoModal: (mov: string) => void;
   handleModal: boolean;
   setHandleModal: (handle: boolean) => void;
-  listaHistoricoMovEstoque?: iProdutoMov[];
-  setListaHistoricoMovEstoque?: (item: iProdutoMov[]) => void;
+  listaHistoricoMovEstoque: iProdutoMov[];
+  setListaHistoricoMovEstoque: (item: iProdutoMov[]) => void;
+  listaTipoMovimentacoes: string[];
+  setListaTipoMovimentacoes: (mov: string[]) => void;
+  listaMovimentacoesEstoque: string[];
+  setListaMovimentacoesEstoque: (mov: string[]) => void;
+  tipoMovSelecionado: string;
+  setTipoMovSelecionado: (mov: string) => void;
+  movimentacaoSelecionada: string;
+  setMovimentacaoSelecionada: (mov: string) => void;
+  tipoEntrada: string;
+  setTipoEntrada: (tipo: string) => void;
+  tipoSaida: string;
+  setTipoSaida: (tipo: string) => void;
+  mostrarCaixaDialogo: boolean;
+  setMostrarCaixaDialogo: (mostrar: boolean) => void;
 
 }
 
@@ -34,7 +50,7 @@ interface AppProvideProps{
     children: ReactNode
 }
 
-const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: {} as iEstoque, setEstoqueSalvo: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}};
+const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: {} as iEstoque, setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: '', setTipoEntrada: () => {}, tipoSaida: '', setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {} };
 
 export const AppContext = createContext<IContext>(inicial);
 
@@ -72,6 +88,20 @@ const hortalicas: iProduto[] = [
   { id: 16, nome: "Repolho", tipo: "horta" },
 ];
 
+const tipoMovimentacoes: string[] = [
+  "Todos os tipos",
+  "Entrada",
+  "Saída"
+];
+
+export const movimentacoesEstoque: string[] = [
+  "Todas as movimentações",
+  "Entrada Manual",
+  "Entrada Pedido",
+  "Saída Manual - AVARIA",
+  'Saída Manual - VENDA',
+]
+
 const produtos: iProduto[] = [...frutas, ...hortalicas];
 
 export const AppProvider = ({ children }: AppProvideProps) => {
@@ -82,14 +112,24 @@ export const AppProvider = ({ children }: AppProvideProps) => {
   const [contSuficiente, setContSuficiente] = useState<number>(0);
   const [contInsuficiente, setContInsuficiente] = useState<number>(0);
   const [estoqueSalvo, setEstoqueSalvo] = useState<iEstoque>({} as iEstoque);
-  const [listaProdutoMov, setListaProdutoMov] = useState<iProdutoMov[]>([])
+  const [listaProdutoMovTemp, setListaProdutoMovTemp] = useState<iProdutoMov[]>([])
   const [tipoModal, setTipoModal] = useState<string>('')
   const [handleModal, setHandleModal] = useState<boolean>(false)
   const [listaHistoricoMovEstoque, setListaHistoricoMovEstoque] = useState<iProdutoMov[]>([]);
+  const [listaTipoMovimentacoes, setListaTipoMovimentacoes] = useState<string[]>(tipoMovimentacoes);
+  const [listaMovimentacoesEstoque, setListaMovimentacoesEstoque] = useState<string[]>(movimentacoesEstoque);
+  const [tipoMovSelecionado, setTipoMovSelecionado] = useState('');
+  const [movimentacaoSelecionada, setMovimentacaoSelecionada] = useState('');
+  const [tipoEntrada, setTipoEntrada] = useState<string>('');
+  const [tipoSaida, setTipoSaida] = useState<string>('')
+  const [listaProdutoMov, setListaProdutoMov] = useState<iProdutoMov[]>([]);
+  const [mostrarCaixaDialogo, setMostrarCaixaDialogo] = useState(false);
+
+  
 
 
   return (
-    <AppContext.Provider value={{handleModal, setHandleModal, listaProdutoMov,setListaProdutoMov,listaTipoProdutos, setlistaTipoProdutos, categoria, setCategoria, listaProdutoEstoque, setListaProdutoEstoque, contSuficiente, setContSuficiente, contInsuficiente, setContInsuficiente, contQtdEstoque, setContQtdEstoque, estoqueSalvo, setEstoqueSalvo, tipoModal, setTipoModal, listaHistoricoMovEstoque, setListaHistoricoMovEstoque }}>
+    <AppContext.Provider value={{handleModal, setHandleModal, listaProdutoMovTemp,setListaProdutoMovTemp,listaTipoProdutos, setlistaTipoProdutos, categoria, setCategoria, listaProdutoEstoque, setListaProdutoEstoque, contSuficiente, setContSuficiente, contInsuficiente, setContInsuficiente, contQtdEstoque, setContQtdEstoque, estoqueSalvo, setEstoqueSalvo, tipoModal, setTipoModal, listaHistoricoMovEstoque, setListaHistoricoMovEstoque, listaTipoMovimentacoes, setListaTipoMovimentacoes, listaMovimentacoesEstoque, setListaMovimentacoesEstoque, tipoMovSelecionado, setTipoMovSelecionado, movimentacaoSelecionada, setMovimentacaoSelecionada, tipoEntrada, setTipoEntrada, tipoSaida, setTipoSaida, listaProdutoMov, setListaProdutoMov, mostrarCaixaDialogo, setMostrarCaixaDialogo}}>
       {children}
     </AppContext.Provider>
   );

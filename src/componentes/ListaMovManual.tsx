@@ -25,8 +25,8 @@ const ListaMovManual = () => {
       <div className={`grid ${tipoModal === 'Entrada' ? 'grid-cols-4' : 'grid-cols-5'} items-center p-2 border-b text-center`}>
         <div className="font-medium">Produto</div>
         <div>Estoque</div>
-        <div>{tipoModal === 'Entrada' ? 'Entrada' : tipoModal === 'Saida' ? 'Saida' : ''}</div>
-        {tipoModal === 'Saida' && (<div>Mov</div>)}
+        <div>{tipoModal === 'Entrada' ? 'Entrada' : tipoModal === 'Saída' ? 'Saída' : ''}</div>
+        {tipoModal === 'Saída' && (<div>Mov</div>)}
         <div>Excluir</div>
       </div>
 
@@ -35,7 +35,7 @@ const ListaMovManual = () => {
           <div>{item.produto.nome}</div>
           <div>{item.produto.estoque}</div>
           <div>{item.qtdMov}</div>
-          {tipoModal === 'Saida' && (<div>{item.tipoSaida}</div>)}
+          {tipoModal === 'Saída' && (<div>{item.tipoSaida}</div>)}
           <Button onClick={() => excluirProdudoEntrada(item)} startIcon={<RemoveCircleIcon/>}></Button>
         </div>
       ))}

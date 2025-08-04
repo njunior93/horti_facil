@@ -1,4 +1,4 @@
-import { Button, FormControl, MenuItem, Select, TextField } from "@mui/material"
+import { Button, FormControl, Menu, MenuItem, Select, TextField } from "@mui/material"
 import UnarchiveOutlinedIcon from '@mui/icons-material/UnarchiveOutlined';
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
@@ -10,7 +10,8 @@ import { AppContext } from "../context/context";
 // import type { iProduto } from "../type/iProduto";
 // import alertaMensagem from "../utils/alertaMensagem";
 import ModalMov from '../utils/modalMov';
-import BasicoMenu from "../utils/basicoMenu";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 
 const VisualizarEstoque = () => {
@@ -25,9 +26,22 @@ const VisualizarEstoque = () => {
   // const {listaProdutoEntrada, setListaProdutoEntrada} = useContext(AppContext);
   // const [alertaAddProduto, setAlertaAddProduto] = useState<React.ReactNode | null>(null);
   const setTipoModal = useContext(AppContext).setTipoModal;
+  const {tipoEntrada, setTipoEntrada} = useContext(AppContext);
+  const {tipoSaida, setTipoSaida} = useContext(AppContext);
   const setHandleModal = useContext(AppContext).setHandleModal;
+
+  const navigate = useNavigate();
   
-  const opcoesMenu: string[] = ["Posição de estoque", "Movimentação de estoque","Criar Pedido de compra"];
+  const opcoesMenu: string[] = ["Posição de estoque", "Movimentação de estoque"];
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
 
   // setTimeout(() =>{
   //   if(alertaAddProduto){
@@ -93,18 +107,70 @@ const VisualizarEstoque = () => {
   const handleAbrirModalEntrada = () => {
     setHandleModal(true);
     setTipoModal("Entrada");
+    setTipoEntrada('Manual');
+    setTipoSaida('');
   };
 
   const handleAbrirModalSaida = () =>{
     setHandleModal(true);
-    setTipoModal("Saida");
+    setTipoModal("Saída");
+    setTipoEntrada('');
+  }
+
+  const sairGerenciarEstoque = () => {
+    setHandleModal(false);
+    setTipoModal('');
+    setTipoEntrada('');
+    setTipoSaida('');
+    navigate('/');
+  }
+
+  const handleAbrirModalMovimentacao = (opcao: string) => {
+    if (opcao === "Posição de estoque") {
+      setHandleModal(true);
+      setTipoModal("PosicaoEstoque");
+      console.log(opcao)
+      return;
+    } else if (opcao === "Movimentação de estoque") {
+      setHandleModal(true);
+      setTipoModal("MovimentacaoEstoque");
+      console.log(opcao)
+      return;
+    }
   }
 
   return (
 
-
     <div className="flex flex-col w-1/2 h-4/5 bg-[#FCEED5] p-4 rounded-lg shadow-lg">
-      <BasicoMenu titulo='Opções' opcoes={opcoesMenu}/>
+      
+      <div>
+        <Button
+          id="basic-button"
+          aria-controls={open ? 'basic-menu' : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? 'true' : undefined}
+          onClick={handleClick}
+          variant='contained'
+        >
+            RELATORIO
+        </Button>
+          <Menu
+            id="basic-menu"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            slotProps={{
+              list: {
+                'aria-labelledby': 'basic-button',
+              },
+            }}
+          >
+            {opcoesMenu.map((opcao, idx) => (
+                <MenuItem key={idx} onClick={() => handleAbrirModalMovimentacao(opcao)}>{opcao}</MenuItem>
+            ))}
+          </Menu>
+      </div>
+
       <div className='flex flex-row  w-full h-3/5 justify-around items-center p-4 gap-2'>
         <FormControl>
         <h1 className="text-lg font-semibold mb-2 text-gray-700">Filtros:</h1>
@@ -123,7 +189,7 @@ const VisualizarEstoque = () => {
         <div className="flex flex-col gap-3 justify-center h-2/5 w-2/5 border-1 border-gray-500/50 p-5">
           <Button  variant="contained" startIcon={<ArchiveOutlinedIcon />} sx={{ boxSizing: 'border-box', backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "black", '&:hover': { backgroundColor: "#6FE6FC",},}} onClick={() => handleAbrirModalEntrada()}>Entrada</Button>
           <Button  variant="contained" startIcon={<UnarchiveOutlinedIcon />} sx={{ boxSizing: 'border-box', backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "black", '&:hover': { backgroundColor: "#6FE6FC",},}} onClick={() => handleAbrirModalSaida()}>Saida</Button>
-          <Button  variant="contained" startIcon={<LogoutOutlinedIcon />} sx={{ boxSizing: 'border-box', backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "black", '&:hover': { backgroundColor: "#6FE6FC",},}}>Voltar</Button>
+          <Button  variant="contained" startIcon={<LogoutOutlinedIcon />} sx={{ boxSizing: 'border-box', backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "black", '&:hover': { backgroundColor: "#6FE6FC",},}} onClick={() => sairGerenciarEstoque()}>Voltar</Button>
         </div>
       </div>
 

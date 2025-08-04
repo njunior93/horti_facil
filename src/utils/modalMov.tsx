@@ -1,12 +1,23 @@
-import React from 'react'
-import { Box, Button, FormControlLabel, FormLabel, MenuItem, Modal, Radio, RadioGroup, Select, TextField, Typography, type SelectChangeEvent } from '@mui/material';
+import React, { useEffect } from 'react'
+import { Box, Button, FormControl, FormControlLabel, FormHelperText, FormLabel, InputLabel, MenuItem, Modal, Radio, RadioGroup, Select, TextField, Typography, type SelectChangeEvent } from '@mui/material';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { useContext, useState } from "react";
 import { AppContext } from "../context/context";
 import ListaMovManual from "../componentes/ListaMovManual";
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import type { iProduto } from "../type/iProduto";
 import alertaMensagem from "./alertaMensagem";
 import type { iProdutoMov } from '../type/iProdutoMov';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { ptBR } from 'date-fns/locale/pt-BR'
+import { movimentacoesEstoque } from '../context/context';
+import {gerarRelatorioPDF} from './gerarRelatorioPDF';
+import { toZonedTime } from 'date-fns-tz';
+import { Stack } from '@mui/material';
+
+
+
+
 
 const ModalMov = () => {
 
@@ -14,11 +25,19 @@ const ModalMov = () => {
     const {tipoModal, setTipoModal} = useContext(AppContext);
     const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
     const [produtoSelecionado, setProdutoSelecionado] = useState<iProduto>({} as iProduto)
-    const [valorMov, setValorMov] = useState<number>(0)
+    const [valorMov, setValorMov] = useState('');
     const {listaProdutoMov, setListaProdutoMov} = useContext(AppContext);
     const [alertaAddProduto, setAlertaAddProduto] = useState<React.ReactNode | null>(null);
-    const [tipoSaida, setTipoSaida] = useState('');
+    const {tipoSaida, setTipoSaida} =useContext(AppContext);
+    const {tipoEntrada, setTipoEntrada} = useContext(AppContext);
     const {listaHistoricoMovEstoque, setListaHistoricoMovEstoque } = useContext(AppContext);
+    const listaTipoMovimentacoes = useContext(AppContext).listaTipoMovimentacoes;
+    const {listaMovimentacoesEstoque, setListaMovimentacoesEstoque} = useContext(AppContext);
+    const {tipoMovSelecionado, setTipoMovSelecionado} = useContext(AppContext);
+    const {movimentacaoSelecionada, setMovimentacaoSelecionada} = useContext(AppContext);
+    const [dataInicio, setDataInicio] = useState<Date | null>(null);
+    const [dataFim, setDataFim] = useState<Date | null>(null);
+    
 
   setTimeout(() =>{
     if(alertaAddProduto){
@@ -26,14 +45,39 @@ const ModalMov = () => {
     }
   },4000);
 
+  useEffect(() => {
+
+    if (tipoMovSelecionado === 'Entrada'){
+      setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("entrada")));
+    } else if (tipoMovSelecionado === "Saída") {
+      setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("saída")));
+    } else {
+      setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("todas")));
+    }
+
+    console.log(listaHistoricoMovEstoque)
+
+    setMovimentacaoSelecionada?.('');
+
+  },[tipoMovSelecionado, listaHistoricoMovEstoque]);
+
 
   const cancelarEstoque = () =>{
     setHandleModal(false)
     setTipoModal("");
     setProdutoSelecionado({} as iProduto)
-    setValorMov(0)
+    setValorMov('');
     setListaProdutoMov([]);
     setTipoSaida('Venda')
+    setTipoEntrada('');
+    setDataFim(null);
+    setDataInicio(null);
+    if (setTipoMovSelecionado) {
+      setTipoMovSelecionado('');
+    }
+    if (setMovimentacaoSelecionada) {
+      setMovimentacaoSelecionada('');
+    }
   }
 
   const selecaoProduto = (e: SelectChangeEvent) => {
@@ -43,35 +87,48 @@ const ModalMov = () => {
     if (produto) {
       setProdutoSelecionado(produto);
     }
-    setValorMov(0);
+    setValorMov('');
     setTipoSaida('');
   }
 
-  const addProdutoLista = (produto: iProduto, qtdMov: number, tipoSaida: string, tipoMov: string, dataMov: Date) => {
+  const addProdutoLista = (produto: iProduto, qtdMov: number, tipoSaida: string, tipoEntrada: string, tipoMov: string, data: Date) => {
     const produtoExiste = listaProdutoMov.some(item => item.produto.id === produto.id);
+
+    const timeZone = 'America/Sao_Paulo';
+    const dataMov = toZonedTime(data, timeZone);
+
+    if(qtdMov === 0){
+      setAlertaAddProduto(alertaMensagem("Digite um valor", "warning", <ReportProblemIcon/>));
+      return;
+    }
   
+    if (tipoModal === "Entrada" && !qtdMov  ||  qtdMov <= 0){
+      setAlertaAddProduto(alertaMensagem("Valor incorreto", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
+    if (tipoModal === 'Saída' && qtdMov > (produto.estoque ?? 0)){
+      setAlertaAddProduto(alertaMensagem("Quantidade insuficiente", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
+    if (tipoModal === 'Saída' && !qtdMov || isNaN(qtdMov)){
+      setAlertaAddProduto(alertaMensagem("Valor incorreto", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
+    if( tipoModal === 'Saída' && !tipoSaida){
+      setAlertaAddProduto(alertaMensagem("Selecione o tipo de saida", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
     if (produtoExiste) {
       setAlertaAddProduto(alertaMensagem("Produto ja adicionado!", "warning", <ReportProblemIcon/>));
       return;
     }
   
-    if (tipoModal === "Entrada" && !qtdMov  ||  qtdMov <= 0 || isNaN(qtdMov)){
-      setAlertaAddProduto(alertaMensagem("Valor incorreto", "warning", <ReportProblemIcon/>));
-      return;
-    }
-
-    if (tipoModal === 'Saida' && !qtdMov || isNaN(qtdMov) || tipoModal === 'Saida' && qtdMov > (produto.estoque ?? 0)){
-      setAlertaAddProduto(alertaMensagem("Valor incorreto", "warning", <ReportProblemIcon/>));
-      return;
-    }
-
-    if( tipoModal === 'Saida' && !tipoSaida){
-      setAlertaAddProduto(alertaMensagem("Selecione o tipo de saida", "warning", <ReportProblemIcon/>));
-      return;
-    }
-  
-    setListaProdutoMov([...listaProdutoMov, { produto, qtdMov, tipoSaida, tipoMov , dataMov}]);
-    setValorMov(0)
+    setListaProdutoMov([...listaProdutoMov, { produto, qtdMov, tipoSaida, tipoEntrada, tipoMov , dataMov}]);
+    setValorMov('')
     setAlertaAddProduto(null)
     setTipoSaida('');
   }
@@ -81,27 +138,27 @@ const ModalMov = () => {
     const historicoTemp: iProdutoMov[] = [];
 
     const estoqueAtualizado = estoqueSalvo.listaProdutos.map((produtoEstoque) =>{
-      const entrada = listaProdutoMov.find(
+      const prodMov = listaProdutoMov.find(
         (mov) => mov.produto.id === produtoEstoque.id
       );     
   
-      if (entrada && tipoModal === 'Entrada'){
-        const novoEstoque = (produtoEstoque.estoque ?? 0) + entrada.qtdMov;
+      if (prodMov && tipoModal === 'Entrada'){
+        const novoEstoque = (produtoEstoque.estoque ?? 0) + prodMov.qtdMov;
         if(novoEstoque !== produtoEstoque.estoque){
-          historicoTemp.push(entrada)
+          historicoTemp.push(prodMov)
         }   
         return { ...produtoEstoque, estoque: novoEstoque, estoqueSuficiente: novoEstoque >= (produtoEstoque.estoqueMinimo ?? 0) ? true : false }
       }
       
-      if (entrada && tipoModal === 'Saida'){
-        const novoEstoque = (produtoEstoque.estoque ?? 0) - entrada.qtdMov;
+      if (prodMov && tipoModal === 'Saída'){
+        const novoEstoque = (produtoEstoque.estoque ?? 0) - prodMov.qtdMov;
         if(novoEstoque !== produtoEstoque.estoque){
-          historicoTemp.push(entrada)
+          historicoTemp.push(prodMov)
         } 
          return { ...produtoEstoque, estoque: novoEstoque, estoqueSuficiente: novoEstoque >= (produtoEstoque.estoqueMinimo ?? 0) ? true : false }
       } 
 
-        return produtoEstoque;
+        return produtoEstoque;      
         
   });
 
@@ -111,16 +168,92 @@ const ModalMov = () => {
       setListaHistoricoMovEstoque([...listaHistoricoMovEstoque, ...historicoTemp]);
     }
 
+    
     setHandleModal(false)
     setTipoModal('')
     setProdutoSelecionado({} as iProduto)
-    setValorMov(0)
     setListaProdutoMov([]);
+    setValorMov('')
     setTipoSaida('')
   }
 
   const selecaoTipoSaida = (e: React.ChangeEvent<HTMLInputElement>) =>{
     setTipoSaida((e.target as HTMLInputElement).value);   
+  }
+
+  const selecaoTipoMov = (e: SelectChangeEvent) => {
+    setTipoMovSelecionado && setTipoMovSelecionado(e.target.value);
+    setDataFim(null);
+    setDataInicio(null);
+  }
+
+  const selecaoMovimentacao = (e: SelectChangeEvent) => {
+    setMovimentacaoSelecionada && setMovimentacaoSelecionada(e.target.value);
+  }
+
+  const gerarRelatorioMovimentacao = () => {
+
+    const timeZone = 'America/Sao_Paulo';
+
+    if (tipoMovSelecionado === '' || movimentacaoSelecionada === '' || dataInicio === null || dataFim === null) {
+      setAlertaAddProduto(alertaMensagem("Todos filtros são obrigatorios", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
+    const relatorioFiltrado = listaHistoricoMovEstoque.filter((mov) => {
+
+      const filtroTipoMov = 
+      tipoMovSelecionado === 'Entrada' 
+        ? mov.tipoMov === 'Entrada'
+      :tipoMovSelecionado === 'Saída' 
+        ? mov.tipoMov === 'Saída'
+      : true;
+
+      const filtroTipoSaida =
+      tipoMovSelecionado === 'Saída'
+        ? movimentacaoSelecionada === 'Saída Manual - AVARIA'
+          ? mov.tipoSaida === 'Avaria'
+        : movimentacaoSelecionada === 'Saída Manual - VENDA'
+          ? mov.tipoSaida === 'Venda'
+        : true
+      : true;
+
+      const filtroTipoEntrada  =
+      tipoMovSelecionado === 'Entrada'
+        ? movimentacaoSelecionada === 'Entrada Manual'
+          ? mov.tipoEntrada === 'Manual'
+        : movimentacaoSelecionada === 'Entrada Pedido'
+          ? mov.tipoEntrada === 'Pedido'
+        : true
+      : true;
+
+      let filtroData = true;
+      if (dataInicio && dataFim) {
+        const inicio = toZonedTime(new Date(dataInicio), timeZone);
+        inicio.setHours(0, 0, 0, 0);
+
+        const fim = toZonedTime(new Date(dataFim), timeZone);
+        fim.setHours(23, 59, 59, 999);
+
+        const dataMov = toZonedTime(new Date(mov.dataMov), timeZone);
+        filtroData = dataMov >= inicio && dataMov <= fim;
+      }
+
+    return filtroTipoMov && filtroTipoSaida && filtroTipoEntrada && filtroData;
+      
+    });
+
+    console.log(listaHistoricoMovEstoque)
+    console.log(relatorioFiltrado)
+    
+
+    if (relatorioFiltrado.length === 0) {
+      setAlertaAddProduto(alertaMensagem("Nenhum resultado encontrado", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
+    gerarRelatorioPDF(relatorioFiltrado, tipoMovSelecionado,movimentacaoSelecionada,dataInicio, dataFim);
+
   }
 
   return (
@@ -148,50 +281,126 @@ const ModalMov = () => {
           }}
         >
           <Typography id="modal-estoque-title" variant="h6" component="h2" gutterBottom>
-            {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saida' ? 'Saida Manual do estoque' : ''}
+            {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saída' ? 'Saida Manual do estoque' : tipoModal === 'MovimentacaoEstoque' ? 'Relatorio Movimentação de estoque' : ''}
           </Typography>
           
           <div className="flex flex-col gap-3">
-            <Select
-              value={produtoSelecionado.id ? String(produtoSelecionado.id) : ""}
-              onChange={selecaoProduto}
-              displayEmpty
-              label="Produto"
-            >
-              <MenuItem value="" disabled>
-                Selecione o produto
-              </MenuItem>
-              {estoqueSalvo.listaProdutos && estoqueSalvo.listaProdutos.length > 0 ? (
-                estoqueSalvo.listaProdutos.map((produto: iProduto) => (
-                  <MenuItem key={produto.id} value={String(produto.id)}>
-                    {produto.nome}
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem disabled value="">
-                  Nenhum produto disponível
-                </MenuItem>
-              )}
-            </Select>
-            <TextField disabled={true} value={produtoSelecionado.estoque ?? ""} label="Estoque Atual"></TextField>
+            {tipoModal === 'MovimentacaoEstoque' && (
+              <Stack spacing={2} direction="column">
+                <FormControl fullWidth required>
+                    <InputLabel required id="tipo-label">Tipo</InputLabel>
+                    <Select
+                      displayEmpty
+                      required
+                      value={tipoMovSelecionado ? tipoMovSelecionado : ""}
+                      onChange={selecaoTipoMov}
+                      labelId="tipo-label"
+                      label="Tipo"
+                    >
 
-            <div className="flex flex-row items-center gap-4">
-              <TextField  value={valorMov} onChange={(e) => setValorMov(Number(e.target.value))} disabled={!produtoSelecionado.id} label={tipoModal === 'Entrada' ? 'Entrada Manual' : tipoModal === 'Saida' ? 'Saida Manual' : ''}></TextField>
-              <Button onClick={() => { addProdutoLista(produtoSelecionado, valorMov, tipoSaida, tipoModal, new Date());}} sx={{ backgroundColor: "#4CAF50", color: "#fff", '&:hover': { backgroundColor: "#388E3C" } }} disabled={!produtoSelecionado.id}> <span className="text-xl">+</span></Button>
-            </div> 
+                      {listaTipoMovimentacoes.map((tipo, index) => (
+                        <MenuItem key={index} value={tipo}>{tipo}</MenuItem>
+                      ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl fullWidth required disabled={!tipoMovSelecionado}>
+                  <InputLabel required id="mov-label">Movimentações</InputLabel>
+                  <Select
+                    displayEmpty
+                    value={movimentacaoSelecionada ? movimentacaoSelecionada : ""}
+                    onChange={selecaoMovimentacao}
+                    labelId="mov-label"
+                    label="Movimentações">
+
+                      {listaMovimentacoesEstoque && listaMovimentacoesEstoque.map((mov, index) => (                    
+                        <MenuItem key={index} value={mov}>{mov}</MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                    <DatePicker
+                      format="dd/MM/yyyy"
+                      label="Periodo inicial"
+                      value={dataInicio}
+                      disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
+                      onChange={(newValue) => setDataInicio(newValue)} 
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          required: true,
+                          },
+                        }}
+                      />
+                </LocalizationProvider>
+                        
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                      <DatePicker
+                        format="dd/MM/yyyy"
+                        label="Periodo Final"
+                        value={dataFim}
+                        onChange={(newValue) => setDataFim(newValue)}
+                        disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            required: true,
+                            },
+                          }}
+                      />
+                </LocalizationProvider>         
+              </Stack>            
+            )}   
+
+            {tipoModal !== 'MovimentacaoEstoque' && (
+              <Stack spacing={2} direction="column" justifyContent={"center"} alignItems={"center"}>
+                  <FormControl fullWidth required>
+                    <InputLabel required id="produto-label">Selecione o produto</InputLabel>
+                    <Select
+                      value={produtoSelecionado.id ? String(produtoSelecionado.id) : ""}
+                      onChange={selecaoProduto}
+                      displayEmpty
+                      labelId="produto-label"
+                      label="Selecione o produto"
+                    >
+                      {estoqueSalvo.listaProdutos && estoqueSalvo.listaProdutos.length > 0 ? (
+                        estoqueSalvo.listaProdutos.map((produto: iProduto) => (
+                          <MenuItem key={produto.id} value={String(produto.id)}>{produto.nome}</MenuItem>
+                        ))
+                      ) : null}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth required>
+                    <TextField disabled={true} value={produtoSelecionado.estoque ?? ""} label="Estoque Atual"></TextField>
+                  </FormControl>
+
+                  <FormControl fullWidth required error={Number(valorMov) < 0}>
+                    <Stack direction={"row"} spacing={2} justifyContent="start" alignItems="center">
+                      <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado.id} label={tipoModal === 'Entrada' ? 'Entrada Manual' : tipoModal === 'Saída' ? 'Saida Manual' : ''} error={Number(valorMov) < 0}></TextField>
+                      <Button onClick={() => { addProdutoLista(produtoSelecionado, Number(valorMov), tipoSaida, tipoEntrada, tipoModal, new Date());}} sx={{ backgroundColor: "#4CAF50", color: "#fff", '&:hover': { backgroundColor: "#388E3C" } }} disabled={!produtoSelecionado.id}> <span className="text-xl">+</span></Button>
+                    </Stack>
+
+                    <FormHelperText>
+                      {Number(valorMov) < 0 ? "Valor deve ser maior que zero" : ""}
+                    </FormHelperText>
+                  </FormControl>
+                </Stack>           
+            )}
+
             {alertaAddProduto && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alertaAddProduto}</Box>}     
           
-              {tipoModal === 'Saida' && 
-              (
-                <>
-                  <FormLabel id="demo-controlled-radio-buttons-group">Tipo de saida</FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-controlled-radio-buttons-group"
-                    row
-                    name="controlled-radio-buttons-group"
-                    value={tipoSaida}
-                    onChange={selecaoTipoSaida}
-                    >
+            {tipoModal === 'Saída' && (
+              <>
+                <FormLabel id="demo-controlled-radio-buttons-group">Tipo de saida</FormLabel>
+                <RadioGroup
+                  aria-labelledby="demo-controlled-radio-buttons-group"
+                  row
+                  name="controlled-radio-buttons-group"
+                  value={tipoSaida}
+                  onChange={selecaoTipoSaida}
+                  >
                     <FormControlLabel disabled={!valorMov} value="Venda" control={<Radio />} label="Venda" />
                     <FormControlLabel disabled={!valorMov} value="Avaria" control={<Radio />} label="Avaria" />
                   </RadioGroup>  
@@ -199,11 +408,18 @@ const ModalMov = () => {
               )}       
           </div>
 
-          <ListaMovManual /> 
+          {tipoModal !== 'MovimentacaoEstoque' && (
+            <ListaMovManual />
+          )}
+           
           
           <div className="flex flex-row gap-2">
             <Button  variant="contained" onClick={cancelarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}>Cancelar</Button>
-            <Button variant="contained" onClick={atualizarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Confirmar</Button>
+            { tipoModal === 'MovimentacaoEstoque' ? (
+              <Button variant="contained" onClick={gerarRelatorioMovimentacao} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} >Gerar</Button>
+            ) : (
+              <Button variant="contained" onClick={atualizarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Confirmar</Button>
+            )}
           </div>
           
         </Box>
