@@ -26,8 +26,8 @@ const VisualizarEstoque = () => {
   // const {listaProdutoEntrada, setListaProdutoEntrada} = useContext(AppContext);
   // const [alertaAddProduto, setAlertaAddProduto] = useState<React.ReactNode | null>(null);
   const setTipoModal = useContext(AppContext).setTipoModal;
-  const {tipoEntrada, setTipoEntrada} = useContext(AppContext);
-  const {tipoSaida, setTipoSaida} = useContext(AppContext);
+  const setTipoEntrada = useContext(AppContext).setTipoEntrada;
+  const setTipoSaida = useContext(AppContext).setTipoSaida;
   const setHandleModal = useContext(AppContext).setHandleModal;
 
   const navigate = useNavigate();

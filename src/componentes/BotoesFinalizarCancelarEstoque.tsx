@@ -10,7 +10,6 @@ import ErrorIcon from '@mui/icons-material/Error';
 import alertaMensagem from '../utils/alertaMensagem';
 import { useNavigate } from 'react-router-dom';
 import CaixaDialogo from '../utils/caixaDialogo';
-import { ca } from 'date-fns/locale';
 
 const BotoesFinalizarCancelarEstoque = () => {
 
@@ -22,7 +21,7 @@ const BotoesFinalizarCancelarEstoque = () => {
   const [mostraProgresso, setMostraProgresso] = useState(false);
   const [mensagemEstoqueSalvo, setMensagemEstoqueSalvo] = useState(false);
   const [mensagemErro, setMensagemErro] = useState(false);
-  const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
+  const setMostrarCaixaDialogo = useContext(AppContext).setMostrarCaixaDialogo;
 
 
   const salvarEstoque = () => {

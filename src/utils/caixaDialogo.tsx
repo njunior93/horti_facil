@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import { useContext } from 'react';
 import {Dialog,DialogTitle,DialogContent,DialogContentText,DialogActions,Button} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/context';
@@ -29,7 +29,7 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
 
   return (
     <div>
-      <Dialog open={mostrarCaixaDialogo} onClose={(event, reason) => reason != 'backdropClick' && setMostrarCaixaDialogo(false)}
+      <Dialog open={mostrarCaixaDialogo} onClose={(reason) => reason != 'backdropClick' && setMostrarCaixaDialogo(false)}
         PaperProps={{
         sx: {
           borderRadius: '16px',

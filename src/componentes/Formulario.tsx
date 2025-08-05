@@ -5,7 +5,6 @@ import { AppContext } from '../context/context';
 import type { iProduto } from '../type/iProduto';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import  alertaMensagem  from '../utils/alertaMensagem';
-import caixaDialogo from '../utils/caixaDialogo';
 
 const formulario = () => {
   const [estoqueAtual, setEstoqueAtual] = useState('');
