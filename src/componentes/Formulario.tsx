@@ -1,4 +1,4 @@
-import {  Box, Button, Divider, FormControl, FormControlLabel, MenuItem, Radio, RadioGroup, Select, Stack, TextField, type SelectChangeEvent } from '@mui/material';
+import {  Box, Button, Divider, FormControl, FormControlLabel, FormHelperText, MenuItem, Radio, RadioGroup, Select, Stack, TextField, type SelectChangeEvent } from '@mui/material';
 import { useContext, useEffect, useState } from 'react';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { AppContext } from '../context/context';
@@ -67,6 +67,11 @@ const formulario = () => {
       (produto) => produto.id === produtoSelecionado.id
     );
 
+    if (Number(estoqueAtual) < 0 || Number(vendaMensal) < 0 || Number(loteReposicao) < 0 || Number(tempoReposicao) < 0) {
+      setAlertaAddProduto(alertaMensagem('Há valores negativos.', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+
     if (produtoJaExiste) {
       setAlertaAddProduto(alertaMensagem("Produto ja adicionado!", "warning", <ReportProblemIcon/>));
       return;
@@ -121,8 +126,8 @@ const formulario = () => {
           </RadioGroup>
         </Stack>
         
-        <Stack direction="row" spacing={2} divider={<Divider orientation='vertical' flexItem/>}>
-          <Select labelId="formulario-estoque-inputs-produto-label" id="formulario-estoque-inputs-produto" label="Produto" value={produtoNome} onChange={selecaoProduto} displayEmpty>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} divider={<Divider orientation='vertical' flexItem/>}>
+          <Select labelId="formulario-estoque-inputs-produto-label" id="formulario-estoque-inputs-produto" label="Produto" value={produtoNome} onChange={selecaoProduto} displayEmpty sx={{ width: { xs: '100%', sm: 'auto' } }}>
             <MenuItem value="" disabled>
               Produto
             </MenuItem>
@@ -131,14 +136,16 @@ const formulario = () => {
                 {p.nome}
               </MenuItem>
             ))}
-          </Select>
-          
-          <TextField id="formulario-estoque-inputs-atual" disabled={!produtoSelecionado.id} type='number' value={estoqueAtual}  onChange={(e) => setEstoqueAtual(e.target.value)}  label="Estoque Atual" variant="outlined"/>
-          <TextField id="formulario-estoque-inputs-venda" disabled={!produtoSelecionado.id} type='number' value={vendaMensal} onChange={(e) => setVendaMensal(e.target.value)}  label="Venda Mensal" variant="outlined"/>
-          <TextField id="formulario-estoque-inputs-lote" disabled={!produtoSelecionado.id}  type='number' value={loteReposicao} onChange={(e) => setLoteReposicao(e.target.value)} label="Lote de Reposiçao" variant="outlined"/>
-          <TextField id="formulario-estoque-inputs-tempo" disabled={!produtoSelecionado.id} type='number' value= {tempoReposicao}  onChange={(e) => setTempoReposicao(e.target.value)} label="Tempo de Reposição" variant="outlined"/>
+          </Select>      
+          <TextField required id="formulario-estoque-inputs-atual" disabled={!produtoSelecionado.id} type='number' value={estoqueAtual}  onChange={(e) => setEstoqueAtual(e.target.value)}  label="Estoque Atual" variant="outlined" error={Number(estoqueAtual) < 0}/>
+          <TextField required id="formulario-estoque-inputs-venda" disabled={!produtoSelecionado.id} type='number' value={vendaMensal} onChange={(e) => setVendaMensal(e.target.value)}  label="Venda Mensal" variant="outlined" error={Number(vendaMensal) < 0}/>
+          <TextField required id="formulario-estoque-inputs-lote" disabled={!produtoSelecionado.id}  type='number' value={loteReposicao} onChange={(e) => setLoteReposicao(e.target.value)} label="Lote de Repos." variant="outlined" error={Number(loteReposicao) < 0}/>
+          <TextField required id="formulario-estoque-inputs-tempo" disabled={!produtoSelecionado.id} type='number' value= {tempoReposicao}  onChange={(e) => setTempoReposicao(e.target.value)} label="Tempo de Repos." variant="outlined" error={Number(tempoReposicao) < 0}/>
           <Button variant="contained" disabled={!produtoSelecionado.id} startIcon={<AddCircleIcon />} onClick={calcularEstoque} sx={{ backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#6FE6FC",},}}>Adicionar</Button>
-        </Stack>   
+        </Stack>
+        <FormHelperText>
+          {Number(estoqueAtual) < 0 || Number(vendaMensal) < 0 || Number(loteReposicao) < 0 || Number(tempoReposicao) < 0 ?<span style={{ color: 'red' }}>Os valores não podem ser negativos.</span> : "" }
+        </FormHelperText>
       </FormControl>
         
       {alertaAddProduto && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alertaAddProduto}</Box>}

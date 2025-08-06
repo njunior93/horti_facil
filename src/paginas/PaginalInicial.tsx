@@ -23,14 +23,17 @@ const PaginalInicial = () => {
   },4000);
 
   return (
-    <div className="flex justify-center items-center h-screen w-screen bg-[#FDEFD6]">
-      <div className="flex flex-col items-center text-center justify-center gap-3">
-        <h1 className="text-4xl font-bold text-gray-800">Bem-vindo à HortiFácil</h1>
-        <p className="mt-4 text-lg text-gray-600">Sua plataforma de gestão de estoque de hortifrúti.</p>
+    <div className="flex justify-center items-center h-screen w-screen bg-[#FDEFD6] px-4">
+      <div className="flex flex-col items-center justify-center gap-3 max-w-xs text-center w-3/5 sm:1/2">  
+          <h1 className="font-bold text-gray-800 leading-tight">
+            <span className="block text-2xl sm:text-3xl md:text-4xl">Bem-vindo à</span>
+            <span className="block text-2xl sm:text-3xl md:text-4xl">HortiFácil</span>
+          </h1>   
+        <p className="mt-4 text-xs sm:text-sm md:text-lg text-gray-600 leading-tight">Sua plataforma de gestão de estoque de hortifrúti.</p>
         <Button onClick={abrirModal} variant="contained" sx={{ backgroundColor: "#FB9E3A", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#E6521F",},}}>Iniciar</Button>
       </div>
 
-      <div>
+      <div className="w-2/5 sm:w-1/2">
         <img src="/logo.png" alt="Logo Inicial" width="600" height="400"/>
       </div>
    

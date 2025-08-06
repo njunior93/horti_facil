@@ -39,14 +39,14 @@ const InformaçõesEstoque = ({telaAtual}: Props) => {
 
 
   return (
-    <div className='informacoes-estoque w-full h-full p-4 bg-white flex flex-col justify-center items-center'>
-      <div className='text-lg text-gray-700 rounded-lg shadow-md font-bold mb-4 text-center bg-gray-200 p-1'>
+    <div className='w-full h-full p-4 bg-white flex flex-row justify-center items-center sm:flex-col text-xs sm:text-base gap-2'>
+      <div className='text-gray-700 rounded-lg shadow-md font-bold mb-4 text-center bg-gray-200 p-1'>
         <p className="text-black">Quantidade de Produtos <br/><span className="text-[#0065F8]">{contQtdEstoque}</span></p>
       </div>
-      <div className='text-lg text-gray-700 rounded-lg shadow-md font-bold mb-4 text-center bg-gray-200 p-1'>
+      <div className='text-gray-700 rounded-lg shadow-md font-bold mb-4 text-center bg-gray-200 p-1'>
         <p className="text-[#00DA63]">Produtos com estoque suficiente <br/><span className="text-[#0065F8]">{contSuficiente}</span></p>
       </div>
-      <div className='text-lg text-gray-700 rounded-lg shadow-md font-bold mb-4 text-center bg-gray-200 p-1'>
+      <div className='text-gray-700 rounded-lg shadow-md font-bold mb-4 text-center bg-gray-200 p-1'>
         <p className="text-[#EA2F14]">Produtos para abastecer estoque <br/><span className="text-[#0065F8]">{contInsuficiente}</span></p>
       </div>
     </div>

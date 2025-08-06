@@ -6,7 +6,7 @@ const alertaMensagem = (mensagem: string, tipo: "success" | "error" | "warning",
       <Alert
           icon={icone}
           severity={tipo}
-          sx={{ fontSize: '1.2rem', alignItems: 'center' }}
+          sx={{ fontSize: { xs: '0.9rem', sm: '1.2rem' } }}
         >
         <span style={{ fontSize: '1.2rem' }}>
           {mensagem}

@@ -1,8 +1,9 @@
+import React from 'react';
 import { useContext,  useState } from 'react'
 import { AppContext } from '../context/context';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Box, Button,  MenuItem, Modal, Select, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, MenuItem, Modal, Select, Stack, TextField, Typography } from '@mui/material';
 import type { iProduto } from '../type/iProduto';
 import { unidadesMedida } from '../context/context';
 
@@ -15,27 +16,18 @@ function ListaProdutos() {
   const [estoqueMinimo, setEstoqueMinimo] = useState<number>(0);
   const [estoqueMaximo, setEstoqueMaximo] = useState<number>(0);
   const [estoqueAtual, setEstoqueAtual] = useState<number>(0);
-  // const {contSuficiente, setContSuficiente} = useContext(AppContext);
-  // const {contInsuficiente, setContInsuficiente} = useContext(AppContext);
-  // const {contQtdEstoque, setContQtdEstoque} = useContext(AppContext);
+  const abreviacoes: Record<string, string> = {
+  "Quilo": "Kg",
+  "Unidade": "Un",
+  "Dúzia": "Dz",
+  "Cento": "Ct",
+  "Maço": "Maç",
+  "Litro": "L",
+  "Pacote": "Pct",
+  "Saca": "Sc",
+  "Bandeja": "Bdj"
+};
 
-  // useEffect(() => {
-  //   let Suficiente = 0;
-  //   let Insuficiente = 0;
-
-  //   listaProdutoEstoque.forEach((produto) => {
-  //     if ((produto.estoque ?? 0) >= (produto.estoqueMinimo ?? 0)) {
-  //       Suficiente++;
-  //     } else {
-  //       Insuficiente++;
-  //     }
-  //   });
-
-  //   setContSuficiente(Suficiente);
-  //   setContInsuficiente(Insuficiente);
-  //   setContQtdEstoque(listaProdutoEstoque.length);
-
-  // },[contQtdEstoque, contSuficiente, contInsuficiente, listaProdutoEstoque]);
 
   const estiloModal: React.CSSProperties = {
         position: 'absolute',
@@ -114,14 +106,14 @@ function ListaProdutos() {
   }
   
   return (
-    <div className='lista-produtos-estoque w-full h-5/8 bg-white rounded-lg shadow-md p-4 mt-4 text-center overflow-auto'>
-      <div className='grid grid-cols-6 '>
-        <div className='col-span-1 font-bold border-2 border-solid'>Produto</div>
-        <div className='col-span-1 font-bold border-2 border-solid'>Unidade de Medida</div>
-        <div className='col-span-1 font-bold border-2 border-solid'>Estoque Atual</div>
-        <div className='col-span-1 font-bold border-2 border-solid'>Estoque Mínimo</div>
-        <div className='col-span-1 font-bold border-2 border-solid'>Estoque Máximo</div>
-        <div className='col-span-1 font-bold border-2 border-solid'>Ação</div>
+    <div className='w-full h-5/8 bg-white rounded-lg shadow-md p-1 mt-4 text-center overflow-auto text-sm sm:text-base sm:p-4'>
+      <div className='grid grid-cols-6 divide-x-3 divide-dashed'>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Produto</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Unidade</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Estoque</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Mínimo</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Máximo</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Ação</div>
       </div>
 
       {listaProdutoEstoque.length === 0 && (
@@ -129,7 +121,7 @@ function ListaProdutos() {
       )}
 
       {listaProdutoEstoque.map((p) => (
-        <div key={p.id} className={`grid grid-cols-6 gap-x-px mt-0 border-b-2 border-gray-200 pb-3 text-center ${
+        <div key={p.id} className={`flex justify-center items-center grid grid-cols-6 gap-x-px mt-0 border-b-2 border-gray-200 pb-3 text-center ${
           (p.estoqueSuficiente === false) ?  'bg-[#EA2F14] text-white' : 'bg-[#00DA63]'
         } `}>
           <div className='col-span-1 flex justify-center items-center h-9'>{p.nome}</div>
@@ -137,28 +129,52 @@ function ListaProdutos() {
               <Select
                 id="demo-simple-select"
                 value={p.uniMedida}
-                renderValue={(selected) => {
-                  if (!selected || selected.length === 0) {
-                    return <em>Selecione</em>;
-                  }
+                IconComponent={() => null}
+                renderValue={(selected) => (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      fontStyle: !selected ? 'italic' : 'normal',
+                      color: !selected ? '#aaa' : 'inherit',
+                    }}
+                  >
+                    {selected ? abreviacoes[selected] || selected : 'Selecione'}
 
-                   return selected;
-                  }}
+                  </Box>
+                )}
                   sx={{
-                      backgroundColor: "white",
+                        fontSize: {
+                      xs: "0.75rem",
+                      sm: "1rem",
+                    },
+                    backgroundColor: "white",
+                    height: "100%",
+                    width: "100%",
+                    padding: 0,
+                    borderRadius: 0,
+                    fontStyle: p.uniMedida ? "normal" : "italic",
+                    textAlign: "center",
+                    "& .MuiSelect-select": {
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 0,
+                      textAlign: "center",
                       height: "100%",
                       width: "100%",
-                      padding: "0 8px",
-                      fontStyle: p.uniMedida ? "normal" : "italic",
-                      borderRadius: 0,
-                }}
+                      marginLeft: 1,
+                    },
+                  }}
                 onChange={(e) => selecionandoUnidade(p, e.target.value)}
+                labelId="tipo-unidade"
+                label="Selecione"
                 displayEmpty
                 
-              >
-                <MenuItem value="" disabled>
-                  Selecione
-                </MenuItem> 
+              > 
                 {unidadesMedida.map((uniMedida, index) => (
                   <MenuItem key={index} value={uniMedida}>{uniMedida}</MenuItem>
                 ))}
@@ -167,9 +183,9 @@ function ListaProdutos() {
           <div className='col-span-1 flex justify-center items-center h-9 '>{p.estoque}</div>
           <div className='col-span-1 flex justify-center items-center h-9'>{p.estoqueMinimo}</div>
           <div className='col-span-1 flex justify-center items-center h-9'>{p.estoqueMaximo}</div>
-          <div className='col-span-1 flex justify-center items-center h-9 gap-x-2'>
-            <Button onClick={() => abrirModalEditar(p)}  variant="contained" color="primary" size='small'  startIcon={<EditIcon />}></Button>
-            <Button onClick={() => deletarProduto(p)}  variant="contained" color="error" size='small' startIcon={<DeleteIcon />}></Button>
+          <div className='col-span-1 flex justify-center items-center h-9 p-1 gap-x-1'>
+            <Button sx={{minWidth: { xs: '25px', sm: '64px' }, display: 'flex', alignItems: 'center',justifyContent: 'center'}} onClick={() => abrirModalEditar(p)}  variant="contained" color="primary" size='small' ><EditIcon fontSize="small" /></Button>
+            <Button sx={{minWidth: { xs: '25px', sm: '64px' }, display: 'flex', alignItems: 'center',justifyContent: 'center'}} onClick={() => deletarProduto(p)}  variant="contained" color="error" size='small'><DeleteIcon fontSize="small" /></Button>
           </div>
         </div>
       ))} 
