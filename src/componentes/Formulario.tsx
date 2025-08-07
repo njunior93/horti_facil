@@ -147,6 +147,15 @@ const formulario = () => {
           {Number(estoqueAtual) < 0 || Number(vendaMensal) < 0 || Number(loteReposicao) < 0 || Number(tempoReposicao) < 0 ?<span style={{ color: 'red' }}>Os valores não podem ser negativos.</span> : "" }
         </FormHelperText>
       </FormControl>
+
+      <div className='grid grid-cols-6 divide-x-1 divide-dashed mt-4 text-sm sm:text-base'>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Produto</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Unidade</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Estoque</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Mínimo</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Máximo</div>
+        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Ação</div>
+      </div>
         
       {alertaAddProduto && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alertaAddProduto}</Box>}
     </>

@@ -106,15 +106,7 @@ function ListaProdutos() {
   }
   
   return (
-    <div className='w-full h-5/8 bg-white rounded-lg shadow-md p-1 mt-4 text-center overflow-auto text-sm sm:text-base sm:p-4'>
-      <div className='grid grid-cols-6 divide-x-3 divide-dashed'>
-        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Produto</div>
-        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Unidade</div>
-        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Estoque</div>
-        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Mínimo</div>
-        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Máximo</div>
-        <div className='col-span-1 font-bold flex items-center justify-center sm:border-2 border-solid'>Ação</div>
-      </div>
+    <div className='w-full h-fit sm:h-svw max-h-[300px] bg-white rounded-lg shadow-md p-1 mt-4 text-center scrollbar-fina overflow-auto text-sm sm:text-base sm:p-3'>
 
       {listaProdutoEstoque.length === 0 && (
         <div className='text-center text-gray-500 mt-4'>Nenhum produto cadastrado no estoque</div>   

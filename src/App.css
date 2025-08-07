@@ -5,3 +5,17 @@ body {
   padding: 0;
   box-sizing: border-box;
 }
+
+.scrollbar-fina::-webkit-scrollbar {
+  width: 1px; 
+  height: 6px; 
+}
+
+.scrollbar-fina::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.scrollbar-fina::-webkit-scrollbar-track {
+  background: transparent;
+}
