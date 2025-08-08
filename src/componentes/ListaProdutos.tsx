@@ -106,7 +106,7 @@ function ListaProdutos() {
   }
   
   return (
-    <div className='w-full h-fit sm:h-svw max-h-[300px] bg-white rounded-lg shadow-md p-1 mt-4 text-center scrollbar-fina overflow-auto text-sm sm:text-base sm:p-3'>
+    <div className='w-full h-fit max-h-[100px]  md:h-lvh md:max-h-[400px]  bg-white rounded-lg shadow-md p-1 mt-4 text-center scrollbar-fina overflow-auto text-sm sm:text-base sm:p-3'>
 
       {listaProdutoEstoque.length === 0 && (
         <div className='text-center text-gray-500 mt-4'>Nenhum produto cadastrado no estoque</div>   

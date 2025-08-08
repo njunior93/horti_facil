@@ -39,7 +39,7 @@ const InformaçõesEstoque = ({telaAtual}: Props) => {
 
 
   return (
-    <div className='w-full h-full p-4 bg-white flex flex-row justify-center items-center sm:flex-col text-xs sm:text-base gap-2'>
+    <div className='w-full h-full p-1 sm:p-4 bg-white flex flex-row justify-center items-center sm:flex-col text-xs sm:text-base gap-2'>
       <div className='text-gray-700 rounded-lg shadow-md font-bold mb-4 text-center bg-gray-200 p-1'>
         <p className="text-black">Quantidade de Produtos <br/><span className="text-[#0065F8]">{contQtdEstoque}</span></p>
       </div>

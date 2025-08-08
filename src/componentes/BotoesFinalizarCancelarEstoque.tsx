@@ -1,4 +1,4 @@
-import {  Button, Stack } from '@mui/material'
+import {  Box, Button, Stack } from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
@@ -20,7 +20,7 @@ const BotoesFinalizarCancelarEstoque = () => {
   const [progresso, setProgresso] = useState(0);
   const [mostraProgresso, setMostraProgresso] = useState(false);
   const [mensagemEstoqueSalvo, setMensagemEstoqueSalvo] = useState(false);
-  const [mensagemErro, setMensagemErro] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
   const setMostrarCaixaDialogo = useContext(AppContext).setMostrarCaixaDialogo;
 
 
@@ -29,7 +29,7 @@ const BotoesFinalizarCancelarEstoque = () => {
     const produtoSemUnidade = listaProdutoEstoque.some(produto => !produto.uniMedida);
 
     if (produtoSemUnidade) {
-      setMensagemErro(true);
+      setMensagemErro(alertaMensagem('Preencha o campo Unidades no(s) produto(s)', 'warning', <ErrorIcon/>));
       return;
     }
 
@@ -68,8 +68,7 @@ const BotoesFinalizarCancelarEstoque = () => {
 
     } catch (error) {
       setMensagemEstoqueSalvo(false)
-      setMensagemErro(true)  
-      console.log(`Ocorreu um erro ao salvar o estoque. Tente novamente. ${error}`);
+      setMensagemErro(alertaMensagem(`Ocorreu um erro ao salvar o estoque. Tente novamente. ${error}`, 'warning', <ErrorIcon/>));
     }
   }
   
@@ -106,13 +105,7 @@ const BotoesFinalizarCancelarEstoque = () => {
       </div>
       )}
 
-      {mensagemErro && (
-      <div className="fixed inset-0 flex items-center justify-center z-[1301] pointer-events-none font-size: 1.5rem ">
-        <div className="pointer-events-auto">
-          {alertaMensagem("Ocorreu um erro ao salvar o estoque! Tente novamente", "error", <ErrorIcon/> )}
-        </div>
-      </div>
-      )}
+      {mensagemErro && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{mensagemErro}</Box>}
  
       {mensagemEstoqueSalvo && setTimeout(() => setMensagemEstoqueSalvo(false), 3000)}
       {mensagemErro && setTimeout(() => setMensagemErro(false), 3000)}

@@ -9,8 +9,8 @@ function CriarEstoque() {
   return (
     <>
       
-      <div className="flex flex-col-reverse justify-center items-center h-screen w-screen gap-4 sm:flex-row">
-        <div className="flex flex-col w-full h-4/5 p-4 rounded-lg shadow-md bg-[#FCEED5] basis-[80vw] gap-2 sm:gap-1">
+      <div className="flex flex-col-reverse justify-center items-center h-screen w-screen  sm:flex-row">
+        <div className="flex flex-col w-full sm:h-4/5 p-4 rounded-lg shadow-md bg-[#FCEED5] basis-[80vw] gap-2 sm:gap-1 justify-center ">
           <Formulario />
           <ListaProdutos />
           <BotoesFinalizarCancelarEstoque/>        
