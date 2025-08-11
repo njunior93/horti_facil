@@ -14,7 +14,7 @@ import CaixaDialogo from '../utils/caixaDialogo';
 const BotoesFinalizarCancelarEstoque = () => {
 
   const navigate = useNavigate();	
-  const setEstoqueSalvo = useContext(AppContext).setEstoqueSalvo;
+  const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
   const {setListaProdutoEstoque, listaProdutoEstoque} = useContext(AppContext);
   const {contQtdEstoque, setContQtdEstoque} = useContext(AppContext);
   const [progresso, setProgresso] = useState(0);
@@ -27,6 +27,11 @@ const BotoesFinalizarCancelarEstoque = () => {
   const salvarEstoque = () => {
 
     const produtoSemUnidade = listaProdutoEstoque.some(produto => !produto.uniMedida);
+
+    if (estoqueSalvo.id) {
+      setMensagemErro(alertaMensagem('Ja existe estoque criado', 'warning', <ErrorIcon/>));
+      return;
+    }
 
     if (produtoSemUnidade) {
       setMensagemErro(alertaMensagem('Preencha o campo Unidades no(s) produto(s)', 'warning', <ErrorIcon/>));

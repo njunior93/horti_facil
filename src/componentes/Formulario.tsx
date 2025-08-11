@@ -120,7 +120,7 @@ const formulario = () => {
       <FormControl>
         <Stack direction="column" spacing={0}>
           <span className="mt-2">Categoria</span>
-          <RadioGroup row aria-label='Categoria' defaultValue='horta' name='formulario-estoque-categorias' onChange={selecaoCategoria}>
+          <RadioGroup  row aria-label='Categoria' defaultValue='horta' name='formulario-estoque-categorias' onChange={selecaoCategoria}>
             <FormControlLabel value='horta' control={<Radio />} label="Hortaliças"/>
             <FormControlLabel value='fruta' control={<Radio />} label="Frutas"/>
           </RadioGroup>

@@ -3,10 +3,11 @@ import { useContext,  useState } from 'react'
 import { AppContext } from '../context/context';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { Box, Button, MenuItem, Modal, Select, Stack, TextField, Typography } from '@mui/material';
 import type { iProduto } from '../type/iProduto';
 import { unidadesMedida } from '../context/context';
-
+import  alertaMensagem  from '../utils/alertaMensagem';
 
 function ListaProdutos() {
 
@@ -16,6 +17,7 @@ function ListaProdutos() {
   const [estoqueMinimo, setEstoqueMinimo] = useState<number>(0);
   const [estoqueMaximo, setEstoqueMaximo] = useState<number>(0);
   const [estoqueAtual, setEstoqueAtual] = useState<number>(0);
+  const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
   const abreviacoes: Record<string, string> = {
   "Quilo": "Kg",
   "Unidade": "Un",
@@ -28,6 +30,11 @@ function ListaProdutos() {
   "Bandeja": "Bdj"
 };
 
+  setTimeout(() =>{
+    if(alerta){
+      setAlerta(null)
+    }
+  },4000);
 
   const estiloModal: React.CSSProperties = {
         position: 'absolute',
@@ -61,15 +68,15 @@ function ListaProdutos() {
 
   const salvarEdicao = (produto: iProduto) => {
     if (estoqueMinimo < 0 || estoqueMaximo < 0 || estoqueAtual < 0) {
-      alert('Os valores não podem ser negativos.');
+      setAlerta(alertaMensagem('Os valores não podem ser negativos.', 'warning', <ReportProblemIcon/>));
       return;
     }
     if (estoqueMinimo >= estoqueMaximo) {
-      alert('O estoque mínimo deve ser menor que o estoque máximo.');
+      setAlerta(alertaMensagem('O estoque mínimo deve ser menor que o estoque máximo.', 'warning', <ReportProblemIcon/>));
       return;
     }
     if (estoqueAtual < estoqueMinimo || estoqueAtual > estoqueMaximo) {
-      alert('O estoque atual deve estar entre o estoque mínimo e máximo.');
+      setAlerta(alertaMensagem('O estoque atual deve estar entre o estoque mínimo e máximo.', 'warning', <ReportProblemIcon/>));
       return;
     }
     
@@ -106,17 +113,17 @@ function ListaProdutos() {
   }
   
   return (
-    <div className='w-full h-fit max-h-[100px]  md:h-lvh md:max-h-[400px]  bg-white rounded-lg shadow-md p-1 mt-4 text-center scrollbar-fina overflow-auto text-sm sm:text-base sm:p-3'>
+    <div className='w-full min-h-[50px] max-h-[100px] md:h-lvh md:max-h-[400px] bg-white rounded-lg shadow-md p-1 text-center scrollbar-fina overflow-y-auto text-sm sm:text-base sm:p-1'>
 
       {listaProdutoEstoque.length === 0 && (
         <div className='text-center text-gray-500 mt-4'>Nenhum produto cadastrado no estoque</div>   
       )}
 
       {listaProdutoEstoque.map((p) => (
-        <div key={p.id} className={`flex justify-center items-center grid grid-cols-6 gap-x-px mt-0 border-b-2 border-gray-200 pb-3 text-center ${
+        <div key={p.id} className={`grid grid-cols-6 gap-x-px gap-y-1 h-fit mt-0 border-b-2 border-gray-200 text-center ${
           (p.estoqueSuficiente === false) ?  'bg-[#EA2F14] text-white' : 'bg-[#00DA63]'
         } `}>
-          <div className='col-span-1 flex justify-center items-center h-9'>{p.nome}</div>
+          <div className='col-span-1 flex justify-center items-center'>{p.nome}</div>
           <div className='col-span-1 flex justify-center items-center h-9'>         
               <Select
                 id="demo-simple-select"
@@ -169,10 +176,10 @@ function ListaProdutos() {
                 ))}
               </Select>
           </div>
-          <div className='col-span-1 flex justify-center items-center h-9 '>{p.estoque}</div>
-          <div className='col-span-1 flex justify-center items-center h-9'>{p.estoqueMinimo}</div>
-          <div className='col-span-1 flex justify-center items-center h-9'>{p.estoqueMaximo}</div>
-          <div className='col-span-1 flex justify-center items-center h-9 p-1 gap-x-1'>
+          <div className='col-span-1 flex justify-center items-center'>{p.estoque}</div>
+          <div className='col-span-1 flex justify-center items-center'>{p.estoqueMinimo}</div>
+          <div className='col-span-1 flex justify-center items-center '>{p.estoqueMaximo}</div>
+          <div className='col-span-1 flex justify-center items-center gap-x-1'>
             <Button sx={{minWidth: { xs: '25px', sm: '64px' }, display: 'flex', alignItems: 'center',justifyContent: 'center'}} onClick={() => abrirModalEditar(p)}  variant="contained" color="primary" size='small' ><EditIcon fontSize="small" /></Button>
             <Button sx={{minWidth: { xs: '25px', sm: '64px' }, display: 'flex', alignItems: 'center',justifyContent: 'center'}} onClick={() => deletarProduto(p)}  variant="contained" color="error" size='small'><DeleteIcon fontSize="small" /></Button>
           </div>
@@ -227,6 +234,10 @@ function ListaProdutos() {
         </Stack>
       </Box>
       </Modal>   
+
+      {alerta && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alerta}</Box>}
+        
+
     </div>
   )
 }

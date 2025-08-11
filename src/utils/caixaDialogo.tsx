@@ -29,7 +29,7 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
 
   return (
     <div>
-      <Dialog open={mostrarCaixaDialogo} onClose={(reason) => reason != 'backdropClick' && setMostrarCaixaDialogo(false)}
+      <Dialog open={mostrarCaixaDialogo} onClose={(_event: object,reason) => reason != 'backdropClick' && setMostrarCaixaDialogo(false)}
         PaperProps={{
         sx: {
           borderRadius: '16px',
