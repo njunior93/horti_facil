@@ -29,18 +29,7 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
 
   return (
     <div>
-      <Dialog open={mostrarCaixaDialogo} onClose={(_event: object,reason) => reason != 'backdropClick' && setMostrarCaixaDialogo(false)}
-        PaperProps={{
-        sx: {
-          borderRadius: '16px',
-          padding: 3,
-          minWidth: 300,
-          maxWidth: 400,
-          boxShadow: 10
-        }}}
-        
-        
-        >
+      <Dialog open={mostrarCaixaDialogo} onClose={(_event: object,reason) => reason != 'backdropClick' && setMostrarCaixaDialogo(false)} PaperProps={{ sx: { borderRadius: '16px',padding: 3,minWidth: 300, maxWidth: 400,boxShadow: 10}}}>
         <DialogTitle>{props.titulo}</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -56,7 +45,7 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
           <Button onClick={handleGerenciarEstoque}
            sx={{
                 backgroundColor: "#FDEFD6",
-                fontSize: "1rem",
+                fontSize:  { xs: "0.75rem",sm: "1rem"},
                 padding: "8px 16px",
                 borderRadius: "0.75rem",
                 color: "#000",
@@ -77,7 +66,7 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
                 borderRadius: "0.75rem",
                 color: "#000",
                 textTransform: "capitalize",
-                fontSize: "1rem",
+                fontSize: { xs: "0.75rem",sm: "1rem"},
                 padding: "8px 16px",
                 mb: 1,
                 transition: "background 0.2s",
