@@ -46,7 +46,7 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
            sx={{
                 backgroundColor: "#FDEFD6",
                 fontSize:  { xs: "0.75rem",sm: "1rem"},
-                padding: "8px 16px",
+                padding: { xs: "6px 12px", sm: "8px 16px" },
                 borderRadius: "0.75rem",
                 color: "#000",
                 textTransform: "capitalize",
@@ -67,7 +67,7 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
                 color: "#000",
                 textTransform: "capitalize",
                 fontSize: { xs: "0.75rem",sm: "1rem"},
-                padding: "8px 16px",
+                padding: { xs: "6px 12px", sm: "8px 16px" },
                 mb: 1,
                 transition: "background 0.2s",
                 '&:hover': {

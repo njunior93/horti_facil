@@ -113,14 +113,14 @@ function ListaProdutos() {
   }
   
   return (
-    <div className='w-full min-h-[50px] max-h-[100px] md:h-lvh md:max-h-[400px] bg-white rounded-lg shadow-md p-1 text-center scrollbar-fina overflow-y-auto text-sm sm:text-base sm:p-1'>
+    <div className='space-y-1 w-full min-h-[50px] max-h-[100px] md:h-lvh md:max-h-[400px] bg-white rounded-lg shadow-md p-1 text-center scrollbar-fina overflow-y-auto text-sm sm:text-base sm:p-1'>
 
       {listaProdutoEstoque.length === 0 && (
         <div className='text-center text-gray-500 mt-4'>Nenhum produto cadastrado no estoque</div>   
       )}
 
       {listaProdutoEstoque.map((p) => (
-        <div key={p.id} className={`grid grid-cols-6 gap-x-px gap-y-1 h-fit mt-0 border-b-2 border-gray-200 text-center ${
+        <div key={p.id} className={`grid grid-cols-6 gap-x-1 gap-y-3 h-fit mt-0 border-b-2 border-gray-200 text-center ${
           (p.estoqueSuficiente === false) ?  'bg-[#EA2F14] text-white' : 'bg-[#00DA63]'
         } `}>
           <div className='col-span-1 flex justify-center items-center'>{p.nome}</div>
