@@ -118,8 +118,8 @@ const formulario = () => {
   return (
     <>
       <FormControl>
-        <Stack direction="column" spacing={1}>
-          <span className="formulario-estoque-categorias-label">Categoria</span>
+        <Stack direction="column" spacing={0}>
+          <span className="mt-2">Categoria</span>
           <RadioGroup row aria-label='Categoria' defaultValue='horta' name='formulario-estoque-categorias' onChange={selecaoCategoria}>
             <FormControlLabel value='horta' control={<Radio />} label="Hortaliças"/>
             <FormControlLabel value='fruta' control={<Radio />} label="Frutas"/>

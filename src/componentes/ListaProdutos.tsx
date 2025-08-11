@@ -117,7 +117,7 @@ function ListaProdutos() {
           (p.estoqueSuficiente === false) ?  'bg-[#EA2F14] text-white' : 'bg-[#00DA63]'
         } `}>
           <div className='col-span-1 flex justify-center items-center h-9'>{p.nome}</div>
-          <div className='col-span-1 flex justify-center items-center h-9 m-1'>         
+          <div className='col-span-1 flex justify-center items-center h-9'>         
               <Select
                 id="demo-simple-select"
                 value={p.uniMedida}
@@ -139,10 +139,7 @@ function ListaProdutos() {
                   </Box>
                 )}
                   sx={{
-                        fontSize: {
-                      xs: "0.75rem",
-                      sm: "1rem",
-                    },
+                    fontSize: { xs: "0.75rem",sm: "1rem"},
                     backgroundColor: "white",
                     height: "100%",
                     width: "100%",
@@ -154,11 +151,11 @@ function ListaProdutos() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: 0,
+                      padding: 4,
                       textAlign: "center",
                       height: "100%",
                       width: "100%",
-                      marginLeft: 1,
+                      marginLeft: 0,
                     },
                   }}
                 onChange={(e) => selecionandoUnidade(p, e.target.value)}
