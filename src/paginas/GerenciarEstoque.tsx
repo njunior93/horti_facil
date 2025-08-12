@@ -3,14 +3,16 @@ import InformaçõesEstoque from '../componentes/InformaçõesEstoque'
 
 const GerenciarEstoque = () => {
   return (
-    <div className='flex justify-center flex-row  items-center h-screen w-screen gap-4'>
-      <div className='flex justify-center items-center h-screen w-screen'>
-        <VisualizarEstoque/>
-      </div>
+    <div className='flex justify-center item-center h-screen w-screen'>
+      <div className='flex justify-center item-center flex-col-reverse sm:flex-row'>
+        <div className='flex justify-center items-center'>
+          <VisualizarEstoque/>
+        </div>
 
-      <div className='basis-[15vw] w-full'>
-        <InformaçõesEstoque telaAtual={'gerenciar-estoque'}/>
-      </div>
+        <div className='flex justify-center items-center'>
+          <InformaçõesEstoque telaAtual={'gerenciar-estoque'}/>
+        </div>
+      </div>    
     </div>
     
   )

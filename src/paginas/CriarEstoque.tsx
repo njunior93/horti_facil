@@ -9,17 +9,18 @@ function CriarEstoque() {
   return (
     <>
       
-      <div className="flex flex-col justify-center items-center h-screen w-screen  sm:flex-row">
-        <div className="flex flex-col w-full sm:h-4/5 p-4 rounded-lg shadow-md bg-[#FCEED5] basis-[80vw] gap-2 sm:gap-1 justify-center ">
-          <Formulario />
-          <ListaProdutos />
-          <BotoesFinalizarCancelarEstoque/>        
-        </div>
+      <div className="flex justify-center items-center h-screen w-screen ">
+        <div className='flex justify-center items-center flex-col-reverse sm:flex-row'>
+          <div className="flex flex-col w-full sm:size-min p-4 rounded-lg shadow-md bg-[#FCEED5]  gap-2 sm:gap-1 justify-center ">
+            <Formulario />
+            <ListaProdutos />
+            <BotoesFinalizarCancelarEstoque/>        
+          </div>
         
-        <div className='basis-[15vw] w-full'>
-            <InformaçõesEstoque telaAtual={'criar-estoque'}  />
+          <div className='flex justify-center items-center'>
+              <InformaçõesEstoque telaAtual={'criar-estoque'}  />
+          </div>
         </div>
-
       </div>
     </>
   )
