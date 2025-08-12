@@ -38,14 +38,15 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
         </DialogContent>
         <DialogActions sx={{
           justifyContent: 'center',
-          gap: 3,
+          gap: 2,
           paddingBottom: 2
         }}
       >
           <Button onClick={handleGerenciarEstoque}
+          fullWidth
            sx={{
                 backgroundColor: "#FDEFD6",
-                fontSize:  { xs: "0.75rem",sm: "1rem"},
+                fontSize:  "1rem",
                 padding: { xs: "6px 12px", sm: "8px 16px" },
                 borderRadius: "0.75rem",
                 color: "#000",
@@ -66,7 +67,7 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
                 borderRadius: "0.75rem",
                 color: "#000",
                 textTransform: "capitalize",
-                fontSize: { xs: "0.75rem",sm: "1rem"},
+                fontSize: "1rem",
                 padding: { xs: "6px 12px", sm: "8px 16px" },
                 mb: 1,
                 transition: "background 0.2s",

@@ -146,7 +146,7 @@ function ListaProdutos() {
                   </Box>
                 )}
                   sx={{
-                    fontSize: { xs: "0.75rem",sm: "1rem"},
+                    fontSize: { xs: "0.68rem",sm: "1rem"},
                     backgroundColor: "white",
                     height: "100%",
                     width: "100%",
@@ -158,7 +158,7 @@ function ListaProdutos() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: 4,
+                      padding: 3,
                       textAlign: "center",
                       height: "100%",
                       width: "100%",
@@ -167,7 +167,6 @@ function ListaProdutos() {
                   }}
                 onChange={(e) => selecionandoUnidade(p, e.target.value)}
                 labelId="tipo-unidade"
-                label="Selecione"
                 displayEmpty
                 
               > 
