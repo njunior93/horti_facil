@@ -1,5 +1,5 @@
 import React from 'react';
-import { useContext,  useState } from 'react'
+import { useContext, useState } from 'react';
 import { AppContext } from '../context/context';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -7,7 +7,7 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { Box, Button, MenuItem, Modal, Select, Stack, TextField, Typography } from '@mui/material';
 import type { iProduto } from '../type/iProduto';
 import { unidadesMedida } from '../context/context';
-import  alertaMensagem  from '../utils/alertaMensagem';
+import alertaMensagem from '../utils/alertaMensagem';
 
 function ListaProdutos() {
 
@@ -113,18 +113,18 @@ function ListaProdutos() {
   }
   
   return (
-    <div className='space-y-1 w-full min-h-[50px] max-h-[100px] md:h-lvh md:max-h-[400px] bg-white rounded-lg shadow-md p-1 text-center scrollbar-fina overflow-y-auto text-sm sm:text-base sm:p-1'>
+    <div className='h-28 sm:h-lvh sm:max-h-[200px] text-sm sm:text-base overflow-auto bg-[#FFF] p-1'>
 
       {listaProdutoEstoque.length === 0 && (
         <div className='text-center text-gray-500 mt-4'>Nenhum produto cadastrado no estoque</div>   
       )}
 
       {listaProdutoEstoque.map((p) => (
-        <div key={p.id} className={`grid grid-cols-6 gap-x-1 gap-y-3 h-fit mt-0 border-b-2 border-gray-200 text-center ${
+        <div key={p.id} className={`grid grid-cols-6 border-b-2 border-gray-200 text-center h-10 ${
           (p.estoqueSuficiente === false) ?  'bg-[#EA2F14] text-white' : 'bg-[#00DA63]'
-        } `}>
-          <div className='col-span-1 flex justify-center items-center'>{p.nome}</div>
-          <div className='col-span-1 flex justify-center items-center h-9'>         
+        } `} style={{ marginBottom: '1px' }}>
+          <div className='flex justify-center items-center'>{p.nome}</div>
+          <div>         
               <Select
                 id="demo-simple-select"
                 value={p.uniMedida}
@@ -139,6 +139,7 @@ function ListaProdutos() {
                       height: '100%',
                       fontStyle: !selected ? 'italic' : 'normal',
                       color: !selected ? '#aaa' : 'inherit',
+                      marginLeft: 4,
                     }}
                   >
                     {selected ? abreviacoes[selected] || selected : 'Selecione'}
@@ -158,11 +159,10 @@ function ListaProdutos() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: 3,
+                      padding: 0,
                       textAlign: "center",
                       height: "100%",
                       width: "100%",
-                      marginLeft: 0,
                     },
                   }}
                 onChange={(e) => selecionandoUnidade(p, e.target.value)}
@@ -175,10 +175,10 @@ function ListaProdutos() {
                 ))}
               </Select>
           </div>
-          <div className='col-span-1 flex justify-center items-center'>{p.estoque}</div>
-          <div className='col-span-1 flex justify-center items-center'>{p.estoqueMinimo}</div>
-          <div className='col-span-1 flex justify-center items-center '>{p.estoqueMaximo}</div>
-          <div className='col-span-1 flex justify-center items-center gap-x-1'>
+          <div className='flex justify-center items-center'>{p.estoque}</div>
+          <div className='flex justify-center items-center'>{p.estoqueMinimo}</div>
+          <div className='flex justify-center items-center'>{p.estoqueMaximo}</div>
+          <div className='flex justify-center items-center gap-x-1 p-1'>
             <Button sx={{minWidth: { xs: '25px', sm: '64px' }, display: 'flex', alignItems: 'center',justifyContent: 'center'}} onClick={() => abrirModalEditar(p)}  variant="contained" color="primary" size='small' ><EditIcon fontSize="small" /></Button>
             <Button sx={{minWidth: { xs: '25px', sm: '64px' }, display: 'flex', alignItems: 'center',justifyContent: 'center'}} onClick={() => deletarProduto(p)}  variant="contained" color="error" size='small'><DeleteIcon fontSize="small" /></Button>
           </div>

@@ -116,8 +116,8 @@ const formulario = () => {
   }
 
   return (
-    <>
-      <FormControl>
+    <div>
+      <FormControl className='w-full sm:w-5xl'>
         <Stack direction="column" spacing={0}>
           <span className="mt-2">Categoria</span>
           <RadioGroup  row aria-label='Categoria' defaultValue='horta' name='formulario-estoque-categorias' onChange={selecaoCategoria}>
@@ -143,6 +143,7 @@ const formulario = () => {
           <TextField required id="formulario-estoque-inputs-tempo" disabled={!produtoSelecionado.id} type='number' value= {tempoReposicao}  onChange={(e) => setTempoReposicao(e.target.value)} label="Tempo de Repos." variant="outlined" error={Number(tempoReposicao) < 0}/>
           <Button variant="contained" disabled={!produtoSelecionado.id} startIcon={<AddCircleIcon />} onClick={calcularEstoque} sx={{ backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#6FE6FC",},}}>Adicionar</Button>
         </Stack>
+
         <FormHelperText>
           {Number(estoqueAtual) < 0 || Number(vendaMensal) < 0 || Number(loteReposicao) < 0 || Number(tempoReposicao) < 0 ?<span style={{ color: 'red' }}>Os valores não podem ser negativos.</span> : "" }
         </FormHelperText>
@@ -158,7 +159,7 @@ const formulario = () => {
       </div>
         
       {alertaAddProduto && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alertaAddProduto}</Box>}
-    </>
+    </div>
   )
   
 }

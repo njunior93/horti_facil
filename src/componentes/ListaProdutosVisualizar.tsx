@@ -28,8 +28,8 @@ const ListaProdutosVisualizar = ({nome, tipo, qtd} : ListaProdutosVisualizarProp
     <span className="text-1xl font-bold text-gray-800">Produtos estocados</span>
     <div className='grid grid-cols-5 items-center p-2 border-b text-center font-bold text-sm'>
         <div>Produto</div>
-        <div>Unidade de M.</div>
-        <div>Estoque Atual</div>
+        <div>Unidade</div>
+        <div>Estoque</div>
         <div>Estoque Mínimo</div>
         <div>Estoque Máximo</div>
 
