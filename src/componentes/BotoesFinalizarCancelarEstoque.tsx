@@ -83,6 +83,8 @@ const BotoesFinalizarCancelarEstoque = () => {
   }
 
   const sairEstoque = () =>{
+    setListaProdutoEstoque([]);
+    setContQtdEstoque(0);
     navigate("/")
   }
 

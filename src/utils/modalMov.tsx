@@ -261,25 +261,34 @@ const ModalMov = () => {
     <div>
       <Modal
         open={handleModal}
-        onClose={() => setHandleModal(false)}
+        onClose={(_event: object,reason) => reason != 'backdropClick' && setHandleModal(false)}
         aria-labelledby="modal-estoque-title"
         aria-describedby="modal-estoque-description"
       >
         
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '50%',
-            bgcolor: 'background.paper',
-            border: '2px solid #000',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
+    <Box
+      sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        bgcolor: 'background.paper',
+        border: '2px solid #000',
+        boxShadow: 24,
+        p: 4,
+        borderRadius: 2,
+        width: {
+          xs: '90vw',
+          sm: '70vw',
+          md: '50vw',
+        },
+        maxHeight:{
+          xs: '90vh',
+          sm: '80vh',
+          md: '70vh',
+        }
+      }}
+    >
           <Typography id="modal-estoque-title" variant="h6" component="h2" gutterBottom>
             {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saída' ? 'Saida Manual do estoque' : tipoModal === 'MovimentacaoEstoque' ? 'Relatorio Movimentação de estoque' : ''}
           </Typography>
@@ -405,7 +414,7 @@ const ModalMov = () => {
                     <FormControlLabel disabled={!valorMov} value="Avaria" control={<Radio />} label="Avaria" />
                   </RadioGroup>  
                 </>
-              )}       
+            )}       
           </div>
 
           {tipoModal !== 'MovimentacaoEstoque' && (
