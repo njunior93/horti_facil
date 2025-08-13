@@ -22,6 +22,7 @@ const BotoesFinalizarCancelarEstoque = () => {
   const [mensagemEstoqueSalvo, setMensagemEstoqueSalvo] = useState(false);
   const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
   const setMostrarCaixaDialogo = useContext(AppContext).setMostrarCaixaDialogo;
+  const{setTipoInput} = useContext(AppContext);
 
 
   const salvarEstoque = () => {
@@ -66,6 +67,7 @@ const BotoesFinalizarCancelarEstoque = () => {
           setListaProdutoEstoque([]);
           setContQtdEstoque(0);
           setMostraProgresso(false);
+          setTipoInput("auto");
           document.body.style.pointerEvents=""
         }
       }, 1000);
@@ -80,12 +82,14 @@ const BotoesFinalizarCancelarEstoque = () => {
   const cancelarEstoque = () =>{
     setListaProdutoEstoque([]);
     setContQtdEstoque(0);
+    setTipoInput("auto");
   }
 
   const sairEstoque = () =>{
     setListaProdutoEstoque([]);
     setContQtdEstoque(0);
     navigate("/")
+    setTipoInput("auto");
   }
 
   return (

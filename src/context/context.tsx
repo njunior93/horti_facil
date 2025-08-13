@@ -43,6 +43,8 @@ interface IContext {
   setTipoSaida: (tipo: string) => void;
   mostrarCaixaDialogo: boolean;
   setMostrarCaixaDialogo: (mostrar: boolean) => void;
+  tipoInput: "auto" | "manual";
+  setTipoInput: (tipo: "auto" | "manual") => void;
 
 }
 
@@ -50,7 +52,7 @@ interface AppProvideProps{
     children: ReactNode
 }
 
-const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: {} as iEstoque, setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: '', setTipoEntrada: () => {}, tipoSaida: '', setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {} };
+const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: {} as iEstoque, setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: '', setTipoEntrada: () => {}, tipoSaida: '', setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {}, tipoInput: 'auto', setTipoInput: () => {}};
 
 export const AppContext = createContext<IContext>(inicial);
 
@@ -124,12 +126,14 @@ export const AppProvider = ({ children }: AppProvideProps) => {
   const [tipoSaida, setTipoSaida] = useState<string>('')
   const [listaProdutoMov, setListaProdutoMov] = useState<iProdutoMov[]>([]);
   const [mostrarCaixaDialogo, setMostrarCaixaDialogo] = useState(false);
+ const [tipoInput, setTipoInput] = useState<"auto" | "manual">('auto');
+
 
   
 
 
   return (
-    <AppContext.Provider value={{handleModal, setHandleModal, listaProdutoMovTemp,setListaProdutoMovTemp,listaTipoProdutos, setlistaTipoProdutos, categoria, setCategoria, listaProdutoEstoque, setListaProdutoEstoque, contSuficiente, setContSuficiente, contInsuficiente, setContInsuficiente, contQtdEstoque, setContQtdEstoque, estoqueSalvo, setEstoqueSalvo, tipoModal, setTipoModal, listaHistoricoMovEstoque, setListaHistoricoMovEstoque, listaTipoMovimentacoes, setListaTipoMovimentacoes, listaMovimentacoesEstoque, setListaMovimentacoesEstoque, tipoMovSelecionado, setTipoMovSelecionado, movimentacaoSelecionada, setMovimentacaoSelecionada, tipoEntrada, setTipoEntrada, tipoSaida, setTipoSaida, listaProdutoMov, setListaProdutoMov, mostrarCaixaDialogo, setMostrarCaixaDialogo}}>
+    <AppContext.Provider value={{handleModal, setHandleModal, listaProdutoMovTemp,setListaProdutoMovTemp,listaTipoProdutos, setlistaTipoProdutos, categoria, setCategoria, listaProdutoEstoque, setListaProdutoEstoque, contSuficiente, setContSuficiente, contInsuficiente, setContInsuficiente, contQtdEstoque, setContQtdEstoque, estoqueSalvo, setEstoqueSalvo, tipoModal, setTipoModal, listaHistoricoMovEstoque, setListaHistoricoMovEstoque, listaTipoMovimentacoes, setListaTipoMovimentacoes, listaMovimentacoesEstoque, setListaMovimentacoesEstoque, tipoMovSelecionado, setTipoMovSelecionado, movimentacaoSelecionada, setMovimentacaoSelecionada, tipoEntrada, setTipoEntrada, tipoSaida, setTipoSaida, listaProdutoMov, setListaProdutoMov, mostrarCaixaDialogo, setMostrarCaixaDialogo, tipoInput, setTipoInput}}>
       {children}
     </AppContext.Provider>
   );

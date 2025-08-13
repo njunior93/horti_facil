@@ -277,16 +277,7 @@ const ModalMov = () => {
         boxShadow: 24,
         p: 4,
         borderRadius: 2,
-        width: {
-          xs: '90vw',
-          sm: '70vw',
-          md: '50vw',
-        },
-        maxHeight:{
-          xs: '90vh',
-          sm: '80vh',
-          md: '70vh',
-        }
+        width: {xs: '90vw', sm: '70%', md: '50%', lg: '40%'}
       }}
     >
           <Typography id="modal-estoque-title" variant="h6" component="h2" gutterBottom>
