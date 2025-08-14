@@ -325,8 +325,15 @@ const ModalMov = () => {
                       label="Periodo inicial"
                       value={dataInicio}
                       disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
-                      onChange={(newValue) => setDataInicio(newValue)}
-                      maxDate={dataFim ?? undefined}
+                      onChange={(newValue) => {
+                        if (dataFim && newValue && newValue > dataFim) {
+                          setAlertaAddProduto(alertaMensagem("Data inicial não pode ser maior que a final", "warning", <ReportProblemIcon/>));
+                          } else {
+                          setAlertaAddProduto(null);
+                          setDataInicio(newValue);                   
+                        }
+                      }}                      
+                      maxDate={dataFim || undefined}
                       slotProps={{
                         textField: {
                           fullWidth: true,
@@ -341,9 +348,16 @@ const ModalMov = () => {
                         format="dd/MM/yyyy"
                         label="Periodo Final"
                         value={dataFim}
-                        onChange={(newValue) => setDataFim(newValue)}
+                        onChange={(newValue) => {
+                        if (dataInicio && newValue && newValue < dataInicio) {
+                          setAlertaAddProduto(alertaMensagem("Data final não pode ser maior que a Inicial", "warning", <ReportProblemIcon/>));
+                          } else {
+                          setAlertaAddProduto(null);
+                          setDataFim(newValue);                   
+                          }
+                        }} 
                         disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
-                        minDate={dataInicio ?? undefined}
+                        minDate={dataInicio || undefined}
                         slotProps={{
                           textField: {
                             fullWidth: true,
