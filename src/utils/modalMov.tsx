@@ -325,7 +325,8 @@ const ModalMov = () => {
                       label="Periodo inicial"
                       value={dataInicio}
                       disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
-                      onChange={(newValue) => setDataInicio(newValue)} 
+                      onChange={(newValue) => setDataInicio(newValue)}
+                      maxDate={dataFim ?? undefined}
                       slotProps={{
                         textField: {
                           fullWidth: true,
@@ -342,6 +343,7 @@ const ModalMov = () => {
                         value={dataFim}
                         onChange={(newValue) => setDataFim(newValue)}
                         disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
+                        minDate={dataInicio ?? undefined}
                         slotProps={{
                           textField: {
                             fullWidth: true,
