@@ -143,7 +143,7 @@ const formulario = () => {
   return (
     <div>
       <FormControl className='w-full sm:w-5xl'>
-        <div className='flex flex-row justify-between items-center mb-4'>
+        <div className='flex flex-row justify-between items-center mb-4 mt-2'>
           <Stack direction="column" spacing={0}>
             <span className="mt-2">Categoria</span>
             <RadioGroup  row aria-label='Categoria' defaultValue='horta' name='formulario-estoque-categorias' onChange={selecaoCategoria}>
@@ -152,13 +152,19 @@ const formulario = () => {
             </RadioGroup>
           </Stack>
 
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Typography sx={{ fontWeight: 'bold', bgcolor: '#e3f2fd', px: 1, py: 0.5, borderRadius: 1 }}>
-              Cálculo do estoque mínimo e máximo:
-            </Typography>
-            <Typography>Manual</Typography>
-            <Switch checked={tipoInput === 'auto'} onChange={alterarTipoInput} defaultChecked inputProps={{ 'aria-label': 'ant design' }} />
-            <Typography>Auto</Typography>
+          <Stack direction="column" spacing={0} sx={{ alignItems: 'center' }}>
+            <Box display={'flex'} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%' }}>
+              <Typography sx={{ fontWeight: 'bold', bgcolor: '#e3f2fd', px: 1, py: 0.5, borderRadius: 1, fontSize: {xs: '0.75rem'} }}>
+               Mínimo e Máximo:
+              </Typography>
+            </Box>
+            
+            <Box display={'flex'} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%' }}>
+              <Typography>Manual</Typography>
+              <Switch checked={tipoInput === 'auto'} onChange={alterarTipoInput} defaultChecked inputProps={{ 'aria-label': 'ant design' }} />
+              <Typography>Auto</Typography>
+            </Box>
+         
           </Stack>
         </div>
         
