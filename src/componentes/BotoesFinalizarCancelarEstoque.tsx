@@ -11,6 +11,8 @@ import alertaMensagem from '../utils/alertaMensagem';
 import { useNavigate } from 'react-router-dom';
 import CaixaDialogo from '../utils/caixaDialogo';
 import axios from 'axios';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import { supabase } from '../supabaseClient';
 
 
 const BotoesFinalizarCancelarEstoque = () => {
@@ -31,11 +33,6 @@ const BotoesFinalizarCancelarEstoque = () => {
 
     const produtoSemUnidade = listaProdutoEstoque.some(produto => !produto.uniMedida);
 
-    // if (estoqueSalvo) {
-    //   setMensagemErro(alertaMensagem('Ja existe estoque criado', 'warning', <ErrorIcon/>));
-    //   return;
-    // }
-
     if (produtoSemUnidade) {
       setMensagemErro(alertaMensagem('Preencha o campo Unidades no(s) produto(s)', 'warning', <ErrorIcon/>));
       return;
@@ -44,7 +41,15 @@ const BotoesFinalizarCancelarEstoque = () => {
     if (listaProdutoEstoque.length === 0 || contQtdEstoque === 0) {
         alert("Não há produtos no estoque para salvar.");
         return;
-      }
+    }
+
+    const {data: {session}} = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    if (!token){
+      setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+      return;
+    }
 
       const novoEstoque = {
         data: new Date().toISOString(),
@@ -66,8 +71,13 @@ const BotoesFinalizarCancelarEstoque = () => {
 
     try{
 
-      const response = await axios.post ('http://localhost:3000/estoque/criar-estoque', novoEstoque)
-      console.log(response.data)
+      const response = await axios.post ('http://localhost:3000/estoque/criar-estoque', novoEstoque,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
 
       clearInterval(intervaloProgresso)
       setProgresso(100);
@@ -106,7 +116,7 @@ const BotoesFinalizarCancelarEstoque = () => {
   const sairEstoque = () =>{
     setListaProdutoEstoque([]);
     setContQtdEstoque(0);
-    navigate("/")
+    navigate("/pagina-inicial")
     setTipoInput("auto");
   }
 

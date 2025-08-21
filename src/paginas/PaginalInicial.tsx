@@ -15,7 +15,7 @@ const PaginalInicial = () => {
   const abrirModal = () => setOpen(true);
   const fecharModal = () => setOpen(false);
   const navigate = useNavigate();	
-  const estoqueSalvo = useContext(AppContext).estoqueSalvo;
+  const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
   const [loading, setLoading] = useState(false);
   const {session} = useAuth();
@@ -38,43 +38,66 @@ const PaginalInicial = () => {
     );
   }
 
-  const iniciar = async () =>{
+  const verificarEstoque = async () =>{
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
 
     if (!session){
       setAlerta(alertaMensagem('Faça login para gerenciar seu estoque.', 'warning', <ReportProblemIcon/>));
-      navigate('/');
+      return false;
     }
 
-    const token = session?.access_token;
     if (!token){
       setAlerta(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
-      navigate("/");
+      return false;
     }
 
-    try{
-      const response = await axios.get('http://localhost:3000/estoque/verificar-estoque', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-  
-      navigate('/criar-estoque'); 
-      fecharModal();
-      setAlerta(null) 
+    try {
+    const response = await axios.get('http://localhost:3000/estoque/verificar-estoque', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      if (response.data.existe){
-        setAlerta(alertaMensagem("Já existe um estoque salvo. Gerencie o estoque existente.", 'warning', <ReportProblemIcon/>));
-      } else{
-        setOpen(true)
-      }
+    return response.data.existe;
+
     } catch (error) {
       if (axios.isAxiosError(error) && error.response){
         setAlerta(alertaMensagem(`Erro: ${error.response.data.message}`, 'warning', <ReportProblemIcon/>));          
       } else {
-        setAlerta(alertaMensagem('Não foi possível verificar o estoque.', 'warning', <ReportProblemIcon/>));
+        setAlerta(alertaMensagem(`Não foi possível verificar o estoque. ${error}`, 'warning', <ReportProblemIcon/>));
       }
     }
+  }
+
+  const criarEstoque = async () =>{
+    const estoqueExistente  = await verificarEstoque();
+
+    if (estoqueExistente && estoqueSalvo){
+      setAlerta(alertaMensagem('Ja existe um estoque criado! Gerencie o seu estoque', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+   
+    navigate('/criar-estoque'); 
+    fecharModal();
+    setAlerta(null) 
+    setOpen(true)
+    
   };
+
+  const gerenciarEstoque = async  () =>{
+    const estoqueExistente  = await verificarEstoque();
+
+    if (!estoqueExistente && !estoqueSalvo){
+      setAlerta(alertaMensagem("Não existe estoque para gerenciar. Crie um estoque", 'warning', <ReportProblemIcon />));
+      return;
+    }
+                
+    navigate('/gerenciar-estoque'); 
+    fecharModal();
+    setAlerta(null)
+    setOpen(true)
+  }
 
   const sairLogout = async () =>{
     try{
@@ -144,7 +167,7 @@ const PaginalInicial = () => {
             <List>
             <ListItem disablePadding>
               <ListItemButton
-              onClick={iniciar}
+              onClick={criarEstoque}
               sx={{
                 backgroundColor: "#FDEFD6",
                 borderRadius: "0.75rem",
@@ -161,16 +184,7 @@ const PaginalInicial = () => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
-              onClick={() => { 
-                if (!estoqueSalvo || !estoqueSalvo.listaProdutos || estoqueSalvo.listaProdutos.length === 0) {
-                  setAlerta(alertaMensagem("Não existe estoque para gerenciar. Crie um estoque", 'warning', <ReportProblemIcon />));
-                  return;
-                }
-                
-                navigate('/gerenciar-estoque'); 
-                fecharModal();
-                setAlerta(null)
-              }}
+              onClick={(gerenciarEstoque)}
               sx={{
                 backgroundColor: "#FDEFD6",
                 borderRadius: "0.75rem",
