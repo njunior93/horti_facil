@@ -10,6 +10,8 @@ import ErrorIcon from '@mui/icons-material/Error';
 import alertaMensagem from '../utils/alertaMensagem';
 import { useNavigate } from 'react-router-dom';
 import CaixaDialogo from '../utils/caixaDialogo';
+import axios from 'axios';
+
 
 const BotoesFinalizarCancelarEstoque = () => {
 
@@ -25,29 +27,27 @@ const BotoesFinalizarCancelarEstoque = () => {
   const{setTipoInput} = useContext(AppContext);
 
 
-  const salvarEstoque = () => {
+  const salvarEstoque = async () => {
 
     const produtoSemUnidade = listaProdutoEstoque.some(produto => !produto.uniMedida);
 
-    if (estoqueSalvo.id) {
-      setMensagemErro(alertaMensagem('Ja existe estoque criado', 'warning', <ErrorIcon/>));
-      return;
-    }
+    // if (estoqueSalvo) {
+    //   setMensagemErro(alertaMensagem('Ja existe estoque criado', 'warning', <ErrorIcon/>));
+    //   return;
+    // }
 
     if (produtoSemUnidade) {
       setMensagemErro(alertaMensagem('Preencha o campo Unidades no(s) produto(s)', 'warning', <ErrorIcon/>));
       return;
     }
 
-    try {
-      if (listaProdutoEstoque.length === 0 || contQtdEstoque === 0) {
+    if (listaProdutoEstoque.length === 0 || contQtdEstoque === 0) {
         alert("Não há produtos no estoque para salvar.");
         return;
       }
 
-      const estoqueSalvo = {
-        id: Math.random().toString(36).substring(2, 10),
-        data: new Date().toLocaleDateString(),
+      const novoEstoque = {
+        data: new Date().toISOString(),
         listaProdutos: listaProdutoEstoque,
         contQtdEstoque: Number(contQtdEstoque)
       };
@@ -55,27 +55,45 @@ const BotoesFinalizarCancelarEstoque = () => {
       document.body.style.pointerEvents = "none";
       setMostraProgresso(true);
       setProgresso(0);
+
       let progressoAtual = 0;
-      const intervalo = setInterval(() => {
-        progressoAtual += 10;
-        setProgresso(progressoAtual);
-        if (progressoAtual >= 100) {
-          clearInterval(intervalo);
-          setEstoqueSalvo(estoqueSalvo);
-          setMostrarCaixaDialogo(true);
-          setMensagemErro(false)
-          setListaProdutoEstoque([]);
-          setContQtdEstoque(0);
-          setMostraProgresso(false);
-          setTipoInput("auto");
-          document.body.style.pointerEvents=""
-        }
-      }, 1000);
-      return;
+      const intervaloProgresso = setInterval(() => {
+      progressoAtual += 10;
+      if (progressoAtual <= 90) {
+          setProgresso(progressoAtual);
+      }
+    }, 100);
+
+    try{
+
+      const response = await axios.post ('http://localhost:3000/estoque/criar-estoque', novoEstoque)
+      console.log(response.data)
+
+      clearInterval(intervaloProgresso)
+      setProgresso(100);
+
+      setEstoqueSalvo(response.data); 
+      setMostrarCaixaDialogo(true);
+      setMensagemErro(false);
+      setListaProdutoEstoque([]);
+      setContQtdEstoque(0);
 
     } catch (error) {
+      clearInterval(intervaloProgresso);
+      setProgresso(0)
       setMensagemEstoqueSalvo(false)
       setMensagemErro(alertaMensagem(`Ocorreu um erro ao salvar o estoque. Tente novamente. ${error}`, 'warning', <ErrorIcon/>));
+    
+      if(axios.isAxiosError(error) && error.response){
+        setMensagemErro(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ErrorIcon/>));
+      } else {
+        setMensagemErro(alertaMensagem(`Ocorreu um erro ao salvar o estoque. Tente novamente. ${error}`, 'error', <ErrorIcon />));
+      } 
+    } finally {
+      setMostraProgresso(false);
+      setTipoInput('auto')
+      document.body.style.pointerEvents = "";
+
     }
   }
   

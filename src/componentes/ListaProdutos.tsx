@@ -49,7 +49,7 @@ function ListaProdutos() {
   };
 
   const selecionandoUnidade = (produto: iProduto, novaUnidade: string) => {
-      const produto_localizado = listaProdutoEstoque.find(p => p.id_produto_estoque === produto.id_produto_estoque);
+      const produto_localizado = listaProdutoEstoque.find(p => p.id === produto.id);
       
       if (produto_localizado) {
         produto_localizado.uniMedida = novaUnidade;
@@ -81,7 +81,7 @@ function ListaProdutos() {
     }
     
 
-    const index = listaProdutoEstoque.findIndex(p => p.id_produto_estoque === produto.id_produto_estoque);
+    const index = listaProdutoEstoque.findIndex(p => p.id === produto.id);
     if (index !== -1) {
       listaProdutoEstoque[index] = {
       ...listaProdutoEstoque[index],
@@ -104,10 +104,10 @@ function ListaProdutos() {
     // if (!window.confirm(`Deseja realmente excluir o produto ${produto.nome}?`)) {
     //   return;
     // }
-    const id_localizado = listaProdutoEstoque.find(p => p.id_produto_estoque === produto.id_produto_estoque);
+    const id_localizado = listaProdutoEstoque.find(p => p.id === produto.id);
 
     if(id_localizado !== undefined) {
-      const novaLista = listaProdutoEstoque.filter((p) => p.id_produto_estoque !== produto.id_produto_estoque);
+      const novaLista = listaProdutoEstoque.filter((p) => p.id !== produto.id);
       setListaProdutoEstoque(novaLista);
     }
   }

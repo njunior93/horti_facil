@@ -2,7 +2,7 @@ export interface iProduto{
   id: number;
   nome: string;
   tipo: 'horta' | 'fruta';
-  id_produto_estoque?: string;
+  // id_produto_estoque?: string;
   estoque?: number;
   estoqueSuficiente?: boolean;
   vendaMensal?: number;
@@ -13,5 +13,3 @@ export interface iProduto{
   estoqueMaximo?: number;
   uniMedida?: string;
 }
-
-

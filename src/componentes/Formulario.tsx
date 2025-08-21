@@ -112,7 +112,6 @@ const formulario = () => {
         ...listaProdutoEstoque,
         {
         ...produtoSelecionado,
-        id_produto_estoque: Math.random().toString(36).substring(2, 10),
         estoque: Number(estoqueAtual),
         vendaMensal: Number(vendaMensal),
         vendaDiaria: Number(Math.round(vendaDiaria)),
