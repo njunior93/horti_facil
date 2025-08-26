@@ -3,11 +3,15 @@ import UnarchiveOutlinedIcon from '@mui/icons-material/UnarchiveOutlined';
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import ListarProdutosVisualizar from './ListaProdutosVisualizar';
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../context/context";
 import ModalMov from '../utils/modalMov';
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+import alertaMensagem from "../utils/alertaMensagem";
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import axios from "axios";
 
 
 const VisualizarEstoque = () => {
@@ -19,19 +23,60 @@ const VisualizarEstoque = () => {
   const setTipoEntrada = useContext(AppContext).setTipoEntrada;
   const setTipoSaida = useContext(AppContext).setTipoSaida;
   const setHandleModal = useContext(AppContext).setHandleModal;
+  const [loading, setLoading] = useState(true);
+  const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
+  const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
+
+  
+  useEffect(() => {
+    const fetchListaProdutos = async () => {
+
+      setLoading(true);
+
+      const {data : {session}} = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token){
+        setLoading(false);
+        setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+        navigate("/pagina-login")
+        return;
+      }
+
+      try{
+        const response = await axios.get('http://localhost:3000/estoque/lista-produtos', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        setEstoqueSalvo(response.data);
+
+      } catch (error){
+        setMensagemErro(alertaMensagem(`Erro ao buscar lista de produtos. ${error}`, 'warning', <ReportProblemIcon/>));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchListaProdutos();
+  }, []);
 
   const navigate = useNavigate();
   
   const opcoesMenu: string[] = ["Posição de estoque", "Movimentação de estoque"];
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const open = Boolean(anchorEl);
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
       setAnchorEl(event.currentTarget);
-    };
-    const handleClose = () => {
+  };
+
+  const handleClose = () => {
       setAnchorEl(null);
-    };
+  };
 
   const handleAbrirModalEntrada = () => {
     setHandleModal(true);
@@ -51,7 +96,7 @@ const VisualizarEstoque = () => {
     setTipoModal('');
     setTipoEntrada('');
     setTipoSaida('');
-    navigate('/');
+    navigate('/pagina-inicial');
   }
 
   const handleAbrirModalMovimentacao = (opcao: string) => {

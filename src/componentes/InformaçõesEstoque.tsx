@@ -17,7 +17,7 @@ const InformaçõesEstoque = ({telaAtual}: Props) => {
     let Suficiente = 0;
     let Insuficiente = 0;
 
-    const listaAtual = telaAtual === 'criar-estoque' ? listaProdutoEstoque : estoqueSalvo.listaProdutos;
+    const listaAtual = telaAtual === 'criar-estoque' ? listaProdutoEstoque : estoqueSalvo?.listaProdutos ?? [];
 
     listaAtual.forEach((produto) => {
       if ((produto.estoque ?? 0) >= (produto.estoqueMinimo ?? 0)) {
@@ -35,7 +35,7 @@ const InformaçõesEstoque = ({telaAtual}: Props) => {
       setContQtdEstoque(estoqueSalvo.contQtdEstoque);
     } 
     
-  },[contQtdEstoque, contSuficiente, contInsuficiente, listaProdutoEstoque, estoqueSalvo]);
+  },[telaAtual, listaProdutoEstoque, estoqueSalvo]);
 
 
   return (

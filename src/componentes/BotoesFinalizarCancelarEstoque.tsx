@@ -48,6 +48,7 @@ const BotoesFinalizarCancelarEstoque = () => {
 
     if (!token){
       setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+      navigate("/pagina-login")
       return;
     }
 
@@ -74,15 +75,14 @@ const BotoesFinalizarCancelarEstoque = () => {
       const response = await axios.post ('http://localhost:3000/estoque/criar-estoque', novoEstoque,
         {
           headers: {
-            'Authorization': `Bearer ${token}`
+            Authorization: `Bearer ${token}`
           }
         }
       );
 
       clearInterval(intervaloProgresso)
       setProgresso(100);
-
-      setEstoqueSalvo(response.data); 
+      setEstoqueSalvo(response.data);
       setMostrarCaixaDialogo(true);
       setMensagemErro(false);
       setListaProdutoEstoque([]);

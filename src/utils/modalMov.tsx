@@ -14,6 +14,9 @@ import { movimentacoesEstoque } from '../context/context';
 import {gerarRelatorioPDF} from './gerarRelatorioPDF';
 import { toZonedTime } from 'date-fns-tz';
 import { Stack } from '@mui/material';
+import { set } from 'date-fns';
+import axios from 'axios';
+import { supabase } from '../supabaseClient';
 
 
 
@@ -24,7 +27,7 @@ const ModalMov = () => {
     const {handleModal, setHandleModal} = useContext(AppContext);
     const {tipoModal, setTipoModal} = useContext(AppContext);
     const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
-    const [produtoSelecionado, setProdutoSelecionado] = useState<iProduto>({} as iProduto)
+    const [produtoSelecionado, setProdutoSelecionado] = useState<iProduto | null>(null)
     const [valorMov, setValorMov] = useState('');
     const {listaProdutoMov, setListaProdutoMov} = useContext(AppContext);
     const [alertaAddProduto, setAlertaAddProduto] = useState<React.ReactNode | null>(null);
@@ -55,17 +58,15 @@ const ModalMov = () => {
       setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("todas")));
     }
 
-    console.log(listaHistoricoMovEstoque)
-
     setMovimentacaoSelecionada?.('');
 
-  },[tipoMovSelecionado, listaHistoricoMovEstoque]);
+  },[tipoMovSelecionado, listaHistoricoMovEstoque, estoqueSalvo]);
 
 
   const cancelarEstoque = () =>{
     setHandleModal(false)
     setTipoModal("");
-    setProdutoSelecionado({} as iProduto)
+    setProdutoSelecionado(null)
     setValorMov('');
     setListaProdutoMov([]);
     setTipoSaida('Venda')
@@ -81,9 +82,12 @@ const ModalMov = () => {
   }
 
   const selecaoProduto = (e: SelectChangeEvent) => {
+
+    const produtoSelecionado = e.target.value;
+
     const produto = estoqueSalvo.listaProdutos.find(
-      (p: iProduto) => p.id === Number(e.target.value));
-  
+      (p: iProduto) => String(p.id) === produtoSelecionado);
+
     if (produto) {
       setProdutoSelecionado(produto);
     }
@@ -133,48 +137,99 @@ const ModalMov = () => {
     setTipoSaida('');
   }
 
-  const atualizarEstoque = () =>{
+  const atualizarEstoque = async () =>{
 
-    const historicoTemp: iProdutoMov[] = [];
+    try{
 
-    const estoqueAtualizado = estoqueSalvo.listaProdutos.map((produtoEstoque) =>{
-      const prodMov = listaProdutoMov.find(
-        (mov) => mov.produto.id === produtoEstoque.id
-      );     
-  
-      if (prodMov && tipoModal === 'Entrada'){
-        const novoEstoque = (produtoEstoque.estoque ?? 0) + prodMov.qtdMov;
-        if(novoEstoque !== produtoEstoque.estoque){
-          historicoTemp.push(prodMov)
-        }   
-        return { ...produtoEstoque, estoque: novoEstoque, estoqueSuficiente: novoEstoque >= (produtoEstoque.estoqueMinimo ?? 0) ? true : false }
+      if (listaProdutoMov.length === 0) {
+        setAlertaAddProduto(alertaMensagem("Adicione produtos para atualizar o estoque", "warning", <ReportProblemIcon/>));
+        return;
       }
+
+      const {data: {session}} = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      for (const mov of listaProdutoMov) {
+        const response = await axios.patch (`http://localhost:3000/estoque/atualizar-produto/${mov.produto.id}`, 
+          {
+              tipoMov: tipoModal.toLowerCase() === 'entrada' ? 'entrada' : 'saida',
+              tipoSaida: mov.tipoSaida,
+              qtdMov: mov.qtdMov,    
+          },
+          {
+            headers: {Authorization: `Bearer ${token}`},
+          }
+        );
+
+        const novoEstoque = await response.data;
+
+      const produtosAtualizados = estoqueSalvo.listaProdutos.map((produto: iProduto) =>
+        produto.id === novoEstoque.id ? {
+          ...produto,
+          estoque: novoEstoque.estoque,
+          estoqueSuficiente: novoEstoque.estoque >= (produto.estoqueMinimo ?? 0)
+        }
+        : produto
+      );
+      setEstoqueSalvo({ ...estoqueSalvo, listaProdutos: produtosAtualizados });
+
+      setListaHistoricoMovEstoque?.([...(listaHistoricoMovEstoque ?? []), mov]);
+    }
       
-      if (prodMov && tipoModal === 'Saída'){
-        const novoEstoque = (produtoEstoque.estoque ?? 0) - prodMov.qtdMov;
-        if(novoEstoque !== produtoEstoque.estoque){
-          historicoTemp.push(prodMov)
-        } 
-         return { ...produtoEstoque, estoque: novoEstoque, estoqueSuficiente: novoEstoque >= (produtoEstoque.estoqueMinimo ?? 0) ? true : false }
-      } 
 
-        return produtoEstoque;      
-        
-  });
+    } catch (error) {
+      setAlertaAddProduto(alertaMensagem("Erro ao atualizar estoque", "error", <ReportProblemIcon/>));
 
-  setEstoqueSalvo({ ...estoqueSalvo, listaProdutos: estoqueAtualizado })
-
-    if (historicoTemp.length > 0 && setListaHistoricoMovEstoque && listaHistoricoMovEstoque) {
-      setListaHistoricoMovEstoque([...listaHistoricoMovEstoque, ...historicoTemp]);
+      if(axios.isAxiosError(error) && error.response){
+        setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+        return;
+      }else{
+        setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao atualizar o estoque. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+        return;
+      }
     }
 
+  //   const historicoTemp: iProdutoMov[] = [];
+
+  //   const estoqueAtualizado = estoqueSalvo.listaProdutos.map((produtoEstoque) =>{
+  //     const prodMov = listaProdutoMov.find(
+  //       (mov) => mov.produto.id === produtoEstoque.id
+  //     );     
+  
+  //     if (prodMov && tipoModal === 'Entrada'){
+  //       const novoEstoque = (produtoEstoque.estoque ?? 0) + prodMov.qtdMov;
+  //       if(novoEstoque !== produtoEstoque.estoque){
+  //         historicoTemp.push(prodMov)
+  //       }   
+  //       return { ...produtoEstoque, estoque: novoEstoque, estoqueSuficiente: novoEstoque >= (produtoEstoque.estoqueMinimo ?? 0) ? true : false }
+  //     }
+      
+  //     if (prodMov && tipoModal === 'Saída'){
+  //       const novoEstoque = (produtoEstoque.estoque ?? 0) - prodMov.qtdMov;
+  //       if(novoEstoque !== produtoEstoque.estoque){
+  //         historicoTemp.push(prodMov)
+  //       } 
+  //        return { ...produtoEstoque, estoque: novoEstoque, estoqueSuficiente: novoEstoque >= (produtoEstoque.estoqueMinimo ?? 0) ? true : false }
+  //     } 
+
+  //       return produtoEstoque;      
+        
+  // });
+
+  // setEstoqueSalvo({ ...estoqueSalvo, listaProdutos: estoqueAtualizado })
+
+  //   if (historicoTemp.length > 0 && setListaHistoricoMovEstoque && listaHistoricoMovEstoque) {
+  //     setListaHistoricoMovEstoque([...listaHistoricoMovEstoque, ...historicoTemp]);
+  //   }
+
     
-    setHandleModal(false)
-    setTipoModal('')
-    setProdutoSelecionado({} as iProduto)
-    setListaProdutoMov([]);
-    setValorMov('')
-    setTipoSaida('')
+  //   setHandleModal(false)
+  //   setTipoModal('')
+  //   setProdutoSelecionado({} as iProduto)
+  //   setListaProdutoMov([]);
+  //   setValorMov('')
+  //   setTipoSaida('')
+
   }
 
   const selecaoTipoSaida = (e: React.ChangeEvent<HTMLInputElement>) =>{
@@ -374,10 +429,11 @@ const ModalMov = () => {
                   <FormControl fullWidth required>
                     <InputLabel required id="produto-label">Selecione o produto</InputLabel>
                     <Select
-                      value={produtoSelecionado.id ? String(produtoSelecionado.id) : ""}
+                      value={produtoSelecionado ? String(produtoSelecionado.id) : ""}
                       onChange={selecaoProduto}
                       displayEmpty
                       labelId="produto-label"
+                      id="produto-select"
                       label="Selecione o produto"
                     >
                       {estoqueSalvo.listaProdutos && estoqueSalvo.listaProdutos.length > 0 ? (
@@ -389,13 +445,23 @@ const ModalMov = () => {
                   </FormControl>
 
                   <FormControl fullWidth required>
-                    <TextField disabled={true} value={produtoSelecionado.estoque ?? ""} label="Estoque Atual"></TextField>
+                    <TextField disabled={true} value={produtoSelecionado ? produtoSelecionado.estoque ?? "" : ""} label="Estoque Atual"></TextField>
                   </FormControl>
 
                   <FormControl fullWidth required error={Number(valorMov) < 0}>
                     <Stack direction={"row"} spacing={2} justifyContent="start" alignItems="center">
-                      <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado.id} label={tipoModal === 'Entrada' ? 'Entrada Manual' : tipoModal === 'Saída' ? 'Saida Manual' : ''} error={Number(valorMov) < 0}></TextField>
-                      <Button onClick={() => { addProdutoLista(produtoSelecionado, Number(valorMov), tipoSaida, tipoEntrada, tipoModal, new Date());}} sx={{ backgroundColor: "#4CAF50", color: "#fff", '&:hover': { backgroundColor: "#388E3C" } }} disabled={!produtoSelecionado.id}> <span className="text-xl">+</span></Button>
+                      <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id} label={tipoModal === 'Entrada' ? 'Entrada Manual' : tipoModal === 'Saída' ? 'Saida Manual' : ''} error={Number(valorMov) < 0}></TextField>
+                      <Button
+                        onClick={() => {
+                          if (produtoSelecionado) {
+                            addProdutoLista(produtoSelecionado, Number(valorMov), tipoSaida, tipoEntrada, tipoModal, new Date());
+                          }
+                        }}
+                        sx={{ backgroundColor: "#4CAF50", color: "#fff", '&:hover': { backgroundColor: "#388E3C" } }}
+                        disabled={!produtoSelecionado || !produtoSelecionado.id}
+                      >
+                        <span className="text-xl">+</span>
+                      </Button>
                     </Stack>
 
                     <FormHelperText>

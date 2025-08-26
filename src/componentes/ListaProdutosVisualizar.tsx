@@ -10,6 +10,10 @@ type ListaProdutosVisualizarProps ={
 const ListaProdutosVisualizar = ({nome, tipo, qtd} : ListaProdutosVisualizarProps) => {
   const estoqueSalvo = useContext(AppContext).estoqueSalvo;
 
+  if(!estoqueSalvo?.listaProdutos || estoqueSalvo.listaProdutos.length === 0){
+    return <div className="text-red-500 font-bold">Nenhum produto em estoque.</div>
+  }
+
   const produtosFiltrados = estoqueSalvo.listaProdutos.filter((produto: any) => {
 
     const filtroNome = nome != null && nome.length > 0 ? produto.nome.toLowerCase().includes(nome.toLowerCase()) : true;
@@ -28,16 +32,16 @@ const ListaProdutosVisualizar = ({nome, tipo, qtd} : ListaProdutosVisualizarProp
     <span className="text-1xl font-bold text-gray-800">Produtos estocados</span>
     <div className='grid grid-cols-5 items-center p-2 border-b text-center font-bold text-sm'>
         <div>Produto</div>
-        <div>Unidade</div>
-        <div>Estoque</div>
-        <div>Estoque Mínimo</div>
-        <div>Estoque Máximo</div>
+        <div>Unidade de medida</div>
+        <div>Estoque atual</div>
+        <div>Mínimo</div>
+        <div>Máximo</div>
 
       </div>
 
     <div className="bg-[#EAEFEF] h-32 text-sm overflow-auto">
       {produtosParaExibir.map((produto: any, index: number) => (
-        <div key={produto.codigo || index} className={`grid grid-cols-5 items-center p-2 border-b text-center text-sm ${(produto.estoqueSuficiente === false) ? 'bg-[#EA2F14] text-white' : 'bg-[#00DA63]'}`}>
+        <div key={produto.codigo || index} className={`grid grid-cols-5 items-center p-2 border-b text-center text-sm ${!produto.estoqueSuficiente ? 'bg-[#EA2F14] text-white' : 'bg-[#00DA63]'}`}>
           <div>{produto.nome}</div>
           <div>{produto.uniMedida}</div>
           <div>{produto.estoque}</div>
