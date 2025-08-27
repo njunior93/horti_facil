@@ -149,34 +149,42 @@ const ModalMov = () => {
       const {data: {session}} = await supabase.auth.getSession();
       const token = session?.access_token;
 
-      for (const mov of listaProdutoMov) {
-        const response = await axios.patch (`http://localhost:3000/estoque/atualizar-produto/${mov.produto.id}`, 
+      if (!token) {
+        setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+        return;
+      }
+
+      const promises = listaProdutoMov.map(mov=>
+        axios.patch (`http://localhost:3000/estoque/atualizar-produto/${mov.produto.id}`, 
           {
               tipoMov: tipoModal.toLowerCase() === 'entrada' ? 'entrada' : 'saida',
-              tipoSaida: mov.tipoSaida,
+              tipoEntrada: tipoEntrada,
+              tipoSaida: tipoSaida,
               qtdMov: mov.qtdMov,    
           },
           {
             headers: {Authorization: `Bearer ${token}`},
           }
-        );
-
-        const novoEstoque = await response.data;
-
-      const produtosAtualizados = estoqueSalvo.listaProdutos.map((produto: iProduto) =>
-        produto.id === novoEstoque.id ? {
-          ...produto,
-          estoque: novoEstoque.estoque,
-          estoqueSuficiente: novoEstoque.estoque >= (produto.estoqueMinimo ?? 0)
-        }
-        : produto
+        )
       );
+
+        const responses = await Promise.all(promises);
+
+      const novosEstoques = responses.map(res => res.data);
+
+      const novoEstoqueMap = new Map(novosEstoques.map((produto: iProduto) => [produto.id, produto]));
+
+      const produtosAtualizados = estoqueSalvo.listaProdutos.map((produto: iProduto) => {
+        const novoEstoque = novoEstoqueMap.get(produto.id);
+          return novoEstoque
+            ? {
+                ...produto,
+                estoque: novoEstoque.estoque,
+                estoqueSuficiente: (novoEstoque.estoque ?? 0) >= (produto.estoqueMinimo ?? 0),
+              }
+            : produto;
+      });
       setEstoqueSalvo({ ...estoqueSalvo, listaProdutos: produtosAtualizados });
-
-      setListaHistoricoMovEstoque?.([...(listaHistoricoMovEstoque ?? []), mov]);
-    }
-      
-
     } catch (error) {
       setAlertaAddProduto(alertaMensagem("Erro ao atualizar estoque", "error", <ReportProblemIcon/>));
 
