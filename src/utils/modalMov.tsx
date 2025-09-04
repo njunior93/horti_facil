@@ -7,20 +7,14 @@ import ListaMovManual from "../componentes/ListaMovManual";
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import type { iProduto } from "../type/iProduto";
 import alertaMensagem from "./alertaMensagem";
-import type { iProdutoMov } from '../type/iProdutoMov';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale/pt-BR'
 import { movimentacoesEstoque } from '../context/context';
 import {gerarRelatorioPDF} from './gerarRelatorioPDF';
 import { toZonedTime } from 'date-fns-tz';
 import { Stack } from '@mui/material';
-import { set } from 'date-fns';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
-
-
-
-
 
 const ModalMov = () => {
 
@@ -40,6 +34,7 @@ const ModalMov = () => {
     const {movimentacaoSelecionada, setMovimentacaoSelecionada} = useContext(AppContext);
     const [dataInicio, setDataInicio] = useState<Date | null>(null);
     const [dataFim, setDataFim] = useState<Date | null>(null);
+    const estoqueId = useContext(AppContext).estoqueId;
     
 
   setTimeout(() =>{
@@ -60,6 +55,8 @@ const ModalMov = () => {
 
     setMovimentacaoSelecionada?.('');
 
+    console.log("ID ESTOQUE",estoqueId)
+
   },[tipoMovSelecionado, listaHistoricoMovEstoque, estoqueSalvo]);
 
 
@@ -69,8 +66,8 @@ const ModalMov = () => {
     setProdutoSelecionado(null)
     setValorMov('');
     setListaProdutoMov([]);
-    setTipoSaida('Venda')
-    setTipoEntrada('');
+    setTipoSaida(null);
+    setTipoEntrada(null);
     setDataFim(null);
     setDataInicio(null);
     if (setTipoMovSelecionado) {
@@ -92,10 +89,10 @@ const ModalMov = () => {
       setProdutoSelecionado(produto);
     }
     setValorMov('');
-    setTipoSaida('');
+    setTipoSaida(null);
   }
 
-  const addProdutoLista = (produto: iProduto, qtdMov: number, tipoSaida: string, tipoEntrada: string, tipoMov: string, data: Date) => {
+  const addProdutoLista = (produto: iProduto, qtdMov: number, tipoSaida: string | null, tipoEntrada: string | null, tipoMov: string, data: Date) => {
     const produtoExiste = listaProdutoMov.some(item => item.produto.id === produto.id);
 
     const timeZone = 'America/Sao_Paulo';
@@ -134,7 +131,7 @@ const ModalMov = () => {
     setListaProdutoMov([...listaProdutoMov, { produto, qtdMov, tipoSaida, tipoEntrada, tipoMov , dataMov}]);
     setValorMov('')
     setAlertaAddProduto(null)
-    setTipoSaida('');
+    setProdutoSelecionado(null)
   }
 
   const atualizarEstoque = async () =>{
@@ -152,25 +149,32 @@ const ModalMov = () => {
       if (!token) {
         setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
         return;
-      }
+      }    
 
-      const promises = listaProdutoMov.map(mov=>
-        axios.patch (`http://localhost:3000/estoque/atualizar-produto/${mov.produto.id}`, 
+      const promises = listaProdutoMov.map((mov)=>{
+
+        const produtoId = Number(mov.produto?.id);
+        const qtdMovi = Number(mov.qtdMov);
+        const idEstoque = Number(estoqueId);
+
+        return axios.patch(
+          `http://localhost:3000/estoque/atualizar-produto/${produtoId}`,
           {
-              tipoMov: tipoModal.toLowerCase() === 'entrada' ? 'entrada' : 'saida',
-              tipoEntrada: tipoEntrada,
-              tipoSaida: tipoSaida,
-              qtdMov: mov.qtdMov,    
+            tipoMov: tipoModal.toLowerCase() === 'entrada' ? 'entrada' : 'saida',
+            tipoEntrada: tipoEntrada ? tipoEntrada : null,
+            tipoSaida: tipoSaida ? tipoSaida : null,
+            qtdMov: qtdMovi,
+            estoqueId: idEstoque
           },
           {
-            headers: {Authorization: `Bearer ${token}`},
+            headers: { Authorization: `Bearer ${token}` },
           }
-        )
-      );
+        );
+      });
 
-        const responses = await Promise.all(promises);
+      const responses = await Promise.all(promises);
 
-      const novosEstoques = responses.map(res => res.data);
+      const novosEstoques = responses.map((res) => res.data);
 
       const novoEstoqueMap = new Map(novosEstoques.map((produto: iProduto) => [produto.id, produto]));
 
@@ -184,14 +188,19 @@ const ModalMov = () => {
               }
             : produto;
       });
+      
       setEstoqueSalvo({ ...estoqueSalvo, listaProdutos: produtosAtualizados });
+
     } catch (error) {
+      console.error("Erro ao atualizar o estoque:", error);
       setAlertaAddProduto(alertaMensagem("Erro ao atualizar estoque", "error", <ReportProblemIcon/>));
 
       if(axios.isAxiosError(error) && error.response){
+        console.error("Erro ao atualizar o estoque:", error);
         setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
         return;
       }else{
+        console.error("Erro ao atualizar o estoque:", error);
         setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao atualizar o estoque. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
         return;
       }
@@ -231,17 +240,20 @@ const ModalMov = () => {
   //   }
 
     
-  //   setHandleModal(false)
-  //   setTipoModal('')
-  //   setProdutoSelecionado({} as iProduto)
-  //   setListaProdutoMov([]);
-  //   setValorMov('')
-  //   setTipoSaida('')
+    setHandleModal(false)
+    setTipoModal('')
+    setProdutoSelecionado({} as iProduto)
+    setListaProdutoMov([]);
+    setValorMov('')
+    setTipoSaida(null)
+    setTipoEntrada(null)
+    setAlertaAddProduto(null)
 
   }
 
   const selecaoTipoSaida = (e: React.ChangeEvent<HTMLInputElement>) =>{
-    setTipoSaida((e.target as HTMLInputElement).value);   
+    setTipoSaida((e.target as HTMLInputElement).value); 
+      
   }
 
   const selecaoTipoMov = (e: SelectChangeEvent) => {
