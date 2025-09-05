@@ -103,12 +103,10 @@ const VisualizarEstoque = () => {
     if (opcao === "Posição de estoque") {
       setHandleModal(true);
       setTipoModal("PosicaoEstoque");
-      console.log(opcao)
       return;
     } else if (opcao === "Movimentação de estoque") {
       setHandleModal(true);
       setTipoModal("MovimentacaoEstoque");
-      console.log(opcao)
       return;
     }
   }

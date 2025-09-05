@@ -11,7 +11,7 @@ const ListaProdutosVisualizar = ({nome, tipo, qtd} : ListaProdutosVisualizarProp
   const estoqueSalvo = useContext(AppContext).estoqueSalvo;
 
   if(!estoqueSalvo?.listaProdutos || estoqueSalvo.listaProdutos.length === 0){
-    return <div className="text-red-500 font-bold">Nenhum produto em estoque.</div>
+    return <div className="text-red-500 font-bold">Carregando...</div>
   }
 
   const produtosFiltrados = estoqueSalvo.listaProdutos.filter((produto: any) => {

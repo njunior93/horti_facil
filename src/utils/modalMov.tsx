@@ -15,6 +15,7 @@ import { toZonedTime } from 'date-fns-tz';
 import { Stack } from '@mui/material';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
+import { set } from 'date-fns';
 
 const ModalMov = () => {
 
@@ -55,9 +56,39 @@ const ModalMov = () => {
 
     setMovimentacaoSelecionada?.('');
 
-    console.log("ID ESTOQUE",estoqueId)
+    const listarMovimentacoes = async () => {
 
-  },[tipoMovSelecionado, listaHistoricoMovEstoque, estoqueSalvo]);
+      try{
+        const {data: {session}} = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        if (!token){
+          setAlertaAddProduto(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+          return;
+        }
+
+        const response = await axios.get('http://localhost:3000/estoque/lista-movimentacoes', 
+          {
+            headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        setListaHistoricoMovEstoque(response.data);
+        console.log(listaHistoricoMovEstoque)
+
+      } catch (error) {
+        if(axios.isAxiosError(error) && error.response){
+          setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+        } else {
+          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+        }
+      }
+    }
+
+    listarMovimentacoes();
+
+  },[tipoMovSelecionado, estoqueSalvo]);
 
 
   const cancelarEstoque = () =>{
@@ -158,6 +189,7 @@ const ModalMov = () => {
         const produtoId = Number(mov.produto?.id);
         const qtdMovi = Number(mov.qtdMov);
         const idEstoque = Number(estoqueId);
+        const nome = String(mov.produto?.nome);
 
         return axios.patch(
           `http://localhost:3000/estoque/atualizar-produto/${produtoId}`,
@@ -166,7 +198,8 @@ const ModalMov = () => {
             tipoEntrada: tipoEntrada ? tipoEntrada : null,
             tipoSaida: tipoSaida ? tipoSaida : null,
             qtdMov: qtdMovi,
-            estoqueId: idEstoque
+            estoqueId: idEstoque,
+            nomeProduto: nome
           },
           {
             headers: { Authorization: `Bearer ${token}` },

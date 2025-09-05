@@ -39,7 +39,6 @@ const GerenciarEstoque = () => {
   fetchEstoqueId();
 }, []);
   
-
   return (
     <div className='flex justify-center item-center h-screen w-screen'>
       <div className='flex justify-center item-center flex-col-reverse sm:flex-row'>
