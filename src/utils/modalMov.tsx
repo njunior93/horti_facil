@@ -82,8 +82,10 @@ const ModalMov = () => {
 
     const produtoSelecionado = e.target.value;
 
-    const produto = estoqueSalvo.listaProdutos.find(
-      (p: iProduto) => String(p.id) === produtoSelecionado);
+    const produto = estoqueSalvo && estoqueSalvo.listaProdutos
+      ? estoqueSalvo.listaProdutos.find(
+          (p: iProduto) => String(p.id) === produtoSelecionado)
+      : undefined;
 
     if (produto) {
       setProdutoSelecionado(produto);
@@ -178,18 +180,22 @@ const ModalMov = () => {
 
       const novoEstoqueMap = new Map(novosEstoques.map((produto: iProduto) => [produto.id, produto]));
 
-      const produtosAtualizados = estoqueSalvo.listaProdutos.map((produto: iProduto) => {
-        const novoEstoque = novoEstoqueMap.get(produto.id);
-          return novoEstoque
-            ? {
-                ...produto,
-                estoque: novoEstoque.estoque,
-                estoqueSuficiente: (novoEstoque.estoque ?? 0) >= (produto.estoqueMinimo ?? 0),
-              }
-            : produto;
-      });
-      
-      setEstoqueSalvo({ ...estoqueSalvo, listaProdutos: produtosAtualizados });
+      const produtosAtualizados = estoqueSalvo && estoqueSalvo.listaProdutos
+        ? estoqueSalvo.listaProdutos.map((produto: iProduto) => {
+            const novoEstoque = novoEstoqueMap.get(produto.id);
+            return novoEstoque
+              ? {
+                  ...produto,
+                  estoque: novoEstoque.estoque,
+                  estoqueSuficiente: (novoEstoque.estoque ?? 0) >= (produto.estoqueMinimo ?? 0),
+                }
+              : produto;
+          })
+        : [];
+
+      if (estoqueSalvo) {
+        setEstoqueSalvo({ ...estoqueSalvo, listaProdutos: produtosAtualizados });
+      }
 
     } catch (error) {
       console.error("Erro ao atualizar o estoque:", error);
@@ -199,7 +205,7 @@ const ModalMov = () => {
         console.error("Erro ao atualizar o estoque:", error);
         setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
         return;
-      }else{
+      } else {
         console.error("Erro ao atualizar o estoque:", error);
         setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao atualizar o estoque. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
         return;
@@ -456,7 +462,7 @@ const ModalMov = () => {
                       id="produto-select"
                       label="Selecione o produto"
                     >
-                      {estoqueSalvo.listaProdutos && estoqueSalvo.listaProdutos.length > 0 ? (
+                      {estoqueSalvo && estoqueSalvo.listaProdutos && estoqueSalvo.listaProdutos.length > 0 ? (
                         estoqueSalvo.listaProdutos.map((produto: iProduto) => (
                           <MenuItem key={produto.id} value={String(produto.id)}>{produto.nome}</MenuItem>
                         ))

@@ -17,8 +17,8 @@ interface IContext {
   setContSuficiente: (cont: number) => void;
   contInsuficiente: number;
   setContInsuficiente: (cont: number) => void;
-  estoqueSalvo: iEstoque;
-  setEstoqueSalvo: (estoque: iEstoque) => void;
+  estoqueSalvo: iEstoque | null;
+  setEstoqueSalvo: (estoque: iEstoque | null) => void;
   listaProdutoMovTemp: iProdutoMov[];
   setListaProdutoMovTemp: (item: iProdutoMov[]) => void;
   listaProdutoMov: iProdutoMov[];
@@ -54,7 +54,7 @@ interface AppProvideProps{
     children: ReactNode
 }
 
-const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: {} as iEstoque, setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: null, setTipoEntrada: () => {}, tipoSaida: null, setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {}, tipoInput: 'auto', setTipoInput: () => {}, estoqueId: 0, setEstoqueId: () => {}};
+const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: null , setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: null, setTipoEntrada: () => {}, tipoSaida: null, setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {}, tipoInput: 'auto', setTipoInput: () => {}, estoqueId: 0, setEstoqueId: () => {}};
 
 export const AppContext = createContext<IContext>(inicial);
 
@@ -115,7 +115,7 @@ export const AppProvider = ({ children }: AppProvideProps) => {
   const [contQtdEstoque, setContQtdEstoque] = useState<number>(0);
   const [contSuficiente, setContSuficiente] = useState<number>(0);
   const [contInsuficiente, setContInsuficiente] = useState<number>(0);
-  const [estoqueSalvo, setEstoqueSalvo] = useState<iEstoque>({} as iEstoque);
+  const [estoqueSalvo, setEstoqueSalvo] = useState<iEstoque | null>(null);
   const [listaProdutoMovTemp, setListaProdutoMovTemp] = useState<iProdutoMov[]>([])
   const [tipoModal, setTipoModal] = useState<string>('')
   const [handleModal, setHandleModal] = useState<boolean>(false)

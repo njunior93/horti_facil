@@ -1,13 +1,17 @@
 import  VisualizarEstoque  from '../componentes/VisualizarEstoque'
 import InformaçõesEstoque from '../componentes/InformaçõesEstoque'
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AppContext } from '../context/context';
+import alertaMensagem from '../utils/alertaMensagem';
 import { supabase } from '../supabaseClient';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import axios from 'axios';
+
 
 const GerenciarEstoque = () => {
 
   const setEstoqueId = useContext(AppContext).setEstoqueId;
+  const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
   const fetchEstoqueId = async () => {
@@ -21,8 +25,14 @@ const GerenciarEstoque = () => {
       });
 
       setEstoqueId(response.data.estoqueId);
+      
     } catch (error) {
-      console.error('Erro ao buscar o ID do estoque:', error);
+      if (axios.isAxiosError(error) && error.response){
+        setAlerta(alertaMensagem(`Erro: ${error.response.data.message}`, 'warning', <ReportProblemIcon/>));
+      } else {
+        setAlerta(alertaMensagem(`Erro ao buscar ID do estoque`, 'warning', <ReportProblemIcon/>));
+        console.error('Erro ao buscar o ID do estoque:', error);
+      }
     }
   };
 

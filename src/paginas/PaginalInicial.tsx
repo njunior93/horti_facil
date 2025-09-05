@@ -1,5 +1,5 @@
 import { Button } from "@mui/material"
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef, use } from "react";
 import { Modal, Box, Typography, List, ListItem, ListItemButton, ListItemText } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/context";
@@ -14,11 +14,11 @@ const PaginalInicial = () => {
   const [open, setOpen] = useState(false)
   const abrirModal = () => setOpen(true);
   const fecharModal = () => setOpen(false);
-  const navigate = useNavigate();	
-  const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
+  const navigate = useNavigate();
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
   const [loading, setLoading] = useState(false);
   const {session} = useAuth();
+  const estoqueId = useContext(AppContext).estoqueId;
 
   const dadosUsuario: any | undefined = session?.user.user_metadata;
 
@@ -27,6 +27,18 @@ const PaginalInicial = () => {
       setAlerta(null)
     }
   },4000);
+
+  useEffect(() => {
+  const verificarSessao = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate('/');
+    }
+  };
+    verificarSessao();
+    console.log(dadosUsuario);
+  }, []);
+
 
   if (loading){
     return (
@@ -39,6 +51,7 @@ const PaginalInicial = () => {
   }
 
   const verificarEstoque = async () =>{
+
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -71,24 +84,26 @@ const PaginalInicial = () => {
   }
 
   const criarEstoque = async () =>{
-    const estoqueExistente  = await verificarEstoque();
 
-    if (estoqueExistente && estoqueSalvo){
+    const existeEstoque = await verificarEstoque();
+
+    if (existeEstoque){
       setAlerta(alertaMensagem('Ja existe um estoque criado! Gerencie o seu estoque', 'warning', <ReportProblemIcon/>));
       return;
     }
    
-    navigate('/criar-estoque'); 
-    fecharModal();
-    setAlerta(null) 
-    setOpen(true)
+      navigate('/criar-estoque'); 
+      fecharModal();
+      setAlerta(null) 
+      setOpen(true)
     
   };
 
   const gerenciarEstoque = async  () =>{
-    const estoqueExistente  = await verificarEstoque();
 
-    if (!estoqueExistente && !estoqueSalvo){
+    const existeEstoque = await verificarEstoque();
+
+    if (!existeEstoque){
       setAlerta(alertaMensagem("Não existe estoque para gerenciar. Crie um estoque", 'warning', <ReportProblemIcon />));
       return;
     }

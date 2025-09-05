@@ -22,7 +22,7 @@ const {mostrarCaixaDialogo, setMostrarCaixaDialogo} = useContext(AppContext);
   }
 
   const handleSair = () => {
-    navigate("/")
+    navigate("/pagina-inicial")
     setMostrarCaixaDialogo(false);
   };
 
