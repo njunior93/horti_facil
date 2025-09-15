@@ -1,7 +1,7 @@
 export interface iProduto{
   id: number;
   nome: string;
-  tipo: 'horta' | 'fruta';
+  tipo: 'horta' | 'fruta' | '';
   // id_produto_estoque?: string;
   estoque?: number;
   estoqueSuficiente?: boolean;

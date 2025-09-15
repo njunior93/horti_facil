@@ -189,7 +189,7 @@ const ModalMov = () => {
         const produtoId = Number(mov.produto?.id);
         const qtdMovi = Number(mov.qtdMov);
         const idEstoque = Number(estoqueId);
-        const nome = String(mov.produto?.nome);
+        const nomeProduto = String(mov.produto?.nome);
 
         return axios.patch(
           `http://localhost:3000/estoque/atualizar-produto/${produtoId}`,
@@ -199,7 +199,7 @@ const ModalMov = () => {
             tipoSaida: tipoSaida ? tipoSaida : null,
             qtdMov: qtdMovi,
             estoqueId: idEstoque,
-            nomeProduto: nome
+            nome: nomeProduto
           },
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -306,68 +306,72 @@ const ModalMov = () => {
   }
 
   const gerarRelatorioMovimentacao = () => {
-
     const timeZone = 'America/Sao_Paulo';
 
-    if (tipoMovSelecionado === '' || movimentacaoSelecionada === '' || dataInicio === null || dataFim === null) {
-      setAlertaAddProduto(alertaMensagem("Todos filtros são obrigatorios", "warning", <ReportProblemIcon/>));
-      return;
-    }
+    try{
 
-    const relatorioFiltrado = listaHistoricoMovEstoque.filter((mov) => {
-
-      const filtroTipoMov = 
-      tipoMovSelecionado === 'Entrada' 
-        ? mov.tipoMov === 'Entrada'
-      :tipoMovSelecionado === 'Saída' 
-        ? mov.tipoMov === 'Saída'
-      : true;
-
-      const filtroTipoSaida =
-      tipoMovSelecionado === 'Saída'
-        ? movimentacaoSelecionada === 'Saída Manual - AVARIA'
-          ? mov.tipoSaida === 'Avaria'
-        : movimentacaoSelecionada === 'Saída Manual - VENDA'
-          ? mov.tipoSaida === 'Venda'
-        : true
-      : true;
-
-      const filtroTipoEntrada  =
-      tipoMovSelecionado === 'Entrada'
-        ? movimentacaoSelecionada === 'Entrada Manual'
-          ? mov.tipoEntrada === 'Manual'
-        : movimentacaoSelecionada === 'Entrada Pedido'
-          ? mov.tipoEntrada === 'Pedido'
-        : true
-      : true;
-
-      let filtroData = true;
-      if (dataInicio && dataFim) {
-        const inicio = toZonedTime(new Date(dataInicio), timeZone);
-        inicio.setHours(0, 0, 0, 0);
-
-        const fim = toZonedTime(new Date(dataFim), timeZone);
-        fim.setHours(23, 59, 59, 999);
-
-        const dataMov = toZonedTime(new Date(mov.dataMov), timeZone);
-        filtroData = dataMov >= inicio && dataMov <= fim;
+      if (tipoMovSelecionado === '' || movimentacaoSelecionada === '' || dataInicio === null || dataFim === null) {
+        setAlertaAddProduto(alertaMensagem("Todos filtros são obrigatorios", "warning", <ReportProblemIcon/>));
+        return;
       }
 
-    return filtroTipoMov && filtroTipoSaida && filtroTipoEntrada && filtroData;
+      const relatorioFiltrado = listaHistoricoMovEstoque.filter((mov) => {
+
+        const filtroTipoMov = 
+        tipoMovSelecionado === 'Entrada' 
+          ? mov.tipoMov === 'entrada'
+        :tipoMovSelecionado === 'Saída' 
+          ? mov.tipoMov === 'saida'
+        : true;
+
+        const filtroTipoSaida =
+        tipoMovSelecionado === 'Saída'
+          ? movimentacaoSelecionada === 'Saída Manual - AVARIA'
+            ? mov.tipoSaida === 'Avaria'
+          : movimentacaoSelecionada === 'Saída Manual - VENDA'
+            ? mov.tipoSaida === 'Venda'
+          : true
+        : true;
+
+        const filtroTipoEntrada  =
+        tipoMovSelecionado === 'Entrada'
+          ? movimentacaoSelecionada === 'Entrada Manual'
+            ? mov.tipoEntrada === 'Manual'
+          : movimentacaoSelecionada === 'Entrada Pedido'
+            ? mov.tipoEntrada === 'Pedido'
+          : true
+        : true;
+
+        let filtroData = true;
+        if (dataInicio && dataFim) {
+          const inicio = toZonedTime(new Date(dataInicio), timeZone);
+          inicio.setHours(0, 0, 0, 0);
+
+          const fim = toZonedTime(new Date(dataFim), timeZone);
+          fim.setHours(23, 59, 59, 999);
+
+          const dataMov = toZonedTime(new Date(mov.dataMov), timeZone);
+          filtroData = dataMov >= inicio && dataMov <= fim;
+        }
+
+      return filtroTipoMov && filtroTipoSaida && filtroTipoEntrada && filtroData;
+        
+      });
       
-    });
+      if (relatorioFiltrado.length === 0) {
+        setAlertaAddProduto(alertaMensagem("Nenhum resultado encontrado", "warning", <ReportProblemIcon/>));
+        return;
+      }
 
-    console.log(listaHistoricoMovEstoque)
-    console.log(relatorioFiltrado)
-    
+      console.log(relatorioFiltrado);
 
-    if (relatorioFiltrado.length === 0) {
-      setAlertaAddProduto(alertaMensagem("Nenhum resultado encontrado", "warning", <ReportProblemIcon/>));
+      gerarRelatorioPDF(relatorioFiltrado, tipoMovSelecionado,movimentacaoSelecionada,dataInicio, dataFim);
+
+    } catch(error){
+      console.error("Erro ao gerar o relatorio:", error);
+      setAlertaAddProduto(alertaMensagem(`Erro ao buscar o histórico de movimentações`+ error, "error" , <ReportProblemIcon/>));
       return;
-    }
-
-    gerarRelatorioPDF(relatorioFiltrado, tipoMovSelecionado,movimentacaoSelecionada,dataInicio, dataFim);
-
+    }   
   }
 
   return (
