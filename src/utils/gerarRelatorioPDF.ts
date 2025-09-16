@@ -36,33 +36,33 @@ export const gerarRelatorioPDF = (listaDeProdutosMov: iProdutoMov[], tipoMovSele
         if (tipoMovSelecionado === 'Entrada') {
           return [
             produto.produto.nome,
-            produto.produto.estoque,
+            produto.saldo_anterior,
             produto.qtdMov.toString(),
             produto.tipoEntrada || '',
             new Date(produto.dataMov).toLocaleDateString(),
             new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            (produto.produto.estoque ?? 0) + produto.qtdMov
+            produto.saldo_atual
           ];
         } else if (tipoMovSelecionado === 'Saída') {
           return [
             produto.produto.nome,
-            produto.produto.estoque,
+            produto.saldo_anterior,
             produto.qtdMov.toString(),
             produto.tipoSaida || '',
             new Date(produto.dataMov).toLocaleDateString(),
-             new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            (produto.produto.estoque ?? 0) - produto.qtdMov
+            new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            produto.saldo_atual
           ];
         } else {
           return [
             produto.produto.nome,
-            produto.produto.estoque,
+            produto.saldo_anterior,
             produto.qtdMov.toString(),
             produto.tipoSaida || '',
             produto.tipoEntrada || '',
             new Date(produto.dataMov).toLocaleDateString(),
              new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            (produto.produto.estoque ?? 0) + (produto.tipoMov === 'Entrada' ? produto.qtdMov : -produto.qtdMov)
+            produto.saldo_atual
           ];
         }
       });

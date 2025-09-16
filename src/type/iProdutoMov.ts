@@ -6,5 +6,7 @@ export interface iProdutoMov {
   tipoSaida?: string | null;
   tipoEntrada?: string | null;
   tipoMov: string;
-  dataMov: Date; 
+  dataMov: Date;
+  saldo_anterior?: number;
+  saldo_atual?: number; 
 }

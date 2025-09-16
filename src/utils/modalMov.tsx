@@ -15,7 +15,6 @@ import { toZonedTime } from 'date-fns-tz';
 import { Stack } from '@mui/material';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
-import { set } from 'date-fns';
 
 const ModalMov = () => {
 
@@ -67,12 +66,9 @@ const ModalMov = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:3000/estoque/lista-movimentacoes', 
-          {
-            headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const response = await axios.get(`http://localhost:3000/estoque/lista-movimentacoes?estoqueId=${estoqueId}`,
+          { headers: {Authorization: `Bearer ${token}`}}
+        );
 
         setListaHistoricoMovEstoque(response.data);
         console.log(listaHistoricoMovEstoque)
