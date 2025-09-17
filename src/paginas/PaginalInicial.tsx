@@ -1,14 +1,12 @@
 import { Button } from "@mui/material"
-import { useContext, useEffect, useState, useRef, use } from "react";
+import {  useState } from "react";
 import { Modal, Box, Typography, List, ListItem, ListItemButton, ListItemText } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { AppContext } from "../context/context";
 import alertaMensagem from "../utils/alertaMensagem";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
-import { set } from "date-fns";
 
 const PaginalInicial = () => {
 
@@ -17,13 +15,8 @@ const PaginalInicial = () => {
   const fecharModal = () => setOpen(false);
   const navigate = useNavigate();
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
-  const [ultimaVerificacao, setUltimaVerificacao] = useState(Date.now());
   const [loading, setLoading] = useState(false);
   const {session} = useAuth();
-  const estoqueId = useContext(AppContext).estoqueId;
-  const {servidorOnline,setServidorOnline} = useContext(AppContext)
-  const sessaoAtiva = useContext(AppContext).sessaoAtiva;
-  const setSessaoAtiva = useContext(AppContext).setSessaoAtiva;
 
   const dadosUsuario: any | undefined = session?.user.user_metadata;
 
@@ -32,45 +25,6 @@ const PaginalInicial = () => {
       setAlerta(null)
     }
   },4000);
-
-  useEffect(() => {
-
-    const verificarServidor = async () => {
-
-      try{
-        const response = await axios.get('http://localhost:3000/status-servidor');
-        const {data, error} = await supabase.auth.getUser();
-
-        if (response.data.status !== 'ok' || error || !data.user) {
-          setServidorOnline(false);
-          setAlerta(alertaMensagem('Servidor offline ou sessão expirada. Por favor, verifique sua conexão e faça login novamente.', 'warning', <ReportProblemIcon/>));       
-        }else{
-          setServidorOnline(true);
-        }
-
-      }catch(err){
-        setServidorOnline(false);
-        setAlerta(alertaMensagem(`Erro ao verificar servidor: ${err}`, 'warning', <ReportProblemIcon/>));      
-      }
-
-      setUltimaVerificacao(Date.now());
-      
-    }
-
-    verificarServidor();
-
-    const intervalo = setInterval(() => {
-      verificarServidor(); 
-    }, 10000);
-
-    return () => clearInterval(intervalo);
-
-  },[]);
-
-  useEffect(() => {
-      console.log('Servidor online?', servidorOnline);   
-  }, [servidorOnline, ultimaVerificacao]);
-
 
   if (loading){
     return (
@@ -81,6 +35,22 @@ const PaginalInicial = () => {
       </div>
     );
   }
+
+  const criarEstoque = async () =>{
+
+    const existeEstoque = await verificarEstoque();
+
+    if (existeEstoque){
+      setAlerta(alertaMensagem('Ja existe um estoque criado! Gerencie o seu estoque', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+   
+      navigate('/criar-estoque'); 
+      fecharModal();
+      setAlerta(null) 
+      setOpen(true)
+    
+  };
 
   const verificarEstoque = async () =>{
 
@@ -114,22 +84,6 @@ const PaginalInicial = () => {
       }
     }
   }
-
-  const criarEstoque = async () =>{
-
-    const existeEstoque = await verificarEstoque();
-
-    if (existeEstoque){
-      setAlerta(alertaMensagem('Ja existe um estoque criado! Gerencie o seu estoque', 'warning', <ReportProblemIcon/>));
-      return;
-    }
-   
-      navigate('/criar-estoque'); 
-      fecharModal();
-      setAlerta(null) 
-      setOpen(true)
-    
-  };
 
   const gerenciarEstoque = async  () =>{
 
@@ -264,8 +218,7 @@ const PaginalInicial = () => {
             </ListItem>
             </List>
         </Box>
-      </Modal>
-      
+      </Modal>   
     </div>
   )
 }

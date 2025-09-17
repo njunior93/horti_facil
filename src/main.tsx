@@ -8,6 +8,7 @@ import CriarEstoque from './paginas/CriarEstoque.tsx';
 import GerenciarEstoque from './paginas/GerenciarEstoque.tsx';
 import PaginalInicial from './paginas/PaginalInicial.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
+import { StatusServidorProvider } from './context/StatusServidorProvider.tsx';
 
 
 const router = createBrowserRouter([
@@ -18,16 +19,16 @@ const router = createBrowserRouter([
 
   {
     path: "/pagina-inicial",
-    element: <PaginalInicial/>
+    element: <StatusServidorProvider><PaginalInicial/></StatusServidorProvider>
   },
 
   {
     path: "/criar-estoque",
-    element: <CriarEstoque/>
+    element: <StatusServidorProvider><CriarEstoque/></StatusServidorProvider>
   },
   {
     path: "/gerenciar-estoque",
-    element: <GerenciarEstoque/>
+    element: <StatusServidorProvider><GerenciarEstoque/></StatusServidorProvider>
   }
   
 ]);

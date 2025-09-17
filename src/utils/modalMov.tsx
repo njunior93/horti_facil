@@ -35,6 +35,7 @@ const ModalMov = () => {
     const [dataInicio, setDataInicio] = useState<Date | null>(null);
     const [dataFim, setDataFim] = useState<Date | null>(null);
     const estoqueId = useContext(AppContext).estoqueId;
+    const servidorOnline = useContext(AppContext).servidorOnline;
     
 
   setTimeout(() =>{
@@ -164,6 +165,11 @@ const ModalMov = () => {
   }
 
   const atualizarEstoque = async () =>{
+
+    if(!estoqueId || !servidorOnline){
+      setAlertaAddProduto(alertaMensagem("Erro de conexão com o estoque. Tente novamente", "error", <ReportProblemIcon/>));
+      return;
+    }
 
     try{
 

@@ -1,4 +1,4 @@
-import { Button, FormControl, Menu, MenuItem, Select, TextField } from "@mui/material"
+import { Box, Button, FormControl, Menu, MenuItem, Select, TextField } from "@mui/material"
 import UnarchiveOutlinedIcon from '@mui/icons-material/UnarchiveOutlined';
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
@@ -22,12 +22,20 @@ const VisualizarEstoque = () => {
   const setTipoModal = useContext(AppContext).setTipoModal;
   const setTipoEntrada = useContext(AppContext).setTipoEntrada;
   const setTipoSaida = useContext(AppContext).setTipoSaida;
-  const setHandleModal = useContext(AppContext).setHandleModal;
+  const {handleModal, setHandleModal} = useContext(AppContext);
   const [loading, setLoading] = useState(true);
   const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
   const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
+  const {estoqueId,setEstoqueId} = useContext(AppContext);
+  const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
 
   
+  setTimeout(() =>{
+    if(alerta){
+      setAlerta(null)
+    }
+  },4000);
+
   useEffect(() => {
     const fetchListaProdutos = async () => {
 
@@ -61,6 +69,15 @@ const VisualizarEstoque = () => {
 
     fetchListaProdutos();
   }, []);
+
+  useEffect(() => {
+  if (handleModal === true) {
+    if (!estoqueId){
+      setAlerta(alertaMensagem('Erro na consulta do estoque.', 'error', <ReportProblemIcon/>));
+      setHandleModal(false);
+    }
+  }
+}, [handleModal]);
 
   const navigate = useNavigate();
   
@@ -169,8 +186,10 @@ const VisualizarEstoque = () => {
 
       <ListarProdutosVisualizar nome={nomeProduto} tipo={tipo} qtd={quantidade}/>
 
+    {alerta && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alerta}</Box>}
      
-    </div>   
+    </div>
+      
   )
 }
 

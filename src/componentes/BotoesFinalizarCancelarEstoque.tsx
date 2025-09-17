@@ -17,8 +17,7 @@ import { supabase } from '../supabaseClient';
 
 const BotoesFinalizarCancelarEstoque = () => {
 
-  const navigate = useNavigate();	
-  const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
+  const navigate = useNavigate();
   const {setListaProdutoEstoque, listaProdutoEstoque} = useContext(AppContext);
   const {contQtdEstoque, setContQtdEstoque} = useContext(AppContext);
   const [progresso, setProgresso] = useState(0);
@@ -82,7 +81,6 @@ const BotoesFinalizarCancelarEstoque = () => {
 
       clearInterval(intervaloProgresso)
       setProgresso(100);
-      setEstoqueSalvo(response.data);
       setMostrarCaixaDialogo(true);
       setMensagemErro(false);
       setListaProdutoEstoque([]);
