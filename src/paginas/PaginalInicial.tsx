@@ -8,6 +8,7 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import { set } from "date-fns";
 
 const PaginalInicial = () => {
 
@@ -16,9 +17,13 @@ const PaginalInicial = () => {
   const fecharModal = () => setOpen(false);
   const navigate = useNavigate();
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
+  const [ultimaVerificacao, setUltimaVerificacao] = useState(Date.now());
   const [loading, setLoading] = useState(false);
   const {session} = useAuth();
   const estoqueId = useContext(AppContext).estoqueId;
+  const {servidorOnline,setServidorOnline} = useContext(AppContext)
+  const sessaoAtiva = useContext(AppContext).sessaoAtiva;
+  const setSessaoAtiva = useContext(AppContext).setSessaoAtiva;
 
   const dadosUsuario: any | undefined = session?.user.user_metadata;
 
@@ -29,15 +34,42 @@ const PaginalInicial = () => {
   },4000);
 
   useEffect(() => {
-  const verificarSessao = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate('/');
+
+    const verificarServidor = async () => {
+
+      try{
+        const response = await axios.get('http://localhost:3000/status-servidor');
+        const {data, error} = await supabase.auth.getUser();
+
+        if (response.data.status !== 'ok' || error || !data.user) {
+          setServidorOnline(false);
+          setAlerta(alertaMensagem('Servidor offline ou sessão expirada. Por favor, verifique sua conexão e faça login novamente.', 'warning', <ReportProblemIcon/>));       
+        }else{
+          setServidorOnline(true);
+        }
+
+      }catch(err){
+        setServidorOnline(false);
+        setAlerta(alertaMensagem(`Erro ao verificar servidor: ${err}`, 'warning', <ReportProblemIcon/>));      
+      }
+
+      setUltimaVerificacao(Date.now());
+      
     }
-  };
-    verificarSessao();
-    console.log(dadosUsuario);
-  }, []);
+
+    verificarServidor();
+
+    const intervalo = setInterval(() => {
+      verificarServidor(); 
+    }, 10000);
+
+    return () => clearInterval(intervalo);
+
+  },[]);
+
+  useEffect(() => {
+      console.log('Servidor online?', servidorOnline);   
+  }, [servidorOnline, ultimaVerificacao]);
 
 
   if (loading){
