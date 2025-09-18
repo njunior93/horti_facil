@@ -1,5 +1,5 @@
 import { Button } from "@mui/material"
-import {  useState } from "react";
+import {  useContext, useState } from "react";
 import { Modal, Box, Typography, List, ListItem, ListItemButton, ListItemText } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import alertaMensagem from "../utils/alertaMensagem";
@@ -7,6 +7,7 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import { AppContext } from "../context/context";
 
 const PaginalInicial = () => {
 
@@ -17,6 +18,7 @@ const PaginalInicial = () => {
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
   const [loading, setLoading] = useState(false);
   const {session} = useAuth();
+  const { servidorOnline, setServidorOnline } = useContext(AppContext);
 
   const dadosUsuario: any | undefined = session?.user.user_metadata;
 
@@ -35,22 +37,6 @@ const PaginalInicial = () => {
       </div>
     );
   }
-
-  const criarEstoque = async () =>{
-
-    const existeEstoque = await verificarEstoque();
-
-    if (existeEstoque){
-      setAlerta(alertaMensagem('Ja existe um estoque criado! Gerencie o seu estoque', 'warning', <ReportProblemIcon/>));
-      return;
-    }
-   
-      navigate('/criar-estoque'); 
-      fecharModal();
-      setAlerta(null) 
-      setOpen(true)
-    
-  };
 
   const verificarEstoque = async () =>{
 
@@ -85,7 +71,33 @@ const PaginalInicial = () => {
     }
   }
 
+  const criarEstoque = async () =>{
+
+    if (!servidorOnline){
+      setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
+      return;
+    }
+
+    const existeEstoque = await verificarEstoque();
+
+    if (existeEstoque){
+      setAlerta(alertaMensagem('Ja existe um estoque criado! Gerencie o seu estoque', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+   
+      navigate('/criar-estoque'); 
+      fecharModal();
+      setAlerta(null) 
+      setOpen(true)
+    
+  };
+
   const gerenciarEstoque = async  () =>{
+
+    if (!servidorOnline){
+      setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'error', <ReportProblemIcon />));
+      return;
+    }
 
     const existeEstoque = await verificarEstoque();
 

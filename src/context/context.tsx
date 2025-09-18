@@ -58,7 +58,7 @@ interface AppProvideProps{
     children: ReactNode
 }
 
-const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: null , setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: null, setTipoEntrada: () => {}, tipoSaida: null, setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {}, tipoInput: 'auto', setTipoInput: () => {}, estoqueId: 0, setEstoqueId: () => {}, servidorOnline: true, setServidorOnline: () => {}, sessaoAtiva: true, setSessaoAtiva: () => {}};
+const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: null , setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: null, setTipoEntrada: () => {}, tipoSaida: null, setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {}, tipoInput: 'auto', setTipoInput: () => {}, estoqueId: 0, setEstoqueId: () => {}, servidorOnline: false, setServidorOnline: () => {}, sessaoAtiva: true, setSessaoAtiva: () => {}};
 
 export const AppContext = createContext<IContext>(inicial);
 
@@ -134,7 +134,7 @@ export const AppProvider = ({ children }: AppProvideProps) => {
   const [mostrarCaixaDialogo, setMostrarCaixaDialogo] = useState(false);
   const [tipoInput, setTipoInput] = useState<"auto" | "manual">('auto');
   const [estoqueId, setEstoqueId] = useState<number>(0);
-  const [servidorOnline, setServidorOnline] = useState<true | false>(true);
+  const [servidorOnline, setServidorOnline] = useState<true | false>(false);
   const [sessaoAtiva, setSessaoAtiva] = useState<true | false>(true);
 
 

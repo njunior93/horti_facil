@@ -8,6 +8,7 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import axios from 'axios';
 
 
+
 const GerenciarEstoque = () => {
 
   const {setEstoqueId} = useContext(AppContext);
@@ -48,7 +49,6 @@ const GerenciarEstoque = () => {
       setLoading(false);
     }
   }, [estoqueSalvo]);
-  
 
   if (loading){
     return (

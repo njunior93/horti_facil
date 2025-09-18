@@ -3,6 +3,7 @@ import axios from "axios";
 import { supabase } from "../supabaseClient";
 import { AppContext } from "./context";
 import {StatusServidor} from '../utils/statusServidor'
+import { useNavigate } from "react-router-dom";
 
 export type StatusServidorContextType = {
   servidorOnline: boolean;
@@ -14,7 +15,8 @@ export const StatusServidorContext = createContext<StatusServidorContextType | u
 export const StatusServidorProvider = ({ children }: { children: React.ReactNode }) => {
   const { servidorOnline, setServidorOnline } = useContext(AppContext);
   const { sessaoAtiva, setSessaoAtiva } = useContext(AppContext);
-  // const [ultimaVerificacao, setUltimaVerificacao] = useState<Date | null>(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
 
@@ -24,12 +26,16 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
 
       if (!session) {
         setSessaoAtiva(false);
+        if (location.pathname !== "/") {
+          navigate("/");
+        }
         return; 
       }
 
       setSessaoAtiva(true);
       } catch (err) {
         setSessaoAtiva(false);
+        navigate('/')
       }
     };
 
@@ -56,7 +62,7 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
 
     const intervalo = setInterval(() => {
       verificarServidor();
-      verificarSessao();
+      verificarSessao();    
     }, 10000);
 
     return () => clearInterval(intervalo);
@@ -66,7 +72,7 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
   return (
     <StatusServidorContext.Provider value={{ servidorOnline, sessaoAtiva }}>
       {children}
-      <StatusServidor />
+      {/* <StatusServidor /> */}
     </StatusServidorContext.Provider>
   );
 };

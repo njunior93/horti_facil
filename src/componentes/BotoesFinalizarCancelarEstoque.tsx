@@ -26,9 +26,38 @@ const BotoesFinalizarCancelarEstoque = () => {
   const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
   const setMostrarCaixaDialogo = useContext(AppContext).setMostrarCaixaDialogo;
   const{setTipoInput} = useContext(AppContext);
+  const { servidorOnline } = useContext(AppContext);
 
 
   const salvarEstoque = async () => {
+
+    const {data: {session}} = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    const userId = session?.user.id;
+    
+    const { data: tabela, error } = await supabase
+    .from('estoque')
+    .select('id')
+    .eq('user_id', userId) 
+    .maybeSingle();
+
+    if(tabela){
+      setMensagemErro(alertaMensagem('Você ja possui um estoque criado.', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+
+    if (!session){
+      setMensagemErro(alertaMensagem('Faça login para salvar um estoque.', 'warning', <ReportProblemIcon/>));
+      navigate("/pagina-login")
+      return;
+    }
+
+    if (!token){
+      setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+      navigate("/pagina-login")
+      return;
+    }
 
     const produtoSemUnidade = listaProdutoEstoque.some(produto => !produto.uniMedida);
 
@@ -40,15 +69,6 @@ const BotoesFinalizarCancelarEstoque = () => {
     if (listaProdutoEstoque.length === 0 || contQtdEstoque === 0) {
         alert("Não há produtos no estoque para salvar.");
         return;
-    }
-
-    const {data: {session}} = await supabase.auth.getSession();
-    const token = session?.access_token;
-
-    if (!token){
-      setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
-      navigate("/pagina-login")
-      return;
     }
 
       const novoEstoque = {
@@ -129,7 +149,7 @@ const BotoesFinalizarCancelarEstoque = () => {
       </div>
       
       <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end"}}>     
-        <Button variant="contained" startIcon={<SaveIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#06D001", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#059212",},}} onClick={salvarEstoque}>Finalizar</Button>
+        <Button variant="contained" startIcon={<SaveIcon/>} disabled={listaProdutoEstoque.length === 0 || !servidorOnline} sx={{ backgroundColor: "#06D001", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#059212",},}} onClick={salvarEstoque}>Finalizar</Button>
         <Button variant="contained" startIcon={<CancelIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#C70039", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#900C3F",},}} onClick={cancelarEstoque}>Cancelar</Button>
         <Button variant="contained" startIcon={<ExitToAppIcon/>} sx={{ backgroundColor: "#393E46", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#222831",},}} onClick={sairEstoque} >Sair</Button>
       </Stack>
