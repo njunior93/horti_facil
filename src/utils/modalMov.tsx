@@ -166,11 +166,6 @@ const ModalMov = () => {
 
   const atualizarEstoque = async () =>{
 
-    if(!estoqueId || !servidorOnline){
-      setAlertaAddProduto(alertaMensagem("Erro de conexão com o estoque. Tente novamente", "error", <ReportProblemIcon/>));
-      return;
-    }
-
     try{
 
       if (listaProdutoMov.length === 0) {

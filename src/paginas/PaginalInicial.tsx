@@ -95,7 +95,7 @@ const PaginalInicial = () => {
   const gerenciarEstoque = async  () =>{
 
     if (!servidorOnline){
-      setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'error', <ReportProblemIcon />));
+      setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
       return;
     }
 

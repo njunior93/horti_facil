@@ -26,8 +26,6 @@ const BotoesFinalizarCancelarEstoque = () => {
   const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
   const setMostrarCaixaDialogo = useContext(AppContext).setMostrarCaixaDialogo;
   const{setTipoInput} = useContext(AppContext);
-  const { servidorOnline } = useContext(AppContext);
-
 
   const salvarEstoque = async () => {
 
@@ -36,7 +34,7 @@ const BotoesFinalizarCancelarEstoque = () => {
 
     const userId = session?.user.id;
     
-    const { data: tabela, error } = await supabase
+    const { data: tabela } = await supabase
     .from('estoque')
     .select('id')
     .eq('user_id', userId) 
@@ -149,7 +147,7 @@ const BotoesFinalizarCancelarEstoque = () => {
       </div>
       
       <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end"}}>     
-        <Button variant="contained" startIcon={<SaveIcon/>} disabled={listaProdutoEstoque.length === 0 || !servidorOnline} sx={{ backgroundColor: "#06D001", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#059212",},}} onClick={salvarEstoque}>Finalizar</Button>
+        <Button variant="contained" startIcon={<SaveIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#06D001", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#059212",},}} onClick={salvarEstoque}>Finalizar</Button>
         <Button variant="contained" startIcon={<CancelIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#C70039", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#900C3F",},}} onClick={cancelarEstoque}>Cancelar</Button>
         <Button variant="contained" startIcon={<ExitToAppIcon/>} sx={{ backgroundColor: "#393E46", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#222831",},}} onClick={sairEstoque} >Sair</Button>
       </Stack>
