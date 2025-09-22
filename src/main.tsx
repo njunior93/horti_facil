@@ -7,6 +7,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import CriarEstoque from './paginas/CriarEstoque.tsx';
 import GerenciarEstoque from './paginas/GerenciarEstoque.tsx';
 import PaginalInicial from './paginas/PaginalInicial.tsx';
+import PedidosCompra from './paginas/PedidosCompra.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { StatusServidorProvider } from './context/StatusServidorProvider.tsx';
 
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
   {
     path: "/gerenciar-estoque",
     element: <StatusServidorProvider><GerenciarEstoque/></StatusServidorProvider>
+  },
+  {
+    path: "/pedidos-compra",
+    element: <StatusServidorProvider><PedidosCompra/></StatusServidorProvider>
   }
   
 ]);

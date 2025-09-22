@@ -99,14 +99,34 @@ const PaginalInicial = () => {
       return;
     }
 
+    // const existeEstoque = await verificarEstoque();
+
+    // if (existeEstoque){
+    //   setAlerta(alertaMensagem("Não existe estoque para gerenciar. Crie um estoque", 'warning', <ReportProblemIcon />));
+    //   return;
+    // }
+                
+    navigate('/gerenciar-estoque'); 
+    fecharModal();
+    setAlerta(null)
+    setOpen(true)
+  }
+
+  const pedidoCompra = async () =>{
+
+    if (!servidorOnline){
+      setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
+      return;
+    }
+
     const existeEstoque = await verificarEstoque();
 
     if (!existeEstoque){
-      setAlerta(alertaMensagem("Não existe estoque para gerenciar. Crie um estoque", 'warning', <ReportProblemIcon />));
+      setAlerta(alertaMensagem("É preciso ter um estoque criado! Crie um estoque", 'warning', <ReportProblemIcon />));
       return;
     }
-                
-    navigate('/gerenciar-estoque'); 
+
+    navigate('/pedidos-compra'); 
     fecharModal();
     setAlerta(null)
     setOpen(true)
@@ -214,7 +234,7 @@ const PaginalInicial = () => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
-              onClick={() => { /* ação criar pedido de compra */ fecharModal(); }}
+              onClick={() => { pedidoCompra(); }}
               sx={{
                 backgroundColor: "#FDEFD6",
                 borderRadius: "0.75rem",
@@ -225,7 +245,7 @@ const PaginalInicial = () => {
                 },
               }}
               >
-              <ListItemText primary="Criar pedido de compra" />
+              <ListItemText primary="Pedidos de compra" />
               </ListItemButton>
             </ListItem>
             </List>
