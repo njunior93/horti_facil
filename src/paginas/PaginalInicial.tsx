@@ -99,12 +99,12 @@ const PaginalInicial = () => {
       return;
     }
 
-    // const existeEstoque = await verificarEstoque();
+    const existeEstoque = await verificarEstoque();
 
-    // if (existeEstoque){
-    //   setAlerta(alertaMensagem("Não existe estoque para gerenciar. Crie um estoque", 'warning', <ReportProblemIcon />));
-    //   return;
-    // }
+    if (!existeEstoque){
+      setAlerta(alertaMensagem("Não existe estoque para gerenciar. Crie um estoque", 'warning', <ReportProblemIcon />));
+      return;
+    }
                 
     navigate('/gerenciar-estoque'); 
     fecharModal();

@@ -16,6 +16,7 @@ import { Stack } from '@mui/material';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
 
+
 const ModalMov = () => {
 
     const {handleModal, setHandleModal} = useContext(AppContext);
@@ -35,7 +36,6 @@ const ModalMov = () => {
     const [dataInicio, setDataInicio] = useState<Date | null>(null);
     const [dataFim, setDataFim] = useState<Date | null>(null);
     const estoqueId = useContext(AppContext).estoqueId;
-    const servidorOnline = useContext(AppContext).servidorOnline;
     
 
   setTimeout(() =>{
@@ -396,10 +396,77 @@ const ModalMov = () => {
       }}
     >
           <Typography id="modal-estoque-title" variant="h6" component="h2" gutterBottom>
-            {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saída' ? 'Saida Manual do estoque' : tipoModal === 'MovimentacaoEstoque' ? 'Relatorio Movimentação de estoque' : ''}
+            {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saída' ? 'Saida Manual do estoque' : tipoModal === 'MovimentacaoEstoque' ? 'Relatorio Movimentação de estoque' : 'Criar Pedido de Compra'}
           </Typography>
           
           <div className="flex flex-col gap-3">
+
+            {tipoModal === 'CriarPedidoCompra' && (
+              <Stack spacing={2} direction="column" justifyContent={"center"} alignItems={"center"}>
+                  <FormControl fullWidth required>
+                    <InputLabel required id="produto-label">Selecione o produto</InputLabel>
+                    <Select
+                      value={produtoSelecionado ? String(produtoSelecionado.id) : ""}
+                      onChange={selecaoProduto}
+                      displayEmpty
+                      labelId="produto-label"
+                      id="produto-select"
+                      label="Selecione o produto"
+                    >
+                      {estoqueSalvo && estoqueSalvo.listaProdutos && estoqueSalvo.listaProdutos.length > 0 ? (
+                        estoqueSalvo.listaProdutos.map((produto: iProduto) => (
+                          <MenuItem key={produto.id} value={String(produto.id)}>{produto.nome}</MenuItem>
+                        ))
+                      ) : null}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth required>
+                    <Stack direction="row" spacing={2}>
+                      <TextField
+                        disabled={true}
+                        value={produtoSelecionado ? produtoSelecionado.estoque ?? "" : ""}
+                        label="Estoque Atual"
+                        fullWidth
+                      />
+                      <TextField
+                        disabled={true}
+                        value={produtoSelecionado ? produtoSelecionado.estoqueMinimo ?? "" : ""}
+                        label="Estoque Minimo"
+                        fullWidth
+                      />
+                      <TextField
+                        disabled={true}
+                        value={produtoSelecionado ? produtoSelecionado.estoqueMaximo ?? "" : ""}
+                        label="Estoque Maximo"
+                        fullWidth
+                      />
+                    </Stack>
+                  </FormControl>
+
+                  <FormControl fullWidth required error={Number(valorMov) < 0}>
+                    <Stack direction={"row"} spacing={2} justifyContent="start" alignItems="center">
+                      <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id} label={tipoModal === 'CriarPedidoCompra' ? 'Reposição' : ''} error={Number(valorMov) < 0}></TextField>
+                      <Button
+                        onClick={() => {
+                          if (produtoSelecionado) {
+                            addProdutoLista(produtoSelecionado, Number(valorMov), tipoSaida, tipoEntrada, tipoModal, new Date());
+                          }
+                        }}
+                        sx={{ backgroundColor: "#4CAF50", color: "#fff", '&:hover': { backgroundColor: "#388E3C" } }}
+                        disabled={!produtoSelecionado || !produtoSelecionado.id}
+                      >
+                        <span className="text-xl">+</span>
+                      </Button>
+                    </Stack>
+
+                    <FormHelperText>
+                      {Number(valorMov) < 0 ? "Valor deve ser maior que zero" : ""}
+                    </FormHelperText>
+                  </FormControl>
+                </Stack> 
+            )}
+
             {tipoModal === 'MovimentacaoEstoque' && (
               <Stack spacing={2} direction="column">
                 <FormControl fullWidth required>
@@ -484,7 +551,7 @@ const ModalMov = () => {
               </Stack>            
             )}   
 
-            {tipoModal !== 'MovimentacaoEstoque' && (
+            {(tipoModal === 'Entrada' || tipoModal === 'Saída') && (
               <Stack spacing={2} direction="column" justifyContent={"center"} alignItems={"center"}>
                   <FormControl fullWidth required>
                     <InputLabel required id="produto-label">Selecione o produto</InputLabel>
