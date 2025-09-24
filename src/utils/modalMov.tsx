@@ -241,40 +241,6 @@ const ModalMov = () => {
         return;
       }
     }
-
-  //   const historicoTemp: iProdutoMov[] = [];
-
-  //   const estoqueAtualizado = estoqueSalvo.listaProdutos.map((produtoEstoque) =>{
-  //     const prodMov = listaProdutoMov.find(
-  //       (mov) => mov.produto.id === produtoEstoque.id
-  //     );     
-  
-  //     if (prodMov && tipoModal === 'Entrada'){
-  //       const novoEstoque = (produtoEstoque.estoque ?? 0) + prodMov.qtdMov;
-  //       if(novoEstoque !== produtoEstoque.estoque){
-  //         historicoTemp.push(prodMov)
-  //       }   
-  //       return { ...produtoEstoque, estoque: novoEstoque, estoqueSuficiente: novoEstoque >= (produtoEstoque.estoqueMinimo ?? 0) ? true : false }
-  //     }
-      
-  //     if (prodMov && tipoModal === 'Saída'){
-  //       const novoEstoque = (produtoEstoque.estoque ?? 0) - prodMov.qtdMov;
-  //       if(novoEstoque !== produtoEstoque.estoque){
-  //         historicoTemp.push(prodMov)
-  //       } 
-  //        return { ...produtoEstoque, estoque: novoEstoque, estoqueSuficiente: novoEstoque >= (produtoEstoque.estoqueMinimo ?? 0) ? true : false }
-  //     } 
-
-  //       return produtoEstoque;      
-        
-  // });
-
-  // setEstoqueSalvo({ ...estoqueSalvo, listaProdutos: estoqueAtualizado })
-
-  //   if (historicoTemp.length > 0 && setListaHistoricoMovEstoque && listaHistoricoMovEstoque) {
-  //     setListaHistoricoMovEstoque([...listaHistoricoMovEstoque, ...historicoTemp]);
-  //   }
-
     
     setHandleModal(false)
     setTipoModal('')
@@ -285,6 +251,66 @@ const ModalMov = () => {
     setTipoEntrada(null)
     setAlertaAddProduto(null)
 
+  }
+
+  const criarPedidoCompra = async () =>{
+
+    if (listaProdutoMov.length === 0) {
+        setAlertaAddProduto(alertaMensagem("Adicione produtos para atualizar o estoque", "warning", <ReportProblemIcon/>));
+        return;
+      }
+
+      const {data: {session}} = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+        return;
+      }
+
+      if (!session){
+          setAlertaAddProduto(alertaMensagem('Faça login para salvar um estoque.', 'warning', <ReportProblemIcon/>));
+           return;
+      }
+
+      const pedidoNovo = listaProdutoMov.map((mov) => ({
+        produtoId: mov.produto?.id,
+        nome: mov.produto?.nome,
+        qtdMov: mov.qtdMov,
+        estoqueId: estoqueId
+      }));
+
+      try {
+        await axios.post('http://localhost:3000/pedido/criar-pedido', pedidoNovo,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (error) {
+        console.error("Erro ao criar pedido de compra:", error);
+        setAlertaAddProduto(alertaMensagem("Erro ao criar pedido de compra", "error", <ReportProblemIcon/>));
+
+        if(axios.isAxiosError(error) && error.response){
+          console.error("Erro na API:", error);
+          setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+          return;
+        } else {
+          console.error("Erro ao ao criar pedido de compra:", error);
+          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao criar pedido de compra. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+          return;
+        }
+
+    }
+
+    setHandleModal(false)
+    setTipoModal('')
+    setProdutoSelecionado({} as iProduto)
+    setListaProdutoMov([]);
+    setValorMov('')
+    setTipoSaida(null)
+    setTipoEntrada(null)
+    setAlertaAddProduto(null)
+
+        
   }
 
   const selecaoTipoSaida = (e: React.ChangeEvent<HTMLInputElement>) =>{
@@ -626,9 +652,11 @@ const ModalMov = () => {
             <Button  variant="contained" onClick={cancelarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}>Cancelar</Button>
             { tipoModal === 'MovimentacaoEstoque' ? (
               <Button variant="contained" onClick={gerarRelatorioMovimentacao} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} >Gerar</Button>
-            ) : (
+            ) : tipoModal === 'Entrada' || tipoModal === 'Saida' ?  (
               <Button variant="contained" onClick={atualizarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Confirmar</Button>
-            )}
+            ) : tipoModal === 'CriarPedidoCompra' ? (
+              <Button variant="contained" onClick={criarPedidoCompra} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Pedido</Button>
+            ) : null}
           </div>
           
         </Box>
