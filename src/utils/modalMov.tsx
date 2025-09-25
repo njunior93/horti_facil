@@ -273,12 +273,18 @@ const ModalMov = () => {
            return;
       }
 
-      const pedidoNovo = listaProdutoMov.map((mov) => ({
-        produtoId: mov.produto?.id,
-        nome: mov.produto?.nome,
-        qtdMov: mov.qtdMov,
-        estoqueId: estoqueId
-      }));
+      const pedidoNovo = {
+        data: new Date().toISOString().split("T")[0], 
+        status: "pendente", 
+        fornecedor_id: "550e8400-e29b-41d4-a716-446655440000", 
+        estoque_id: estoqueId,
+        itens: listaProdutoMov.map((mov) => ({
+          produto_id: mov.produto?.id,
+          quantidade: mov.qtdMov
+        }))
+      };
+
+      console.log("Payload enviado:", pedidoNovo);
 
       try {
         await axios.post('http://localhost:3000/pedido/criar-pedido', pedidoNovo,
