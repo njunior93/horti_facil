@@ -25,7 +25,7 @@ const VisualizarEstoque = () => {
   const {handleModal, setHandleModal} = useContext(AppContext);
   const [loading, setLoading] = useState(true);
   const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
-  const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
+  const {setEstoqueSalvo} = useContext(AppContext);
   const {estoqueId,setEstoqueId} = useContext(AppContext);
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
 
