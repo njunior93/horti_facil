@@ -415,48 +415,199 @@ const ModalMov = () => {
         aria-describedby="modal-estoque-description"
       >
         
-    <Box
-      sx={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        bgcolor: 'background.paper',
-        border: '2px solid #000',
-        boxShadow: 24,
-        p: 4,
-        borderRadius: 2,
-        width: {xs: '90vw', sm: '70%', md: '50%', lg: '40%'}
-      }}
-    >
-          <Typography id="modal-estoque-title" variant="h6" component="h2" gutterBottom>
-            {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saída' ? 'Saida Manual do estoque' : tipoModal === 'MovimentacaoEstoque' ? 'Relatorio Movimentação de estoque' : 'Criar Pedido de Compra'}
-          </Typography>
-          
-          <div className="flex flex-col gap-3">
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: 'background.paper',
+            border: '2px solid #000',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            width: {xs: '90vw', sm: '70%', md: '50%', lg: '40%'}
+          }}
+        >
+            <Typography id="modal-estoque-title" variant="h6" component="h2" gutterBottom>
+              {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saída' ? 'Saida Manual do estoque' : tipoModal === 'MovimentacaoEstoque' ? 'Relatorio Movimentação de estoque' : 'Criar Pedido de Compra'}
+            </Typography>
+            
+            <div className="flex flex-col gap-3">
 
-            {tipoModal === 'CriarPedidoCompra' && (
-              <>
-                <FormControl fullWidth required>
-                  <Stack direction="row" spacing={1}>
-                    <FormControl fullWidth>
-                      <InputLabel id="fornecedor-label">Selecione o fornecedor</InputLabel>
+              {tipoModal === 'CriarPedidoCompra' && (
+                <>
+                  <FormControl fullWidth required>
+                    <Stack direction="row" spacing={1}>
+                      <FormControl fullWidth>
+                        <InputLabel id="fornecedor-label">Selecione o fornecedor</InputLabel>
+                        <Select
+                          labelId="fornecedor-label"
+                          id="fornecedor-select"
+                          displayEmpty
+                          label="Selecione o fornecedor">
+                          <MenuItem value="550e8400-e29b-41d4-a716-446655440000">
+                            Fornecedor Exemplo
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      <Button startIcon={<PersonAddIcon/>} sx={{backgroundColor: "#e78a11ff",color: "#fff",minWidth: "40px",'&:hover': { backgroundColor: "#6b3e03ff" },}}></Button>
+                    </Stack>
+                  </FormControl>
+
+
+                  <Stack spacing={2} direction="column" justifyContent={"center"} alignItems={"center"}>
+                      <FormControl fullWidth required>
+                        <InputLabel required id="produto-label">Selecione o produto</InputLabel>
+                        <Select
+                          value={produtoSelecionado ? String(produtoSelecionado.id) : ""}
+                          onChange={selecaoProduto}
+                          displayEmpty
+                          labelId="produto-label"
+                          id="produto-select"
+                          label="Selecione o produto"
+                        >
+                          {estoqueSalvo && estoqueSalvo.listaProdutos && estoqueSalvo.listaProdutos.length > 0 ? (
+                            estoqueSalvo.listaProdutos.map((produto: iProduto) => (
+                              <MenuItem key={produto.id} value={String(produto.id)}>{produto.nome}</MenuItem>
+                            ))
+                          ) : null}
+                        </Select>
+                      </FormControl>
+
+                      <FormControl fullWidth required>
+                        <Stack direction="row" spacing={2}>
+                          <TextField
+                            disabled={true}
+                            value={produtoSelecionado ? produtoSelecionado.estoque ?? "" : ""}
+                            label="Estoque Atual"
+                            fullWidth
+                          />
+                          <TextField
+                            disabled={true}
+                            value={produtoSelecionado ? produtoSelecionado.estoqueMinimo ?? "" : ""}
+                            label="Estoque Minimo"
+                            fullWidth
+                          />
+                          <TextField
+                            disabled={true}
+                            value={produtoSelecionado ? produtoSelecionado.estoqueMaximo ?? "" : ""}
+                            label="Estoque Maximo"
+                            fullWidth
+                          />
+                        </Stack>
+                      </FormControl>
+
+                      <FormControl fullWidth required error={Number(valorMov) < 0}>
+                        <Stack direction={"row"} spacing={2} justifyContent="start">
+                          <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id} label={tipoModal === 'CriarPedidoCompra' ? 'Reposição' : ''} error={Number(valorMov) < 0}></TextField>
+                          <Button
+                            onClick={() => {
+                              if (produtoSelecionado) {
+                                addProdutoLista(produtoSelecionado, Number(valorMov), tipoSaida, tipoEntrada, tipoModal, new Date());
+                              }
+                            }}
+                            sx={{ backgroundColor: "#4CAF50", color: "#fff", '&:hover': { backgroundColor: "#388E3C" } }}
+                            disabled={!produtoSelecionado || !produtoSelecionado.id}
+                          >
+                            <span className="text-xl">+</span>
+                          </Button>
+                        </Stack>
+
+                        <FormHelperText>
+                          {Number(valorMov) < 0 ? "Valor deve ser maior que zero" : ""}
+                        </FormHelperText>
+                      </FormControl>
+                    </Stack> 
+                  </>
+              )}
+
+              {tipoModal === 'MovimentacaoEstoque' && (
+                <Stack spacing={2} direction="column">
+                  <FormControl fullWidth required>
+                      <InputLabel required id="tipo-label">Tipo</InputLabel>
                       <Select
-                        labelId="fornecedor-label"
-                        id="fornecedor-select"
                         displayEmpty
-                        label="Selecione o fornecedor">
-                        <MenuItem value="550e8400-e29b-41d4-a716-446655440000">
-                          Fornecedor Exemplo
-                        </MenuItem>
+                        required
+                        value={tipoMovSelecionado ? tipoMovSelecionado : ""}
+                        onChange={selecaoTipoMov}
+                        labelId="tipo-label"
+                        label="Tipo"
+                      >
+
+                        {listaTipoMovimentacoes.map((tipo, index) => (
+                          <MenuItem key={index} value={tipo}>{tipo}</MenuItem>
+                        ))}
                       </Select>
-                    </FormControl>
+                  </FormControl>
 
-                    <Button startIcon={<PersonAddIcon/>} sx={{backgroundColor: "#e78a11ff",color: "#fff",minWidth: "40px",'&:hover': { backgroundColor: "#6b3e03ff" },}}/></Button>
-                  </Stack>
-                </FormControl>
+                  <FormControl fullWidth required disabled={!tipoMovSelecionado}>
+                    <InputLabel required id="mov-label">Movimentações</InputLabel>
+                    <Select
+                      displayEmpty
+                      value={movimentacaoSelecionada ? movimentacaoSelecionada : ""}
+                      onChange={selecaoMovimentacao}
+                      labelId="mov-label"
+                      label="Movimentações">
 
+                        {listaMovimentacoesEstoque && listaMovimentacoesEstoque.map((mov, index) => (                    
+                          <MenuItem key={index} value={mov}>{mov}</MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
 
+                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                      <DatePicker
+                        format="dd/MM/yyyy"
+                        label="Periodo inicial"
+                        value={dataInicio}
+                        disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
+                        onChange={(newValue) => {
+                          if (dataFim && newValue && newValue > dataFim) {
+                            setAlertaAddProduto(alertaMensagem("Data inicial não pode ser maior que a final", "warning", <ReportProblemIcon/>));
+                            } else {
+                            setAlertaAddProduto(null);
+                            setDataInicio(newValue);                   
+                          }
+                        }}                      
+                        maxDate={dataFim || undefined}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            required: true,
+                            },
+                          }}
+                        />
+                  </LocalizationProvider>
+                          
+                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                        <DatePicker
+                          format="dd/MM/yyyy"
+                          label="Periodo Final"
+                          value={dataFim}
+                          onChange={(newValue) => {
+                          if (dataInicio && newValue && newValue < dataInicio) {
+                            setAlertaAddProduto(alertaMensagem("Data final não pode ser maior que a Inicial", "warning", <ReportProblemIcon/>));
+                            } else {
+                            setAlertaAddProduto(null);
+                            setDataFim(newValue);                   
+                            }
+                          }} 
+                          disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
+                          minDate={dataInicio || undefined}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              required: true,
+                              },
+                            }}
+                        />
+                  </LocalizationProvider>         
+                </Stack>            
+              )}   
+
+              {(tipoModal === 'Entrada' || tipoModal === 'Saída') && (
                 <Stack spacing={2} direction="column" justifyContent={"center"} alignItems={"center"}>
                     <FormControl fullWidth required>
                       <InputLabel required id="produto-label">Selecione o produto</InputLabel>
@@ -477,31 +628,12 @@ const ModalMov = () => {
                     </FormControl>
 
                     <FormControl fullWidth required>
-                      <Stack direction="row" spacing={2}>
-                        <TextField
-                          disabled={true}
-                          value={produtoSelecionado ? produtoSelecionado.estoque ?? "" : ""}
-                          label="Estoque Atual"
-                          fullWidth
-                        />
-                        <TextField
-                          disabled={true}
-                          value={produtoSelecionado ? produtoSelecionado.estoqueMinimo ?? "" : ""}
-                          label="Estoque Minimo"
-                          fullWidth
-                        />
-                        <TextField
-                          disabled={true}
-                          value={produtoSelecionado ? produtoSelecionado.estoqueMaximo ?? "" : ""}
-                          label="Estoque Maximo"
-                          fullWidth
-                        />
-                      </Stack>
+                      <TextField disabled={true} value={produtoSelecionado ? produtoSelecionado.estoque ?? "" : ""} label="Estoque Atual"></TextField>
                     </FormControl>
 
                     <FormControl fullWidth required error={Number(valorMov) < 0}>
-                      <Stack direction={"row"} spacing={2} justifyContent="start">
-                        <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id} label={tipoModal === 'CriarPedidoCompra' ? 'Reposição' : ''} error={Number(valorMov) < 0}></TextField>
+                      <Stack direction={"row"} spacing={2} justifyContent="start" alignItems="center">
+                        <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id} label={tipoModal === 'Entrada' ? 'Entrada Manual' : tipoModal === 'Saída' ? 'Saida Manual' : ''} error={Number(valorMov) < 0}></TextField>
                         <Button
                           onClick={() => {
                             if (produtoSelecionado) {
@@ -519,177 +651,45 @@ const ModalMov = () => {
                         {Number(valorMov) < 0 ? "Valor deve ser maior que zero" : ""}
                       </FormHelperText>
                     </FormControl>
-                  </Stack> 
-                </>
-            )}
+                  </Stack>           
+              )}
 
-            {tipoModal === 'MovimentacaoEstoque' && (
-              <Stack spacing={2} direction="column">
-                <FormControl fullWidth required>
-                    <InputLabel required id="tipo-label">Tipo</InputLabel>
-                    <Select
-                      displayEmpty
-                      required
-                      value={tipoMovSelecionado ? tipoMovSelecionado : ""}
-                      onChange={selecaoTipoMov}
-                      labelId="tipo-label"
-                      label="Tipo"
+              {alertaAddProduto && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alertaAddProduto}</Box>}     
+            
+              {tipoModal === 'Saída' && (
+                <>
+                  <FormLabel id="demo-controlled-radio-buttons-group">Tipo de saida</FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-controlled-radio-buttons-group"
+                    row
+                    name="controlled-radio-buttons-group"
+                    value={tipoSaida}
+                    onChange={selecaoTipoSaida}
                     >
+                      <FormControlLabel disabled={!valorMov} value="Venda" control={<Radio />} label="Venda" />
+                      <FormControlLabel disabled={!valorMov} value="Avaria" control={<Radio />} label="Avaria" />
+                    </RadioGroup>  
+                  </>
+              )}       
+            </div>
 
-                      {listaTipoMovimentacoes.map((tipo, index) => (
-                        <MenuItem key={index} value={tipo}>{tipo}</MenuItem>
-                      ))}
-                    </Select>
-                </FormControl>
-
-                <FormControl fullWidth required disabled={!tipoMovSelecionado}>
-                  <InputLabel required id="mov-label">Movimentações</InputLabel>
-                  <Select
-                    displayEmpty
-                    value={movimentacaoSelecionada ? movimentacaoSelecionada : ""}
-                    onChange={selecaoMovimentacao}
-                    labelId="mov-label"
-                    label="Movimentações">
-
-                      {listaMovimentacoesEstoque && listaMovimentacoesEstoque.map((mov, index) => (                    
-                        <MenuItem key={index} value={mov}>{mov}</MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
-
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-                    <DatePicker
-                      format="dd/MM/yyyy"
-                      label="Periodo inicial"
-                      value={dataInicio}
-                      disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
-                      onChange={(newValue) => {
-                        if (dataFim && newValue && newValue > dataFim) {
-                          setAlertaAddProduto(alertaMensagem("Data inicial não pode ser maior que a final", "warning", <ReportProblemIcon/>));
-                          } else {
-                          setAlertaAddProduto(null);
-                          setDataInicio(newValue);                   
-                        }
-                      }}                      
-                      maxDate={dataFim || undefined}
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          required: true,
-                          },
-                        }}
-                      />
-                </LocalizationProvider>
-                        
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-                      <DatePicker
-                        format="dd/MM/yyyy"
-                        label="Periodo Final"
-                        value={dataFim}
-                        onChange={(newValue) => {
-                        if (dataInicio && newValue && newValue < dataInicio) {
-                          setAlertaAddProduto(alertaMensagem("Data final não pode ser maior que a Inicial", "warning", <ReportProblemIcon/>));
-                          } else {
-                          setAlertaAddProduto(null);
-                          setDataFim(newValue);                   
-                          }
-                        }} 
-                        disabled={!movimentacaoSelecionada || !tipoMovSelecionado}
-                        minDate={dataInicio || undefined}
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            required: true,
-                            },
-                          }}
-                      />
-                </LocalizationProvider>         
-              </Stack>            
-            )}   
-
-            {(tipoModal === 'Entrada' || tipoModal === 'Saída') && (
-              <Stack spacing={2} direction="column" justifyContent={"center"} alignItems={"center"}>
-                  <FormControl fullWidth required>
-                    <InputLabel required id="produto-label">Selecione o produto</InputLabel>
-                    <Select
-                      value={produtoSelecionado ? String(produtoSelecionado.id) : ""}
-                      onChange={selecaoProduto}
-                      displayEmpty
-                      labelId="produto-label"
-                      id="produto-select"
-                      label="Selecione o produto"
-                    >
-                      {estoqueSalvo && estoqueSalvo.listaProdutos && estoqueSalvo.listaProdutos.length > 0 ? (
-                        estoqueSalvo.listaProdutos.map((produto: iProduto) => (
-                          <MenuItem key={produto.id} value={String(produto.id)}>{produto.nome}</MenuItem>
-                        ))
-                      ) : null}
-                    </Select>
-                  </FormControl>
-
-                  <FormControl fullWidth required>
-                    <TextField disabled={true} value={produtoSelecionado ? produtoSelecionado.estoque ?? "" : ""} label="Estoque Atual"></TextField>
-                  </FormControl>
-
-                  <FormControl fullWidth required error={Number(valorMov) < 0}>
-                    <Stack direction={"row"} spacing={2} justifyContent="start" alignItems="center">
-                      <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id} label={tipoModal === 'Entrada' ? 'Entrada Manual' : tipoModal === 'Saída' ? 'Saida Manual' : ''} error={Number(valorMov) < 0}></TextField>
-                      <Button
-                        onClick={() => {
-                          if (produtoSelecionado) {
-                            addProdutoLista(produtoSelecionado, Number(valorMov), tipoSaida, tipoEntrada, tipoModal, new Date());
-                          }
-                        }}
-                        sx={{ backgroundColor: "#4CAF50", color: "#fff", '&:hover': { backgroundColor: "#388E3C" } }}
-                        disabled={!produtoSelecionado || !produtoSelecionado.id}
-                      >
-                        <span className="text-xl">+</span>
-                      </Button>
-                    </Stack>
-
-                    <FormHelperText>
-                      {Number(valorMov) < 0 ? "Valor deve ser maior que zero" : ""}
-                    </FormHelperText>
-                  </FormControl>
-                </Stack>           
+            {tipoModal !== 'MovimentacaoEstoque' && (
+              <ListaMovManual />
             )}
-
-            {alertaAddProduto && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alertaAddProduto}</Box>}     
-          
-            {tipoModal === 'Saída' && (
-              <>
-                <FormLabel id="demo-controlled-radio-buttons-group">Tipo de saida</FormLabel>
-                <RadioGroup
-                  aria-labelledby="demo-controlled-radio-buttons-group"
-                  row
-                  name="controlled-radio-buttons-group"
-                  value={tipoSaida}
-                  onChange={selecaoTipoSaida}
-                  >
-                    <FormControlLabel disabled={!valorMov} value="Venda" control={<Radio />} label="Venda" />
-                    <FormControlLabel disabled={!valorMov} value="Avaria" control={<Radio />} label="Avaria" />
-                  </RadioGroup>  
-                </>
-            )}       
-          </div>
-
-          {tipoModal !== 'MovimentacaoEstoque' && (
-            <ListaMovManual />
-          )}
-           
-          
-          <div className="flex flex-row gap-2">
-            <Button  variant="contained" onClick={cancelarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}>Cancelar</Button>
-            { tipoModal === 'MovimentacaoEstoque' ? (
-              <Button variant="contained" onClick={gerarRelatorioMovimentacao} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} >Gerar</Button>
-            ) : tipoModal === 'Entrada' || tipoModal === 'Saída' ?  (
-              <Button variant="contained" onClick={atualizarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Confirmar</Button>
-            ) : tipoModal === 'CriarPedidoCompra' ? (
-              <Button variant="contained" onClick={criarPedidoCompra} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Pedido</Button>
-            ) : null}
-          </div>
-          
-        </Box>
+            
+            
+            <div className="flex flex-row gap-2">
+              <Button  variant="contained" onClick={cancelarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}>Cancelar</Button>
+              { tipoModal === 'MovimentacaoEstoque' ? (
+                <Button variant="contained" onClick={gerarRelatorioMovimentacao} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} >Gerar</Button>
+              ) : tipoModal === 'Entrada' || tipoModal === 'Saída' ?  (
+                <Button variant="contained" onClick={atualizarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Confirmar</Button>
+              ) : tipoModal === 'CriarPedidoCompra' ? (
+                <Button variant="contained" onClick={criarPedidoCompra} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Pedido</Button>
+              ) : null}
+            </div>
+            
+          </Box>
       </Modal>
     </div>
   )

@@ -2,9 +2,14 @@ import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { AppContext } from '../context/context';
 import ModalMov from '../utils/modalMov';
+import { useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import alertaMensagem from "../utils/alertaMensagem";
+import axios from 'axios';
 
 
 
@@ -46,8 +51,37 @@ const linhas = [
 
 const PedidosCompra = () => {
 
+const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
 const setTipoModal = useContext(AppContext).setTipoModal;
-const {handleModal, setHandleModal} = useContext(AppContext);
+const { setHandleModal} = useContext(AppContext);
+const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
+
+useEffect(() => {
+  const fetchListaProdutos = async () => {
+    const {data : {session}} = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    if (!token){
+      setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+
+    try{
+      const response = await axios.get('http://localhost:3000/estoque/lista-produtos', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      setEstoqueSalvo(response.data);
+
+      } catch (error){
+        setMensagemErro(alertaMensagem(`Erro ao buscar lista de produtos. ${error}`, 'warning', <ReportProblemIcon/>));
+      } 
+    };
+
+    fetchListaProdutos();
+}, []);
 
 
 const criarPedido = () => {
