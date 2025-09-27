@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Box, Button, FormControl, FormControlLabel, FormHelperText, FormLabel, InputLabel, MenuItem, Modal, Radio, RadioGroup, Select, TextField, Typography, type SelectChangeEvent } from '@mui/material';
+import { Box, Button, Checkbox, FormControl, FormControlLabel, FormHelperText, FormLabel, InputLabel, MenuItem, Modal, Radio, RadioGroup, Select, TextField, Typography, type SelectChangeEvent } from '@mui/material';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useContext, useState } from "react";
@@ -321,6 +321,11 @@ const ModalMov = () => {
         
   }
 
+  const CadastroFornecedor = () => {
+    setTipoModal('CadastroFornecedor');
+    setHandleModal(true);
+  }
+
   const selecaoTipoSaida = (e: React.ChangeEvent<HTMLInputElement>) =>{
     setTipoSaida((e.target as HTMLInputElement).value); 
       
@@ -430,10 +435,36 @@ const ModalMov = () => {
           }}
         >
             <Typography id="modal-estoque-title" variant="h6" component="h2" gutterBottom>
-              {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saída' ? 'Saida Manual do estoque' : tipoModal === 'MovimentacaoEstoque' ? 'Relatorio Movimentação de estoque' : 'Criar Pedido de Compra'}
+              {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saída' ? 'Saida Manual do estoque' : tipoModal === 'MovimentacaoEstoque' ? 'Relatorio Movimentação de estoque' : tipoModal === 'CriarPedidoCompra' ? 'Criar Pedido de Compra' : tipoModal === 'CadastroFornecedor' ? 'Cadastrar Fornecedor' : ''}
             </Typography>
             
             <div className="flex flex-col gap-3">
+
+              {tipoModal === 'CadastroFornecedor' && (
+                <Stack direction="column"  justifyContent={"center"} alignItems={"center"}>
+                    <FormControl  fullWidth required error={Number(valorMov) < 0}>
+                      <Stack direction={"column"}  justifyContent="center" alignItems="start" spacing={1}>
+                        <TextField fullWidth required label='Razão Social' type='text' ></TextField>
+                        
+                        <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
+                          <TextField fullWidth label='Telefone' type='text' />
+                          <TextField fullWidth label='Celular' type='text' />
+                        </Stack>
+                        
+                        <TextField fullWidth label='Email' type='email' ></TextField>
+
+                        <FormControlLabel label="Enviar notificação" control={
+                          <Checkbox inputProps={{ 'aria-label': 'controlled' }}/>
+                        }/>
+
+                      </Stack>
+
+                      <FormHelperText>
+                        {Number(valorMov) < 0 ? "Valor deve ser maior que zero" : ""}
+                      </FormHelperText>
+                    </FormControl>
+                  </Stack> 
+              )}
 
               {tipoModal === 'CriarPedidoCompra' && (
                 <>
@@ -452,7 +483,7 @@ const ModalMov = () => {
                         </Select>
                       </FormControl>
 
-                      <Button startIcon={<PersonAddIcon/>} sx={{backgroundColor: "#e78a11ff",color: "#fff",minWidth: "40px",'&:hover': { backgroundColor: "#6b3e03ff" },}}></Button>
+                      <Button onClick={CadastroFornecedor} startIcon={<PersonAddIcon/>} sx={{backgroundColor: "#e78a11ff",color: "#fff",minWidth: "40px",'&:hover': { backgroundColor: "#6b3e03ff" },}}></Button>
                     </Stack>
                   </FormControl>
 
@@ -651,7 +682,7 @@ const ModalMov = () => {
                         {Number(valorMov) < 0 ? "Valor deve ser maior que zero" : ""}
                       </FormHelperText>
                     </FormControl>
-                  </Stack>           
+                </Stack>           
               )}
 
               {alertaAddProduto && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alertaAddProduto}</Box>}     

@@ -72,7 +72,7 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
   return (
     <StatusServidorContext.Provider value={{ servidorOnline, sessaoAtiva }}>
       {children}
-      <StatusServidor />
+      {/* <StatusServidor /> */}
     </StatusServidorContext.Provider>
   );
 };
