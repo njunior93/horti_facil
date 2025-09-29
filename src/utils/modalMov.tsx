@@ -38,6 +38,8 @@ const ModalMov = () => {
     const [dataInicio, setDataInicio] = useState<Date | null>(null);
     const [dataFim, setDataFim] = useState<Date | null>(null);
     const estoqueId = useContext(AppContext).estoqueId;
+    const [checked, setChecked] = React.useState([true, false]);
+
     
 
   setTimeout(() =>{
@@ -410,6 +412,31 @@ const ModalMov = () => {
     }   
   }
 
+  const handleChange1 = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setChecked([event.target.checked, event.target.checked]);
+  };
+
+  const handleChange2 = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setChecked([event.target.checked, checked[1]]);
+  };
+
+  const handleChange3 = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setChecked([checked[0], event.target.checked]);
+  };
+
+  const children = (
+    <Box sx={{ display: 'flex', flexDirection: 'row', ml: 3 }}>
+      <FormControlLabel
+        label="Email"
+        control={<Checkbox checked={checked[0]} onChange={handleChange2} />}
+      />
+      <FormControlLabel
+        label="WhatsApp"
+        control={<Checkbox checked={checked[1]} onChange={handleChange3} />}
+      />
+    </Box>
+  );
+
   return (
 
     <div>
@@ -453,10 +480,15 @@ const ModalMov = () => {
                         
                         <TextField fullWidth label='Email' type='email' ></TextField>
 
-                        <FormControlLabel label="Enviar notificação" control={
-                          <Checkbox inputProps={{ 'aria-label': 'controlled' }}/>
+                        <FormControlLabel 
+                          label="Notificação" 
+                          control={
+                          <Checkbox 
+                            checked={checked[0] && checked[1]}
+                            indeterminate={checked[0] !== checked[1]}
+                            onChange={handleChange1}/>
                         }/>
-
+                          {children}
                       </Stack>
 
                       <FormHelperText>
@@ -717,6 +749,8 @@ const ModalMov = () => {
                 <Button variant="contained" onClick={atualizarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Confirmar</Button>
               ) : tipoModal === 'CriarPedidoCompra' ? (
                 <Button variant="contained" onClick={criarPedidoCompra} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Pedido</Button>
+              ) : tipoModal === 'CadastroFornecedor' ? (
+                <Button variant="contained" onClick={CadastroFornecedor} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Fornecedor</Button>
               ) : null}
             </div>
             
