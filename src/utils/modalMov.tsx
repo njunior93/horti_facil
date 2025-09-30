@@ -16,7 +16,7 @@ import { toZonedTime } from 'date-fns-tz';
 import { Stack } from '@mui/material';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
-
+import { MuiTelInput } from "mui-tel-input";
 
 
 const ModalMov = () => {
@@ -38,7 +38,14 @@ const ModalMov = () => {
     const [dataInicio, setDataInicio] = useState<Date | null>(null);
     const [dataFim, setDataFim] = useState<Date | null>(null);
     const estoqueId = useContext(AppContext).estoqueId;
-    const [checked, setChecked] = React.useState([true, false]);
+    const [razaoSocial, setRazaoSocial] = useState('');
+    const [telefone, setTelefone] = useState('');
+    const [celular, setCelular] = useState('');
+    const [email, setEmail] = useState('');
+    const [errorTel, setErrorTel] = useState(false);
+    const [errorCel, setErrorCel] = useState(false);
+    const [notiEmail, setNotiEmail] = useState(false);
+    const [notiWhats, setNotiWhats] = useState(false);
 
     
 
@@ -93,6 +100,14 @@ const ModalMov = () => {
 
 
   const cancelarEstoque = () =>{
+    setRazaoSocial('');
+    setTelefone('');
+    setCelular('');
+    setEmail('');
+    setErrorTel(false);
+    setErrorCel(false);
+    setNotiEmail(false);
+    setNotiWhats(false);
     setHandleModal(false)
     setTipoModal("");
     setProdutoSelecionado(null)
@@ -108,6 +123,11 @@ const ModalMov = () => {
     if (setMovimentacaoSelecionada) {
       setMovimentacaoSelecionada('');
     }
+
+    if(tipoModal === 'CadastroFornecedor'){
+      setTipoModal('CriarPedidoCompra')
+    }
+
   }
 
   const selecaoProduto = (e: SelectChangeEvent) => {
@@ -288,8 +308,6 @@ const ModalMov = () => {
         }))
       };
 
-      console.log("Payload enviado:", pedidoNovo);
-
       try {
         await axios.post('http://localhost:3000/pedido/criar-pedido', pedidoNovo,
         {
@@ -326,6 +344,53 @@ const ModalMov = () => {
   const CadastroFornecedor = () => {
     setTipoModal('CadastroFornecedor');
     setHandleModal(true);
+  }
+
+  const criarFornecedor = async () =>{
+
+    const {data: {session}} = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+        return;
+      }
+
+      if (!session){
+          setAlertaAddProduto(alertaMensagem('Faça login para salvar um estoque.', 'warning', <ReportProblemIcon/>));
+           return;
+      }
+
+      const fornecedorNovo = {
+        nome: razaoSocial,
+        telefone: telefone,
+        whatsApp: celular,
+        email: email,
+        noti_email: notiEmail,
+        noti_whatsapp: notiWhats
+      }
+
+      try {
+          await axios.post('http://localhost:3000/fornecedor/criar-fornecedor', fornecedorNovo,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (error) {
+          console.error("Erro ao criar fornecedor:", error);  
+          setAlertaAddProduto(alertaMensagem("Erro ao criar fornecedor", "error", <ReportProblemIcon/>));
+
+          if(axios.isAxiosError(error) && error.response){
+            console.error("Erro na API:", error);
+            setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+            return;
+          } else {
+            console.error("Erro ao criar fornecedor:", error);
+            setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao criar fornecedor. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+            return;
+          }
+
+      }
+
   }
 
   const selecaoTipoSaida = (e: React.ChangeEvent<HTMLInputElement>) =>{
@@ -412,27 +477,50 @@ const ModalMov = () => {
     }   
   }
 
-  const handleChange1 = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setChecked([event.target.checked, event.target.checked]);
+  const checkNotificacao = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.checked;
+    setNotiEmail(value);
+    setNotiWhats(value);
   };
 
-  const handleChange2 = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setChecked([event.target.checked, checked[1]]);
+  const checkEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNotiEmail(event.target.checked);
   };
 
-  const handleChange3 = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setChecked([checked[0], event.target.checked]);
+  const checkWhats = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNotiWhats(event.target.checked);
   };
+
+  const verificaTel = (tel: string) => {
+    setTelefone(tel);
+
+    const somenteNumeros = tel.replace(/\D/g, '');
+
+    const isValid = somenteNumeros.length === 12;
+    setErrorTel(!isValid);
+  }
+
+  const verificaCel = (cel: string) => {
+    setCelular(cel);
+
+    const somenteNumeros = cel.replace(/\D/g, '');
+
+    const isValid = somenteNumeros.length === 13;
+    setErrorCel(!isValid);
+  }
+
+  const todosNotificacoes = notiEmail && notiWhats; 
+  const algumaNotificacao = notiEmail || notiWhats;
 
   const children = (
     <Box sx={{ display: 'flex', flexDirection: 'row', ml: 3 }}>
       <FormControlLabel
         label="Email"
-        control={<Checkbox checked={checked[0]} onChange={handleChange2} />}
+        control={<Checkbox checked={notiEmail} onChange={checkEmail} />}
       />
       <FormControlLabel
         label="WhatsApp"
-        control={<Checkbox checked={checked[1]} onChange={handleChange3} />}
+        control={<Checkbox checked={notiWhats} onChange={checkWhats} />}
       />
     </Box>
   );
@@ -471,22 +559,23 @@ const ModalMov = () => {
                 <Stack direction="column"  justifyContent={"center"} alignItems={"center"}>
                     <FormControl  fullWidth required error={Number(valorMov) < 0}>
                       <Stack direction={"column"}  justifyContent="center" alignItems="start" spacing={1}>
-                        <TextField fullWidth required label='Razão Social' type='text' ></TextField>
+                        <TextField fullWidth required label='Razão Social' type='text' value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)}></TextField>
                         
                         <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
-                          <TextField fullWidth label='Telefone' type='text' />
-                          <TextField fullWidth label='Celular' type='text' />
+                          
+                          <MuiTelInput fullWidth label='Telefone' value={telefone} onChange={verificaTel} defaultCountry="BR" onlyCountries={['BR']} error={errorTel} helperText={errorTel ? "Número inválido" : ""}/>
+                          <MuiTelInput fullWidth label='Celular' value={celular} onChange={verificaCel} defaultCountry="BR" onlyCountries={['BR']} error={errorCel} helperText={errorCel ? "Número inválido" : ""}/>
                         </Stack>
                         
-                        <TextField fullWidth label='Email' type='email' ></TextField>
+                        <TextField fullWidth label='Email' type='email' value={email} onChange={(e) => setEmail(e.target.value)}></TextField>
 
                         <FormControlLabel 
                           label="Notificação" 
                           control={
                           <Checkbox 
-                            checked={checked[0] && checked[1]}
-                            indeterminate={checked[0] !== checked[1]}
-                            onChange={handleChange1}/>
+                            checked={todosNotificacoes}
+                            indeterminate={!todosNotificacoes && algumaNotificacao}
+                            onChange={checkNotificacao}/>
                         }/>
                           {children}
                       </Stack>
@@ -750,7 +839,7 @@ const ModalMov = () => {
               ) : tipoModal === 'CriarPedidoCompra' ? (
                 <Button variant="contained" onClick={criarPedidoCompra} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Pedido</Button>
               ) : tipoModal === 'CadastroFornecedor' ? (
-                <Button variant="contained" onClick={CadastroFornecedor} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Fornecedor</Button>
+                <Button variant="contained" onClick={criarFornecedor} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} >Criar Fornecedor</Button>
               ) : null}
             </div>
             
