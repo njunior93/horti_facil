@@ -18,6 +18,7 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Tooltip from '@mui/material/Tooltip';
+import ListaFornecedor from '../componentes/ListaFornecedor';
 
 
 
@@ -49,6 +50,7 @@ const ModalMov = () => {
     const [errorEmail, setErrorEmail] = useState(false);
     const [notiEmail, setNotiEmail] = useState(false);
     const [notiWhats, setNotiWhats] = useState(false);
+    const {setListaFornecedores} = useContext(AppContext);
 
     
 
@@ -86,7 +88,6 @@ const ModalMov = () => {
         );
 
         setListaHistoricoMovEstoque(response.data);
-        console.log(listaHistoricoMovEstoque)
 
       } catch (error) {
         if(axios.isAxiosError(error) && error.response){
@@ -97,12 +98,48 @@ const ModalMov = () => {
       }
     }
 
+    const listaFornecedores = async () => {
+      
+      const {data: {session}} = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      try{
+
+        if (!token){
+          setAlertaAddProduto(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+          return;
+        }
+
+        const response = await axios.get(`http://localhost:3000/fornecedor/listar-fornecedores`,
+          { headers: {Authorization: `Bearer ${token}`}}
+        );
+
+        setListaFornecedores(response.data);
+        console.log(response.data);
+
+      } catch (error) {
+        if(axios.isAxiosError(error) && error.response){
+          console.log(error);
+          setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+        } else {
+          console.log(error);
+          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+        }
+      }
+
+    }
+
     listarMovimentacoes();
+
+    if (tipoModal === 'CriarPedidoCompra' || tipoModal === 'CadastroFornecedor'){
+      listaFornecedores();
+    }
 
   },[tipoMovSelecionado, estoqueSalvo]);
 
 
-  const cancelarEstoque = () =>{
+  const btnCancelar= () =>{
+    setAlertaAddProduto(null)
     setRazaoSocial('');
     setTelefone('');
     setCelular('');
@@ -131,6 +168,21 @@ const ModalMov = () => {
     if(tipoModal === 'CadastroFornecedor'){
       setTipoModal('CriarPedidoCompra')
     }
+
+  }
+
+  const btnCancelarFornecedor = () =>{
+    setAlertaAddProduto(null)
+    setRazaoSocial('');
+    setTelefone('');
+    setCelular('');
+    setEmail('');
+    setErrorTel(false);
+    setErrorCel(false);
+    setErrorEmail(false);
+    setNotiEmail(false);
+    setNotiWhats(false);
+    setTipoModal('CriarPedidoCompra');
 
   }
 
@@ -352,7 +404,7 @@ const ModalMov = () => {
 
   const criarFornecedor = async () =>{
 
-    const {data: {session}} = await supabase.auth.getSession();
+      const {data: {session}} = await supabase.auth.getSession();
       const token = session?.access_token;
 
       if (!token) {
@@ -363,6 +415,11 @@ const ModalMov = () => {
       if (!session){
           setAlertaAddProduto(alertaMensagem('Faça login para salvar um estoque.', 'warning', <ReportProblemIcon/>));
            return;
+      }
+
+      if(errorTel || errorCel || errorEmail){
+        setAlertaAddProduto(alertaMensagem("Corrija os erros nos campos", "warning", <ReportProblemIcon/>));
+        return;
       }
 
       const fornecedorNovo = {
@@ -903,13 +960,21 @@ const ModalMov = () => {
               )}       
             </div>
 
-            {tipoModal !== 'MovimentacaoEstoque' && (
+            {tipoModal !== 'MovimentacaoEstoque' && tipoModal !== 'CadastroFornecedor' && (
               <ListaMovManual />
+            )}
+
+            {tipoModal === 'CadastroFornecedor' && (
+              <ListaFornecedor/>
             )}
             
             
             <div className="flex flex-row gap-2">
-              <Button  variant="contained" onClick={cancelarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}>Cancelar</Button>
+              {tipoModal !== 'CadastroFornecedor' ? (
+                <Button  variant="contained" onClick={btnCancelar} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}>Cancelar</Button>         
+              ) : (
+                <Button  variant="contained" onClick={btnCancelarFornecedor} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}>Cancelar</Button>
+              )}
               { tipoModal === 'MovimentacaoEstoque' ? (
                 <Button variant="contained" onClick={gerarRelatorioMovimentacao} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} >Gerar</Button>
               ) : tipoModal === 'Entrada' || tipoModal === 'Saída' ?  (
