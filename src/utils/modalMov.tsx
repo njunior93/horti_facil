@@ -16,7 +16,9 @@ import { toZonedTime } from 'date-fns-tz';
 import { Stack } from '@mui/material';
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
-import { MuiTelInput } from "mui-tel-input";
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import Tooltip from '@mui/material/Tooltip';
+
 
 
 const ModalMov = () => {
@@ -44,6 +46,7 @@ const ModalMov = () => {
     const [email, setEmail] = useState('');
     const [errorTel, setErrorTel] = useState(false);
     const [errorCel, setErrorCel] = useState(false);
+    const [errorEmail, setErrorEmail] = useState(false);
     const [notiEmail, setNotiEmail] = useState(false);
     const [notiWhats, setNotiWhats] = useState(false);
 
@@ -106,6 +109,7 @@ const ModalMov = () => {
     setEmail('');
     setErrorTel(false);
     setErrorCel(false);
+    setErrorEmail(false);
     setNotiEmail(false);
     setNotiWhats(false);
     setHandleModal(false)
@@ -388,8 +392,19 @@ const ModalMov = () => {
             setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao criar fornecedor. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
             return;
           }
-
       }
+
+      setRazaoSocial('');
+      setTelefone('');
+      setCelular('');
+      setEmail('');
+      setErrorTel(false);
+      setErrorCel(false);
+      setErrorEmail(false);
+      setNotiEmail(false);
+      setNotiWhats(false);
+      setTipoModal('CriarPedidoCompra');
+
 
   }
 
@@ -491,22 +506,71 @@ const ModalMov = () => {
     setNotiWhats(event.target.checked);
   };
 
-  const verificaTel = (tel: string) => {
-    setTelefone(tel);
+  const inputTelefone = (value: string) => {
+    const somenteNumeros = value.replace(/\D/g, "");
 
-    const somenteNumeros = tel.replace(/\D/g, '');
+    let semCodigoPais = somenteNumeros.startsWith('55') ? somenteNumeros.slice(2) : somenteNumeros;
 
-    const isValid = somenteNumeros.length === 12;
+    if(semCodigoPais.startsWith('0')) {
+      semCodigoPais = semCodigoPais.slice(1);
+    }
+
+    let numeroFormatado = semCodigoPais;
+
+    
+    numeroFormatado = semCodigoPais.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+
+    setTelefone(numeroFormatado);
+    
+  }
+
+  const inputCelular = (value: string) => {
+    const somenteNumeros = value.replace(/\D/g, "");
+
+    let semCodigoPais = somenteNumeros.startsWith('55') ? somenteNumeros.slice(2) : somenteNumeros;
+
+    if(semCodigoPais.startsWith('0')){
+      semCodigoPais = semCodigoPais.slice(1);
+    }
+
+    let numeroFormatado = semCodigoPais;
+
+    numeroFormatado = semCodigoPais.replace(/^(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
+
+    setCelular(numeroFormatado);
+  }
+
+  const verificaTel = () => {
+
+    if(!telefone){
+      setErrorTel(false);
+      return;
+    }
+
+    const isValid = telefone.length === 14;
     setErrorTel(!isValid);
   }
 
-  const verificaCel = (cel: string) => {
-    setCelular(cel);
+  const verificaCel = () => {
 
-    const somenteNumeros = cel.replace(/\D/g, '');
+    if(!celular){
+      setErrorCel(false);
+      return
+    }
 
-    const isValid = somenteNumeros.length === 13;
+    const isValid = celular.length === 15;
     setErrorCel(!isValid);
+  }
+
+  const verificaEmail = () => {
+
+    if(!email){
+      setErrorEmail(false);
+      return;
+    }
+
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setErrorEmail(!regex.test(email));
   }
 
   const todosNotificacoes = notiEmail && notiWhats; 
@@ -514,11 +578,11 @@ const ModalMov = () => {
 
   const children = (
     <Box sx={{ display: 'flex', flexDirection: 'row', ml: 3 }}>
-      <FormControlLabel
+      <FormControlLabel disabled={!razaoSocial}
         label="Email"
         control={<Checkbox checked={notiEmail} onChange={checkEmail} />}
       />
-      <FormControlLabel
+      <FormControlLabel disabled={!razaoSocial}
         label="WhatsApp"
         control={<Checkbox checked={notiWhats} onChange={checkWhats} />}
       />
@@ -557,28 +621,42 @@ const ModalMov = () => {
 
               {tipoModal === 'CadastroFornecedor' && (
                 <Stack direction="column"  justifyContent={"center"} alignItems={"center"}>
-                    <FormControl  fullWidth required error={Number(valorMov) < 0}>
+                    <FormControl  fullWidth required>
                       <Stack direction={"column"}  justifyContent="center" alignItems="start" spacing={1}>
                         <TextField fullWidth required label='Razão Social' type='text' value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)}></TextField>
                         
                         <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
                           
-                          <MuiTelInput fullWidth label='Telefone' value={telefone} onChange={verificaTel} defaultCountry="BR" onlyCountries={['BR']} error={errorTel} helperText={errorTel ? "Número inválido" : ""}/>
-                          <MuiTelInput fullWidth label='Celular' value={celular} onChange={verificaCel} defaultCountry="BR" onlyCountries={['BR']} error={errorCel} helperText={errorCel ? "Número inválido" : ""}/>
-                        </Stack>
+                          <TextField  disabled={!razaoSocial} fullWidth label='Telefone' placeholder='(99) 9999-9999' value={telefone} onChange={(e) => inputTelefone(e.target.value)} onBlur={verificaTel} error={errorTel} helperText={errorTel ? "Número inválido" : ""}/>
+                          <TextField disabled={!razaoSocial} fullWidth label='Celular' placeholder='(99) 99999-9999' value={celular} onChange={(e) => inputCelular(e.target.value)} onBlur={verificaCel} error={errorCel} helperText={errorCel ? "Número inválido" : ""}/>
+                        </Stack>                       
                         
-                        <TextField fullWidth label='Email' type='email' value={email} onChange={(e) => setEmail(e.target.value)}></TextField>
-
-                        <FormControlLabel 
-                          label="Notificação" 
+                        <TextField disabled={!razaoSocial} fullWidth label='Email' type='email' value={email} onChange={(e) => setEmail(e.target.value)} onBlur={verificaEmail} error={errorEmail} helperText={errorEmail ? "Email inválido" : ""}></TextField>
+                        <FormControlLabel disabled={!razaoSocial} 
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              Notificações 
+                              <Tooltip
+                                title={
+                                  <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                                    Ao finalizar um pedido de compra, o fornecedor pode ser notificado por e-mail ou WhatsApp.<br />
+                                    Para isso, ative a opção desejada e certifique-se de que os campos de e-mail e celular estão preenchidos corretamente.
+                                  </span>
+                                }
+                              >
+                                <HelpOutlineIcon sx={{ bgcolor: 'yellow', borderRadius: '100%' }} />
+                              </Tooltip>
+                            </Box>
+                          }
                           control={
                           <Checkbox 
                             checked={todosNotificacoes}
                             indeterminate={!todosNotificacoes && algumaNotificacao}
                             onChange={checkNotificacao}/>
-                        }/>
+                          }/>
                           {children}
                       </Stack>
+                      
 
                       <FormHelperText>
                         {Number(valorMov) < 0 ? "Valor deve ser maior que zero" : ""}
@@ -839,7 +917,7 @@ const ModalMov = () => {
               ) : tipoModal === 'CriarPedidoCompra' ? (
                 <Button variant="contained" onClick={criarPedidoCompra} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Pedido</Button>
               ) : tipoModal === 'CadastroFornecedor' ? (
-                <Button variant="contained" onClick={criarFornecedor} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} >Criar Fornecedor</Button>
+                <Button variant="contained" onClick={criarFornecedor} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}  disabled={!razaoSocial} >Criar Fornecedor</Button>
               ) : null}
             </div>
             
