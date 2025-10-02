@@ -101,9 +101,6 @@ function ListaProdutos() {
   }
 
   const deletarProduto = (produto: iProduto) => {
-    // if (!window.confirm(`Deseja realmente excluir o produto ${produto.nome}?`)) {
-    //   return;
-    // }
     const id_localizado = listaProdutoEstoque.find(p => p.id === produto.id);
 
     if(id_localizado !== undefined) {

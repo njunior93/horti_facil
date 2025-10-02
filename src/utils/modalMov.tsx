@@ -135,7 +135,7 @@ const ModalMov = () => {
       listaFornecedores();
     }
 
-  },[tipoMovSelecionado, estoqueSalvo]);
+  },[tipoMovSelecionado, estoqueSalvo, tipoModal]);
 
 
   const btnCancelar= () =>{
@@ -667,8 +667,7 @@ const ModalMov = () => {
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
-            width: {xs: '90vw', sm: '70%', md: '50%', lg: '40%'}
-          }}
+            width: tipoModal === 'CadastroFornecedor' ? {xs: '90vw', sm: '45%', md: '55%', lg: '65%'} : {xs: '90vw', sm: '70%', md: '50%', lg: '40%'} }}
         >
             <Typography id="modal-estoque-title" variant="h6" component="h2" gutterBottom>
               {tipoModal === 'Entrada' ? 'Entrada Manual no estoque' : tipoModal === 'Saída' ? 'Saida Manual do estoque' : tipoModal === 'MovimentacaoEstoque' ? 'Relatorio Movimentação de estoque' : tipoModal === 'CriarPedidoCompra' ? 'Criar Pedido de Compra' : tipoModal === 'CadastroFornecedor' ? 'Cadastrar Fornecedor' : ''}
