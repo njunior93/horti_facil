@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { AppContext } from "../context/context";
 import EditIcon from '@mui/icons-material/Edit';
-import { Box, Button, Modal, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, FormControlLabel, FormGroup, Modal, Stack, TextField, Typography } from "@mui/material";
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import type { iFornecedor } from "../type/iFornecedor";
 import { supabase } from "../supabaseClient";
@@ -24,6 +24,15 @@ const ListaFornecedor = () => {
   const [abrir, setAbrir] = useState(false);
   const [modalAberto, setModalAberto] = useState(false);
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState<iFornecedor | null>(null);
+  const [nome, setNome] = useState<string>('');
+  const [celular, setCelular] = useState<string>('');
+  const [telefone, setTelefone] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [noti_whatsapp, setNoti_whatsapp] = useState<boolean>(false);
+  const [noti_email, setNoti_email] = useState<boolean>(false);
+  const [errorTel, setErrorTel] = useState(false);
+  const [errorCel, setErrorCel] = useState(false);
+  const [errorEmail, setErrorEmail] = useState(false);
 
 
   setTimeout(() =>{
@@ -57,12 +66,86 @@ const ListaFornecedor = () => {
   const abrirModalEditar = (fornecedor: iFornecedor) => {
     setModalAberto(true);
     setFornecedorSelecionado(fornecedor);
+    setNome(fornecedor.nome);
+    setTelefone(fornecedor.telefone || '');
+    setCelular(fornecedor.whatsApp || '');
+    setEmail(fornecedor.email || '');
+    setNoti_whatsapp(fornecedor.noti_whatsapp || false);
+    setNoti_email(fornecedor.noti_email || false);
+    
   }
 
   const fecharModalEditar = () => {
     setModalAberto(false);
     setFornecedorSelecionado(null);
+    setNome('');
+    setTelefone('');
+    setCelular('');
+    setEmail('');
+    setNoti_whatsapp(false);
+    setNoti_email(false);
+    setErrorTel(false);
+    setErrorCel(false);
+    setErrorEmail(false);
+    setAlerta(null);
   }
+
+  const salvarEdicao = async (fornecedor: iFornecedor) => {
+    const {data: {session}} = await supabase.auth.getSession();
+    const token = session?.access_token;
+    
+    if (!token) {
+      setAlerta(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+      return;
+    }
+    
+    if (!session){
+      setAlerta(alertaMensagem('Faça login para salvar o fornecedor.', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+    
+    if(errorTel || errorCel || errorEmail){
+      setAlerta(alertaMensagem("Corrija os erros nos campos", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
+    const fornecedorEditado = {
+        nome: nome,
+        telefone: telefone,
+        whatsApp: celular,
+        email: email,
+        noti_email: noti_email,
+        noti_whatsapp: noti_whatsapp
+    }
+
+    try{
+      await axios.put(`http://localhost:3000/fornecedor/editar-fornecedor/${fornecedor.id}`, fornecedorEditado, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const novaLista = listaFornecedores.map(f => f.id === fornecedor.id ? { ...f, ...fornecedorEditado } : f);
+      
+      setListaFornecedores(novaLista);
+      fecharModalEditar();
+
+      } catch (error) {
+        console.error("Erro editar fornecedor:", error);  
+        setAlerta(alertaMensagem("Erro editar fornecedor", "error", <ReportProblemIcon/>));
+      
+         if(axios.isAxiosError(error) && error.response){
+          console.error("Erro na API:", error);
+          setAlerta(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+          return;
+         } else {
+           console.error("Erro editar fornecedor:", error);
+           setAlerta(alertaMensagem(`Ocorreu um erro ao editar fornecedor. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+           return;
+         }
+      }    
+
+
+  }
+
 
   const excluirFornecedor = async (fornecedor: iFornecedor) => {
 
@@ -85,6 +168,73 @@ const ListaFornecedor = () => {
     }   
 
   }
+
+  const inputTelefone = (value: string) => {
+    const somenteNumeros = value.replace(/\D/g, "");
+
+    let semCodigoPais = somenteNumeros.startsWith('55') ? somenteNumeros.slice(2) : somenteNumeros;
+
+    if(semCodigoPais.startsWith('0')) {
+      semCodigoPais = semCodigoPais.slice(1);
+    }
+
+    let numeroFormatado = semCodigoPais;
+
+    
+    numeroFormatado = semCodigoPais.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+
+    setTelefone(numeroFormatado);
+    
+  }
+
+  const inputCelular = (value: string) => {
+    const somenteNumeros = value.replace(/\D/g, "");
+
+    let semCodigoPais = somenteNumeros.startsWith('55') ? somenteNumeros.slice(2) : somenteNumeros;
+
+    if(semCodigoPais.startsWith('0')){
+      semCodigoPais = semCodigoPais.slice(1);
+    }
+
+    let numeroFormatado = semCodigoPais;
+
+    numeroFormatado = semCodigoPais.replace(/^(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
+
+    setCelular(numeroFormatado);
+  }
+
+  const verificaTel = () => {
+
+    if(!telefone){
+      setErrorTel(false);
+      return;
+    }
+
+    const isValid = telefone.length === 14;
+    setErrorTel(!isValid);
+  }
+
+  const verificaCel = () => {
+
+    if(!celular){
+      setErrorCel(false);
+      return
+    }
+
+    const isValid = celular.length === 15;
+    setErrorCel(!isValid);
+  }
+
+  const verificaEmail = () => {
+
+    if(!email){
+      setErrorEmail(false);
+      return;
+    }
+
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setErrorEmail(!regex.test(email));
+  }
  
   return (
     <div className='bg-[#EAEFEF] h-32 mt-2 overflow-auto text-sm' >
@@ -105,15 +255,12 @@ const ListaFornecedor = () => {
           <div>{fornecedor.noti_whatsapp ? "Sim" : "Não"}</div>
           <div>{fornecedor.noti_email ? "Sim" : "Não"}</div>
           <div>
-          <Button startIcon={<EditIcon/>}></Button>
+          <Button onClick={() => abrirModalEditar(fornecedor)} startIcon={<EditIcon/>}></Button>
           <Button onClick={() => handleAbrirDialog(fornecedor)}  startIcon={<PersonRemoveIcon/>}></Button>
           </div>
           
         </div>
       ))}
-
-      
-      {alerta && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alerta}</Box>}
       
       <Dialog
         open={abrir}
@@ -162,43 +309,73 @@ const ListaFornecedor = () => {
             >
               <Box sx={estiloModal}>
               <Typography variant="h6" gutterBottom>
-                Informe o novo estoque: {fornecedorSelecionado.nome}
+                Edição do fornecedor: {fornecedorSelecionado ? fornecedorSelecionado.nome : ""}
               </Typography>
       
-              <Stack spacing={3}>
+              <Stack direction={"column"}  justifyContent="center" alignItems="start" spacing={1}>
                 <TextField
                   label="Razão Social"
-                  type="number"
+                  type="text"
                   fullWidth
-                  value={estoqueAtual}
-                  onChange={(e) => setEstoqueAtual(Number(e.target.value))}
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
                 />
-                <TextField
-                  label="Estoque Mínimo"
-                  type="number"
+                <Stack direction="row" spacing={2} sx={{ width: '100%' }}> 
+                  <TextField
+                    label="Telefone"
+                    type="text"
+                    fullWidth
+                    value={telefone}
+                    placeholder='(99) 9999-9999'
+                    onChange={(e) => inputTelefone(e.target.value)}
+                    onBlur={verificaTel}
+                    error={errorTel} 
+                    helperText={errorTel ? "Número inválido" : ""}
+                  />
+                  <TextField
+                    label="Celular"
+                    type="text"
+                    fullWidth
+                    value={celular}
+                    placeholder='(99) 99999-9999'
+                    onChange={(e) => inputCelular(e.target.value)}
+                    onBlur={verificaCel} 
+                    error={errorCel} 
+                    helperText={errorCel ? "Número inválido" : ""}
+
+                  />  
+                </Stack>
+                 <TextField 
+                  label="Email"
+                  type='email'
                   fullWidth
-                  value={estoqueMinimo}
-                  onChange={(e) => setEstoqueMinimo(Number(e.target.value))}
-                />
-                <TextField
-                  label="Estoque Máximo"
-                  type="number"
-                  fullWidth
-                  value={estoqueMaximo}
-                  onChange={(e) => setEstoqueMaximo(Number(e.target.value))}
-                />
-      
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  onBlur={verificaEmail} 
+                  error={errorEmail}
+                  helperText={errorEmail ? "Email inválido" : ""}>
+                 </TextField>
+
+                 <FormGroup>
+                    <FormControlLabel control={<input type="checkbox" checked={noti_whatsapp} onChange={(e) => setNoti_whatsapp(e.target.checked)} />} label="Notificação por WhatsApp" />
+                    <FormControlLabel control={<input type="checkbox" checked={noti_email} onChange={(e) => setNoti_email(e.target.checked)} />} label="Notificação por Email" />
+                 </FormGroup>
+                          
                 <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
                   <Button variant="outlined" onClick={fecharModalEditar}>
                     Cancelar
                   </Button>
-                  <Button variant="contained" color="primary" onClick={() => salvarEdicao(produtoSelecionadoEdicao)}>
+                  <Button disabled={!nome} variant="contained" color="primary" onClick={() => salvarEdicao(fornecedorSelecionado!)}>
                     Salvar
                   </Button>
                 </Stack>
               </Stack>
+
+            {alerta && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alerta}</Box>}
+
+
             </Box>
-            </Modal>
+      </Modal>
 
     </div>
   )

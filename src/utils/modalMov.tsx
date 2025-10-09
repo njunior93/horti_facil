@@ -413,7 +413,7 @@ const ModalMov = () => {
       }
 
       if (!session){
-          setAlertaAddProduto(alertaMensagem('Faça login para salvar um estoque.', 'warning', <ReportProblemIcon/>));
+          setAlertaAddProduto(alertaMensagem('Faça login para salvar o fornecedor.', 'warning', <ReportProblemIcon/>));
            return;
       }
 
@@ -681,8 +681,7 @@ const ModalMov = () => {
                       <Stack direction={"column"}  justifyContent="center" alignItems="start" spacing={1}>
                         <TextField fullWidth required label='Razão Social' type='text' value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)}></TextField>
                         
-                        <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
-                          
+                        <Stack direction="row" spacing={2} sx={{ width: '100%' }}>                        
                           <TextField  disabled={!razaoSocial} fullWidth label='Telefone' placeholder='(99) 9999-9999' value={telefone} onChange={(e) => inputTelefone(e.target.value)} onBlur={verificaTel} error={errorTel} helperText={errorTel ? "Número inválido" : ""}/>
                           <TextField disabled={!razaoSocial} fullWidth label='Celular' placeholder='(99) 99999-9999' value={celular} onChange={(e) => inputCelular(e.target.value)} onBlur={verificaCel} error={errorCel} helperText={errorCel ? "Número inválido" : ""}/>
                         </Stack>                       
@@ -713,10 +712,6 @@ const ModalMov = () => {
                           {children}
                       </Stack>
                       
-
-                      <FormHelperText>
-                        {Number(valorMov) < 0 ? "Valor deve ser maior que zero" : ""}
-                      </FormHelperText>
                     </FormControl>
                   </Stack> 
               )}
