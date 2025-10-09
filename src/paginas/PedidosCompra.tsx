@@ -55,6 +55,8 @@ const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
 const setTipoModal = useContext(AppContext).setTipoModal;
 const { setHandleModal} = useContext(AppContext);
 const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
+const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
+const { estoqueId, setEstoqueId } = useContext(AppContext);
 
 useEffect(() => {
   const fetchListaProdutos = async () => {
@@ -78,9 +80,63 @@ useEffect(() => {
       } catch (error){
         setMensagemErro(alertaMensagem(`Erro ao buscar lista de produtos. ${error}`, 'warning', <ReportProblemIcon/>));
       } 
+  };
+
+  const fetchlistaFornecedores = async () => {
+          
+    const {data: {session}} = await supabase.auth.getSession();
+    const token = session?.access_token;
+    
+     try{
+    
+      if (!token){
+        setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+        return;
+      }
+    
+      const response = await axios.get(`http://localhost:3000/fornecedor/listar-fornecedores`,
+        { headers: {Authorization: `Bearer ${token}`}}
+      );
+
+      setListaFornecedores(response.data);
+
+      } catch (error) {
+       if(axios.isAxiosError(error) && error.response){
+        console.log(error);
+         setMensagemErro(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+      } else {
+        console.log(error);
+        setMensagemErro(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+      }
+    }
+    
+  };
+
+  const fetchEstoqueId = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        
+        if (!token) return;
+  
+        const response = await axios.get('http://localhost:3000/estoque/id-estoque', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+  
+        setEstoqueId(response.data.estoqueId);
+        
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response){
+          setMensagemErro(alertaMensagem(`Erro: ${error.response.data.message}`, 'warning', <ReportProblemIcon/>));
+        } else {
+          setMensagemErro(alertaMensagem(`Erro ao buscar ID do estoque ${error}`, 'warning', <ReportProblemIcon/>));
+        }
+      }
     };
 
+    fetchlistaFornecedores();
     fetchListaProdutos();
+    fetchEstoqueId();
 }, []);
 
 

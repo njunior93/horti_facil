@@ -29,6 +29,7 @@ const GerenciarEstoque = () => {
       });
 
       setEstoqueId(response.data.estoqueId);
+      console.log('ID do estoque:', response.data.estoqueId);
       
     } catch (error) {
       if (axios.isAxiosError(error) && error.response){

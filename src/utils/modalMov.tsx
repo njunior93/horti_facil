@@ -50,7 +50,8 @@ const ModalMov = () => {
     const [errorEmail, setErrorEmail] = useState(false);
     const [notiEmail, setNotiEmail] = useState(false);
     const [notiWhats, setNotiWhats] = useState(false);
-    const {setListaFornecedores} = useContext(AppContext);
+    const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
+    const [iDfornecedorSelecionado, setiDFornecedorSelecionado] = useState<string>('');
 
     
 
@@ -98,42 +99,42 @@ const ModalMov = () => {
       }
     }
 
-    const listaFornecedores = async () => {
+    // const listaFornecedores = async () => {
       
-      const {data: {session}} = await supabase.auth.getSession();
-      const token = session?.access_token;
+    //   const {data: {session}} = await supabase.auth.getSession();
+    //   const token = session?.access_token;
 
-      try{
+    //   try{
 
-        if (!token){
-          setAlertaAddProduto(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
-          return;
-        }
+    //     if (!token){
+    //       setAlertaAddProduto(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+    //       return;
+    //     }
 
-        const response = await axios.get(`http://localhost:3000/fornecedor/listar-fornecedores`,
-          { headers: {Authorization: `Bearer ${token}`}}
-        );
+    //     const response = await axios.get(`http://localhost:3000/fornecedor/listar-fornecedores`,
+    //       { headers: {Authorization: `Bearer ${token}`}}
+    //     );
 
-        setListaFornecedores(response.data);
-        console.log(response.data);
+    //     setListaFornecedores(response.data);
+    //     console.log(response.data);
 
-      } catch (error) {
-        if(axios.isAxiosError(error) && error.response){
-          console.log(error);
-          setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
-        } else {
-          console.log(error);
-          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
-        }
-      }
+    //   } catch (error) {
+    //     if(axios.isAxiosError(error) && error.response){
+    //       console.log(error);
+    //       setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+    //     } else {
+    //       console.log(error);
+    //       setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+    //     }
+    //   }
 
-    }
+    // }
 
     listarMovimentacoes();
 
-    if (tipoModal === 'CriarPedidoCompra' || tipoModal === 'CadastroFornecedor'){
-      listaFornecedores();
-    }
+    // if (tipoModal === 'CriarPedidoCompra' || tipoModal === 'CadastroFornecedor'){
+    //   listaFornecedores();
+    // }
 
   },[tipoMovSelecionado, estoqueSalvo, tipoModal]);
 
@@ -158,6 +159,7 @@ const ModalMov = () => {
     setTipoEntrada(null);
     setDataFim(null);
     setDataInicio(null);
+    setiDFornecedorSelecionado('');
     if (setTipoMovSelecionado) {
       setTipoMovSelecionado('');
     }
@@ -356,7 +358,7 @@ const ModalMov = () => {
       const pedidoNovo = {
         data: new Date().toISOString().split("T")[0], 
         status: "pendente", 
-        fornecedor_id: "550e8400-e29b-41d4-a716-446655440000", 
+        fornecedor_id: iDfornecedorSelecionado, 
         estoque_id: estoqueId,
         itens: listaProdutoMov.map((mov) => ({
           produto_id: mov.produto?.id,
@@ -725,11 +727,13 @@ const ModalMov = () => {
                         <Select
                           labelId="fornecedor-label"
                           id="fornecedor-select"
+                          value={iDfornecedorSelecionado}
+                          onChange={(e) => setiDFornecedorSelecionado(e.target.value)}
                           displayEmpty
                           label="Selecione o fornecedor">
-                          <MenuItem value="550e8400-e29b-41d4-a716-446655440000">
-                            Fornecedor Exemplo
-                          </MenuItem>
+                            {listaFornecedores.map((fornecedor) => (
+                              <MenuItem key={fornecedor.id} value={fornecedor.id}>{fornecedor.nome}</MenuItem>
+                            ))}
                         </Select>
                       </FormControl>
 
@@ -746,6 +750,7 @@ const ModalMov = () => {
                           onChange={selecaoProduto}
                           displayEmpty
                           labelId="produto-label"
+                          disabled={!iDfornecedorSelecionado}
                           id="produto-select"
                           label="Selecione o produto"
                         >
