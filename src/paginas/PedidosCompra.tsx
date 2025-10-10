@@ -12,43 +12,6 @@ import alertaMensagem from "../utils/alertaMensagem";
 import axios from 'axios';
 
 
-
-const colunas: GridColDef<(typeof linhas)[number]>[] = [
-  { field: 'id', headerName: 'ID', width: 90 },
-   { field: 'status', headerName: 'Status', width: 90 },
-  {
-    field: 'tipoPedido',
-    headerName: 'Tipo do pedido',
-    width: 150,
-    editable: false,
-  },
-  {
-    field: 'dataPedido',
-    headerName: 'Data Pedido',
-    width: 150,
-    editable: false,
-  },
-  {
-    field: 'fornecedor',
-    headerName: 'Fornecedor',
-    width: 110,
-    editable: true,
-  }
-];
-
-const linhas = [
-  { id: 1,status: 'Efetivado', tipoPedido: 'Snow', dataPedido: 'Jon', fornecedor: 'Calamo'},
-  { id: 2,status: 'Efetivado', tipoPedido: 'Snow', dataPedido: 'Jon', fornecedor: 'Calamo'},
-  { id: 3,status: 'Efetivado', tipoPedido: 'Snow', dataPedido: 'Jon', fornecedor: 'Calamo'},
-  { id: 4,status: 'Efetivado', tipoPedido: 'Snow', dataPedido: 'Jon', fornecedor: 'Calamo'},
-  { id: 5,status: 'Efetivado', tipoPedido: 'Snow', dataPedido: 'Jon', fornecedor: 'Calamo'},
-  { id: 6,status: 'Efetivado', tipoPedido: 'Snow', dataPedido: 'Jon', fornecedor: 'Calamo'},
-  { id: 7,status: 'Efetivado', tipoPedido: 'Snow', dataPedido: 'Jon', fornecedor: 'Calamo'},
-  { id: 8,status: 'Efetivado', tipoPedido: 'Snow', dataPedido: 'Jon', fornecedor: 'Calamo'},
-  { id: 9,status: 'Efetivado', tipoPedido: 'Snow', dataPedido: 'Jon', fornecedor: 'Calamo'},
-];
-
-
 const PedidosCompra = () => {
 
 const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
@@ -56,7 +19,14 @@ const setTipoModal = useContext(AppContext).setTipoModal;
 const { setHandleModal} = useContext(AppContext);
 const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
 const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
+const { listaPedidosCompra, setListaPedidosCompra } = useContext(AppContext);
 const { estoqueId, setEstoqueId } = useContext(AppContext);
+
+ setTimeout(() =>{
+    if(mensagemErro){
+      setMensagemErro(null)
+    }
+  },4000);
 
 useEffect(() => {
   const fetchListaProdutos = async () => {
@@ -106,7 +76,7 @@ useEffect(() => {
          setMensagemErro(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
       } else {
         console.log(error);
-        setMensagemErro(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+        setMensagemErro(alertaMensagem(`Ocorreu um erro ao buscar a lista de fornecedores. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
       }
     }
     
@@ -132,12 +102,73 @@ useEffect(() => {
           setMensagemErro(alertaMensagem(`Erro ao buscar ID do estoque ${error}`, 'warning', <ReportProblemIcon/>));
         }
       }
-    };
+  };
 
+  const fetchListaPedidosCompra = async () => {
+    
+    try{
+
+      const {data: {session}} = await supabase.auth.getSession();
+      const token = session?.access_token;
+    
+      if (!token){
+        setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+        return;
+      }
+
+      const response = await axios.get(`http://localhost:3000/pedido/listar-pedidos`,
+        { headers: {Authorization: `Bearer ${token}`}}
+      );
+
+      setListaPedidosCompra(response.data);
+
+    } catch (error) {
+      if(axios.isAxiosError(error) && error.response){
+        setMensagemErro(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+      } else {
+        setMensagemErro(alertaMensagem(`Ocorreu um erro ao buscar os pedidos de compra. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+      }
+  }
+
+  };
+
+    fetchEstoqueId();
     fetchlistaFornecedores();
     fetchListaProdutos();
-    fetchEstoqueId();
+    fetchListaPedidosCompra();
+    
 }, []);
+
+const colunas: GridColDef<(typeof linhas)[number]>[] = [
+  { field: 'id', headerName: 'ID', width: 90 },
+   { field: 'status', headerName: 'Status', width: 90 },
+  {
+    field: 'dataPedido',
+    headerName: 'Data de criação',
+    width: 150,
+    editable: false,
+  },
+  {
+    field: 'fornecedor',
+    headerName: 'Fornecedor',
+    width: 110,
+    editable: false,
+  }
+];
+
+const linhas = listaPedidosCompra.map((pedido) => {
+  
+  const data = pedido.data ? new Date(pedido.data) : null;
+  const dataFormatada = data ? data.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-';
+
+  return {
+    id: pedido.id,
+    status: pedido.status,
+    dataPedido: dataFormatada,
+    fornecedor: pedido.fornecedor?.nome ?? '-'
+  };
+
+});
 
 
 const criarPedido = () => {

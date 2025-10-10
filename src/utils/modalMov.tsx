@@ -19,7 +19,8 @@ import { supabase } from '../supabaseClient';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Tooltip from '@mui/material/Tooltip';
 import ListaFornecedor from '../componentes/ListaFornecedor';
-
+import DoneIcon from '@mui/icons-material/Done';
+import type { iPedido } from '../type/iPedido';
 
 
 const ModalMov = () => {
@@ -52,6 +53,7 @@ const ModalMov = () => {
     const [notiWhats, setNotiWhats] = useState(false);
     const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
     const [iDfornecedorSelecionado, setiDFornecedorSelecionado] = useState<string>('');
+    const {listaPedidosCompra, setListaPedidosCompra} = useContext(AppContext);
 
     
 
@@ -99,42 +101,42 @@ const ModalMov = () => {
       }
     }
 
-    // const listaFornecedores = async () => {
+    const listaFornecedores = async () => {
       
-    //   const {data: {session}} = await supabase.auth.getSession();
-    //   const token = session?.access_token;
+      const {data: {session}} = await supabase.auth.getSession();
+      const token = session?.access_token;
 
-    //   try{
+      try{
 
-    //     if (!token){
-    //       setAlertaAddProduto(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
-    //       return;
-    //     }
+        if (!token){
+          setAlertaAddProduto(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+          return;
+        }
 
-    //     const response = await axios.get(`http://localhost:3000/fornecedor/listar-fornecedores`,
-    //       { headers: {Authorization: `Bearer ${token}`}}
-    //     );
+        const response = await axios.get(`http://localhost:3000/fornecedor/listar-fornecedores`,
+          { headers: {Authorization: `Bearer ${token}`}}
+        );
 
-    //     setListaFornecedores(response.data);
-    //     console.log(response.data);
+        setListaFornecedores(response.data);
+        console.log(response.data);
 
-    //   } catch (error) {
-    //     if(axios.isAxiosError(error) && error.response){
-    //       console.log(error);
-    //       setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
-    //     } else {
-    //       console.log(error);
-    //       setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
-    //     }
-    //   }
+      } catch (error) {
+        if(axios.isAxiosError(error) && error.response){
+          console.log(error);
+          setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+        } else {
+          console.log(error);
+          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+        }
+      }
 
-    // }
+    }
 
     listarMovimentacoes();
 
-    // if (tipoModal === 'CriarPedidoCompra' || tipoModal === 'CadastroFornecedor'){
-    //   listaFornecedores();
-    // }
+    if (tipoModal === 'CriarPedidoCompra' || tipoModal === 'CadastroFornecedor'){
+      listaFornecedores();
+    }
 
   },[tipoMovSelecionado, estoqueSalvo, tipoModal]);
 
@@ -367,10 +369,20 @@ const ModalMov = () => {
       };
 
       try {
-        await axios.post('http://localhost:3000/pedido/criar-pedido', pedidoNovo,
+        const response = await axios.post('http://localhost:3000/pedido/criar-pedido', pedidoNovo,
         {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        const pedidoCriado: iPedido = response.data;
+
+        setAlertaAddProduto(alertaMensagem("Pedido de compra criado com sucesso", "success", <DoneIcon/>));
+        
+        const novaListaPedidos = [...listaPedidosCompra, pedidoCriado];
+        setListaPedidosCompra(novaListaPedidos);
+        
+
+
       } catch (error) {
         console.error("Erro ao criar pedido de compra:", error);
         setAlertaAddProduto(alertaMensagem("Erro ao criar pedido de compra", "error", <ReportProblemIcon/>));
@@ -394,8 +406,6 @@ const ModalMov = () => {
     setValorMov('')
     setTipoSaida(null)
     setTipoEntrada(null)
-    setAlertaAddProduto(null)
-
         
   }
 
