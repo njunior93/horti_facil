@@ -1,4 +1,4 @@
-import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext, useGridSelector, type GridColDef, type GridRowSelectionModel} from '@mui/x-data-grid';
 import { Box } from '@mui/material';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
@@ -10,6 +10,11 @@ import { supabase } from '../supabaseClient';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import alertaMensagem from "../utils/alertaMensagem";
 import axios from 'axios';
+import { 
+} from '@mui/x-data-grid';
+import Pagination from '@mui/material/Pagination';
+import PaginationItem from '@mui/material/PaginationItem';
+import React from 'react';
 
 
 const PedidosCompra = () => {
@@ -21,6 +26,10 @@ const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
 const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
 const { listaPedidosCompra, setListaPedidosCompra } = useContext(AppContext);
 const { estoqueId, setEstoqueId } = useContext(AppContext);
+const [selectedRows, setSelectedRows] = useState<any[]>([]);
+const [idsSelecionados, setIdsSelecionados] = useState<any[]>([]);
+
+
 
  setTimeout(() =>{
     if(mensagemErro){
@@ -137,23 +146,77 @@ useEffect(() => {
     fetchListaProdutos();
     fetchListaPedidosCompra();
     
-}, []);
+}, []); 
+
 
 const colunas: GridColDef<(typeof linhas)[number]>[] = [
-  { field: 'id', headerName: 'ID', width: 90 },
-   { field: 'status', headerName: 'Status', width: 90 },
+  { 
+    field: 'id',
+    headerName: 'ID', 
+    width: 90 
+  },
+  {
+    field: 'fornecedor',
+    headerName: 'Fornecedor',
+    width: 200,
+    editable: false,
+  },
   {
     field: 'dataPedido',
     headerName: 'Data de criação',
     width: 150,
     editable: false,
   },
-  {
-    field: 'fornecedor',
-    headerName: 'Fornecedor',
-    width: 110,
-    editable: false,
-  }
+  { 
+    field: 'status', 
+    headerName: 'Status do Pedido', 
+    width: 150 ,
+    renderCell: (params) => {
+
+      const status = params.value || "";
+      const letra = status.charAt(0).toUpperCase();
+
+      const getStatusColor = (status: string) => {
+        switch (status.toLowerCase()) {
+          case "pendente":
+            return "#fbc02d";
+          case "efetivado":
+            return "#4caf50"; 
+          case "efetivado-parcial":
+            return "#4caf50";
+          case "cancelado":
+            return "#f44336"; 
+          default:
+            return "#9e9e9e"; 
+        }
+      };
+
+      const cor = getStatusColor(status);
+
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            backgroundColor: cor,
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 'bold',
+            fontSize: 14,
+          }}
+          >
+            {letra}
+          </div>
+        <span style={{ textTransform: 'capitalize' }}>{status}</span>
+        </div>
+      );
+    },
+  },  
+ 
 ];
 
 const linhas = listaPedidosCompra.map((pedido) => {
@@ -176,11 +239,40 @@ const criarPedido = () => {
   setHandleModal(true); 
 }
 
+const efetivarPedido = () => {
+  setTipoModal('EfetivarPedidoCompra');
+  setHandleModal(true);
+}
+
+
+function CustomPagination() {
+  const apiRef = useGridApiContext();
+  const page = useGridSelector(apiRef, gridPageSelector);
+  const pageCount = useGridSelector(apiRef, gridPageCountSelector);
+
+  return (
+    <Pagination
+      color="primary"
+      variant="outlined"
+      shape="rounded"
+      page={page + 1}
+      count={pageCount}
+      // @ts-expect-error
+      renderItem={(props2) => <PaginationItem {...props2} disableRipple />}
+      onChange={(event: React.ChangeEvent<unknown>, value: number) =>
+        apiRef.current.setPage(value - 1)
+      }
+    />
+  );
+}
+
   return (
   <div className='flex items-center justify-center h-screen w-screen bg-gray-100'>
     <div className='flex flex-col items-center space-y-6 w-4/5'>
       <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1}}>
-        <Button onClick={() => criarPedido()}
+        <Button 
+          onClick={() => criarPedido()}
+          disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0}
           sx={{
             backgroundColor: "#f7931e", // laranja
             color: "#fff",
@@ -197,8 +289,9 @@ const criarPedido = () => {
         </Button>
 
         <Button
+          disabled={selectedRows.length === 0 || idsSelecionados.length === 0}
           sx={{
-            backgroundColor: "#f44336", // vermelho
+            backgroundColor: "#f44336",
             color: "#fff",
             fontWeight: "bold",
             borderRadius: "20px",
@@ -213,8 +306,10 @@ const criarPedido = () => {
         </Button>
 
         <Button
+          onClick={() => efetivarPedido()}
+          disabled={selectedRows.length === 0 || idsSelecionados.length === 0}
           sx={{
-            backgroundColor: "#4caf50", // verde (exemplo)
+            backgroundColor: "#4caf50",
             color: "#fff",
             fontWeight: "bold",
             borderRadius: "20px",
@@ -229,8 +324,9 @@ const criarPedido = () => {
         </Button>
 
         <Button
+          disabled={selectedRows.length === 0 || idsSelecionados.length === 0}
           sx={{
-            backgroundColor: "#2196f3", // azul (exemplo)
+            backgroundColor: "#2196f3",
             color: "#fff",
             fontWeight: "bold",
             borderRadius: "20px",
@@ -257,6 +353,17 @@ const criarPedido = () => {
             },
           }}
           pageSizeOptions={[5]}
+          slots={
+            {pagination: CustomPagination}
+          }
+          onRowSelectionModelChange={(newSelection) => {
+          const idsSelecionados = Array.from(newSelection.ids)
+
+          const selecionados = linhas.filter((linha) => idsSelecionados.includes(linha.id))
+
+          setSelectedRows(selecionados)
+          setIdsSelecionados(idsSelecionados)
+          }}
           checkboxSelection
           disableRowSelectionOnClick
         />

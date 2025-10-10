@@ -399,13 +399,12 @@ const ModalMov = () => {
 
     }
 
-    setHandleModal(false)
-    setTipoModal('')
     setProdutoSelecionado({} as iProduto)
     setListaProdutoMov([]);
     setValorMov('')
     setTipoSaida(null)
     setTipoEntrada(null)
+    setiDFornecedorSelecionado('');
         
   }
 
@@ -818,6 +817,10 @@ const ModalMov = () => {
                     </Stack> 
                   </>
               )}
+
+              {tipoModal === 'EfetivarPedidoCompra' && (
+                <>Ola</>
+              )} 
 
               {tipoModal === 'MovimentacaoEstoque' && (
                 <Stack spacing={2} direction="column">
