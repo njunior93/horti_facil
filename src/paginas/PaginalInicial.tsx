@@ -45,11 +45,13 @@ const PaginalInicial = () => {
 
     if (!session){
       setAlerta(alertaMensagem('Faça login para gerenciar seu estoque.', 'warning', <ReportProblemIcon/>));
+      navigate("/")
       return false;
     }
 
     if (!token){
       setAlerta(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+      navigate("/")
       return false;
     }
 
@@ -73,17 +75,15 @@ const PaginalInicial = () => {
 
   const criarEstoque = async () =>{
 
-    if (!servidorOnline){
-      setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
-      return;
-    }
-
-    const existeEstoque = await verificarEstoque();
-
-    if (existeEstoque){
-      setAlerta(alertaMensagem('Ja existe um estoque criado! Gerencie o seu estoque', 'warning', <ReportProblemIcon/>));
-      return;
-    }
+    // if (!servidorOnline){
+    //   setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
+    // }else{
+    //   const existeEstoque = await verificarEstoque();
+    //   if(existeEstoque){
+    //     setAlerta(alertaMensagem("Ja existe estoque criado. Gerencie o seu estoque", 'warning', <ReportProblemIcon />));
+    //     return;
+    //   }
+    // }   
    
       navigate('/criar-estoque'); 
       fecharModal();
@@ -96,15 +96,14 @@ const PaginalInicial = () => {
 
     if (!servidorOnline){
       setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
-      return;
-    }
+    } else {
+      const existeEstoque = await verificarEstoque();
 
-    const existeEstoque = await verificarEstoque();
-
-    if (!existeEstoque){
-      setAlerta(alertaMensagem("Não existe estoque para gerenciar. Crie um estoque", 'warning', <ReportProblemIcon />));
-      return;
-    }
+      if (!existeEstoque){
+        setAlerta(alertaMensagem('Não existe um estoque criado! Crie um estoque', 'warning', <ReportProblemIcon/>));
+        return;
+      }
+    }   
                 
     navigate('/gerenciar-estoque'); 
     fecharModal();
@@ -116,15 +115,14 @@ const PaginalInicial = () => {
 
     if (!servidorOnline){
       setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
-      return;
-    }
+    } else {
+      const existeEstoque = await verificarEstoque();
 
-    const existeEstoque = await verificarEstoque();
-
-    if (!existeEstoque){
+      if (!existeEstoque){
       setAlerta(alertaMensagem("É preciso ter um estoque criado! Crie um estoque", 'warning', <ReportProblemIcon />));
-      return;
-    }
+        return;
+      }
+    }  
 
     navigate('/pedidos-compra'); 
     fecharModal();

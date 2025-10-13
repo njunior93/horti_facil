@@ -7,7 +7,8 @@ import { useNavigate } from "react-router-dom";
 
 export type StatusServidorContextType = {
   servidorOnline: boolean;
-  sessaoAtiva: boolean;
+  // sessaoAtiva: boolean;
+  conexaoInternet: boolean;
 };
 
 export const StatusServidorContext = createContext<StatusServidorContextType | undefined>(undefined);
@@ -15,14 +16,32 @@ export const StatusServidorContext = createContext<StatusServidorContextType | u
 export const StatusServidorProvider = ({ children }: { children: React.ReactNode }) => {
   const { servidorOnline, setServidorOnline } = useContext(AppContext);
   const { sessaoAtiva, setSessaoAtiva } = useContext(AppContext);
+  const {conexaoInternet, setConexaoInternet} = useContext(AppContext);
 
   const navigate = useNavigate();
 
   useEffect(() => {
 
+    const verificarInternet = async (): Promise<boolean> => {
+      try {
+        await fetch("https://1.1.1.1", { mode: "no-cors" });
+        return true;
+      } catch {
+        return false;
+      }
+}
+
     const verificarSessao = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          setSessaoAtiva(false);
+        if (location.pathname !== "/") {
+          navigate("/");
+        }
+        return; 
+        }
 
       if (!session) {
         setSessaoAtiva(false);
@@ -40,39 +59,55 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
     };
 
     const verificarServidor = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/status-servidor');
-        const { data, error } = await supabase.auth.getUser();
 
-        if (response.data.status !== 'ok' || error || !data.user) {
+      try{
+        const internetOk = await verificarInternet();
+        setConexaoInternet(internetOk)
+
+        const response = await axios.get('http://localhost:3000/status-servidor', { timeout: 5000 });
+
+        if (response.data.status !== 'ok') {
           setServidorOnline(false);
-        } else {
-          setServidorOnline(true);
+          return;
         }
 
-      } catch (err) {
-        setServidorOnline(false);
-      }//finally {
-         //setUltimaVerificacao(new Date());
-        //}
+        setServidorOnline(true)       
+
+      } catch (err: any) {
+        if (axios.isAxiosError(err)) {
+          const codigoErro = err.code;
+          const mensagemErro = err.message;
+
+          if (codigoErro === 'ERR_NETWORK' || mensagemErro.includes('Network Error')) {        
+            console.error("FALHA NA INTERNET", codigoErro || mensagemErro);
+            setConexaoInternet(false)
+          }
+        } else {
+          console.error("Falha ao verificar servidor:", err);
+          setServidorOnline(false);
+        }
+      }
     };
 
-    verificarServidor();
-    verificarSessao();
+      verificarInternet();
+      verificarServidor();
+      verificarSessao();
+    
 
     const intervalo = setInterval(() => {
+      verificarInternet();
       verificarServidor();
-      verificarSessao();    
-    }, 10000);
+      verificarSessao();        
+    }, 5000);
 
     return () => clearInterval(intervalo);
 
   }, []);
 
   return (
-    <StatusServidorContext.Provider value={{ servidorOnline, sessaoAtiva }}>
+    <StatusServidorContext.Provider value={{conexaoInternet,servidorOnline/*, sessaoAtiva*/ }}>
       {children}
-      {/* <StatusServidor /> */}
+      <StatusServidor />
     </StatusServidorContext.Provider>
   );
 };
