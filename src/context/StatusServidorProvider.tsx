@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 export type StatusServidorContextType = {
   servidorOnline: boolean;
-  // sessaoAtiva: boolean;
+  sessaoAtiva: boolean;
   conexaoInternet: boolean;
 };
 
@@ -98,14 +98,14 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
       verificarInternet();
       verificarServidor();
       verificarSessao();        
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(intervalo);
 
   }, []);
 
   return (
-    <StatusServidorContext.Provider value={{conexaoInternet,servidorOnline/*, sessaoAtiva*/ }}>
+    <StatusServidorContext.Provider value={{conexaoInternet,servidorOnline, sessaoAtiva }}>
       {children}
       <StatusServidor />
     </StatusServidorContext.Provider>

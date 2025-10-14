@@ -18,7 +18,7 @@ export const StatusServidor = () => {
     throw new Error("StatusServidor deve ser usado dentro de StatusServidorProvider");
   }
 
-  const { servidorOnline/*, sessaoAtiva*/, conexaoInternet } = context;
+  const { servidorOnline, sessaoAtiva, conexaoInternet } = context;
 
   const sair = () =>{
     setListaProdutoEstoque([]);

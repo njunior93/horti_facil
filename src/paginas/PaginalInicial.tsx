@@ -70,64 +70,92 @@ const PaginalInicial = () => {
       } else {
         setAlerta(alertaMensagem(`Não foi possível verificar o estoque. ${error}`, 'warning', <ReportProblemIcon/>));
       }
+      throw error;
     }
   }
 
   const criarEstoque = async () =>{
 
-    // if (!servidorOnline){
-    //   setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
-    // }else{
-    //   const existeEstoque = await verificarEstoque();
-    //   if(existeEstoque){
-    //     setAlerta(alertaMensagem("Ja existe estoque criado. Gerencie o seu estoque", 'warning', <ReportProblemIcon />));
-    //     return;
-    //   }
-    // }   
+    try{
+      if (!servidorOnline){
+        setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
+        return;
+      }
+      
+      const existeEstoque = await verificarEstoque();
+
+      if(existeEstoque){
+        setAlerta(alertaMensagem("Ja existe estoque criado. Gerencie o seu estoque", 'warning', <ReportProblemIcon />));
+        return;
+      }   
    
       navigate('/criar-estoque'); 
       fecharModal();
       setAlerta(null) 
       setOpen(true)
     
+    } catch (error){
+      console.error("Erro ao verificar estoque: ", error);
+      setAlerta(alertaMensagem("Erro ao conectar ao servidor. Tente novamente mais tarde.", 'error', <ReportProblemIcon />));
+      return;
+    }
+
+   
   };
 
   const gerenciarEstoque = async  () =>{
 
-    if (!servidorOnline){
-      setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
-    } else {
-      const existeEstoque = await verificarEstoque();
-
-      if (!existeEstoque){
-        setAlerta(alertaMensagem('Não existe um estoque criado! Crie um estoque', 'warning', <ReportProblemIcon/>));
+    try{
+      if (!servidorOnline){
+        setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
         return;
       }
-    }   
+      
+      const existeEstoque = await verificarEstoque();
+
+      if(!existeEstoque){
+        setAlerta(alertaMensagem('Não existe um estoque criado! Crie um estoque', 'warning', <ReportProblemIcon/>));
+        return;
+      } 
                 
     navigate('/gerenciar-estoque'); 
     fecharModal();
     setAlerta(null)
     setOpen(true)
+    
+    } catch (error){
+      console.error("Erro ao verificar estoque: ", error);
+      setAlerta(alertaMensagem("Erro ao conectar ao servidor. Tente novamente mais tarde.", 'error', <ReportProblemIcon />));
+      return;
+    }
+
   }
 
   const pedidoCompra = async () =>{
 
-    if (!servidorOnline){
-      setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
-    } else {
-      const existeEstoque = await verificarEstoque();
-
-      if (!existeEstoque){
-      setAlerta(alertaMensagem("É preciso ter um estoque criado! Crie um estoque", 'warning', <ReportProblemIcon />));
+    try{
+      if (!servidorOnline){
+        setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
         return;
       }
-    }  
+      
+      const existeEstoque = await verificarEstoque();
 
-    navigate('/pedidos-compra'); 
-    fecharModal();
-    setAlerta(null)
-    setOpen(true)
+      if(!existeEstoque){
+        setAlerta(alertaMensagem("É preciso ter um estoque criado! Crie um estoque", 'warning', <ReportProblemIcon />));
+        return;
+      }   
+
+      navigate('/pedidos-compra'); 
+      fecharModal();
+      setAlerta(null)
+      setOpen(true)
+
+    } catch (error){
+      console.error("Erro ao verificar estoque: ", error);
+      setAlerta(alertaMensagem("Erro ao conectar ao servidor. Tente novamente mais tarde.", 'error', <ReportProblemIcon />));
+      return;
+    }
   }
 
   const sairLogout = async () =>{
