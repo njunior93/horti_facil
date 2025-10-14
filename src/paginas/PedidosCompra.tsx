@@ -15,6 +15,8 @@ import {
 import Pagination from '@mui/material/Pagination';
 import PaginationItem from '@mui/material/PaginationItem';
 import React from 'react';
+import { useEstoque } from '../context/EstoqueProvider.tsx'
+import { useNavigate } from "react-router-dom";
 
 
 const PedidosCompra = () => {
@@ -28,6 +30,12 @@ const { listaPedidosCompra, setListaPedidosCompra } = useContext(AppContext);
 const { estoqueId, setEstoqueId } = useContext(AppContext);
 const [selectedRows, setSelectedRows] = useState<any[]>([]);
 const [idsSelecionados, setIdsSelecionados] = useState<any[]>([]);
+const navigate = useNavigate();
+
+const estoqueContext = useEstoque();
+const verificarEstoque = estoqueContext?.verificarEstoque;
+const existeEstoque = estoqueContext?.existeEstoque;
+const loading = estoqueContext?.loading;
 
 
 
@@ -38,6 +46,13 @@ const [idsSelecionados, setIdsSelecionados] = useState<any[]>([]);
   },4000);
 
 useEffect(() => {
+
+  const checarEstoque = async () => {
+    if (verificarEstoque) {
+      await verificarEstoque();
+    }
+  };
+
   const fetchListaProdutos = async () => {
     const {data : {session}} = await supabase.auth.getSession();
     const token = session?.access_token;
@@ -141,12 +156,17 @@ useEffect(() => {
 
   };
 
+    checarEstoque();
     fetchEstoqueId();
     fetchlistaFornecedores();
     fetchListaProdutos();
     fetchListaPedidosCompra();
     
 }, []); 
+
+const sair = () => {
+    navigate("/pagina-inicial");
+  }
 
 
 const colunas: GridColDef<(typeof linhas)[number]>[] = [
@@ -265,6 +285,32 @@ function CustomPagination() {
     />
   );
 }
+
+if (loading){
+    return (
+      <div className="flex justify-center items-center h-screen w-screen bg-[#FDEFD6]">
+        <p className="text-xs md:text-6xl font-extrabold bg-gradient-to-r from-orange-500 via-red-500 to-red-700 text-transparent bg-clip-text drop-shadow-lg leading-snug">
+          Carregando...
+        </p>
+      </div>
+    );
+  }
+
+  if (!existeEstoque){
+    return (
+      <div className="flex flex-col justify-center items-center h-screen w-screen bg-[#FDEFD6] text-center px-4">
+        <p className="text-2xl md:text-6xl font-extrabold bg-gradient-to-r from-orange-500 via-red-500 to-red-700 text-transparent bg-clip-text drop-shadow-lg leading-snug mb-6">
+          Não existe estoque!
+        </p>
+
+        <p className="text-sm md:text-lg text-gray-700 mb-8 max-w-xl">
+          Volte e crie um estoque.
+        </p>
+            
+        <button onClick={() => sair()}className="px-6 py-3 md:px-8 md:py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-red-500 to-red-700 text-white font-bold shadow-lg hover:scale-105 transition-transform">Voltar</button>
+      </div>
+    )
+  }
 
   return (
   <div className='flex items-center justify-center h-screen w-screen bg-gray-100'>

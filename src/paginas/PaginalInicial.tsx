@@ -96,7 +96,7 @@ const PaginalInicial = () => {
     
     } catch (error){
       console.error("Erro ao verificar estoque: ", error);
-      setAlerta(alertaMensagem("Erro ao conectar ao servidor. Tente novamente mais tarde.", 'error', <ReportProblemIcon />));
+      setAlerta(alertaMensagem("Erro ao conectar ao servidor. Tente novamente em instantes.", 'error', <ReportProblemIcon />));
       return;
     }
 
