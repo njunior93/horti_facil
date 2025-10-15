@@ -25,7 +25,7 @@ const VisualizarEstoque = () => {
   const {handleModal, setHandleModal} = useContext(AppContext);
   const [loading, setLoading] = useState(true);
   const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
-  const {setEstoqueSalvo} = useContext(AppContext);
+  const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
   const {estoqueId,setEstoqueId} = useContext(AppContext);
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
 
@@ -36,39 +36,39 @@ const VisualizarEstoque = () => {
     }
   },4000);
 
-  useEffect(() => {
-    const fetchListaProdutos = async () => {
+  // useEffect(() => {
+  //   const fetchListaProdutos = async () => {
 
-      setLoading(true);
+  //     setLoading(true);
 
-      const {data : {session}} = await supabase.auth.getSession();
-      const token = session?.access_token;
+  //     const {data : {session}} = await supabase.auth.getSession();
+  //     const token = session?.access_token;
 
-      if (!token){
-        setLoading(false);
-        setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
-        navigate("/pagina-login")
-        return;
-      }
+  //     if (!token){
+  //       setLoading(false);
+  //       setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+  //       navigate("/pagina-login")
+  //       return;
+  //     }
 
-      try{
-        const response = await axios.get('http://localhost:3000/estoque/lista-produtos', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+  //     try{
+  //       const response = await axios.get('http://localhost:3000/estoque/lista-produtos', {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`
+  //         }
+  //       });
 
-        setEstoqueSalvo(response.data);
+  //       setEstoqueSalvo(response.data);
 
-      } catch (error){
-        setMensagemErro(alertaMensagem(`Erro ao buscar lista de produtos. ${error}`, 'warning', <ReportProblemIcon/>));
-      } finally {
-        setLoading(false);
-      }
-    };
+  //     } catch (error){
+  //       setMensagemErro(alertaMensagem(`Erro ao buscar lista de produtos. ${error}`, 'warning', <ReportProblemIcon/>));
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchListaProdutos();
-  }, []);
+  //   fetchListaProdutos();
+  // }, []);
 
   useEffect(() => {
   if (handleModal === true) {
@@ -127,6 +127,8 @@ const VisualizarEstoque = () => {
       return;
     }
   }
+
+  console.log("LISTA PRODUTOS",estoqueSalvo?.listaProdutos)
 
   return (
 

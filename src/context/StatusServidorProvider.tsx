@@ -111,3 +111,5 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
     </StatusServidorContext.Provider>
   );
 };
+
+export const useInternet = () => useContext(StatusServidorContext)
