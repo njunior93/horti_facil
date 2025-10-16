@@ -9,33 +9,42 @@ import GerenciarEstoque from './paginas/GerenciarEstoque.tsx';
 import PaginalInicial from './paginas/PaginalInicial.tsx';
 import PedidosCompra from './paginas/PedidosCompra.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
-import { StatusServidorProvider } from './context/StatusServidorProvider.tsx';
 import { EstoqueProvider } from './context/EstoqueProvider.tsx';
+import {MainLayout} from "./mainlayout.tsx";
 
 
 const router = createBrowserRouter([
+
   {
     path: "/",
     element: <App/>
   },
 
   {
-    path: "/pagina-inicial",
-    element: <StatusServidorProvider><PaginalInicial/></StatusServidorProvider>
-  },
+    element: <MainLayout/>,
+    children: 
+    [
+      {
+        path: "/pagina-inicial",
+        element: <EstoqueProvider><PaginalInicial/></EstoqueProvider>
+      },
 
-  {
-    path: "/criar-estoque",
-    element: <StatusServidorProvider><EstoqueProvider><CriarEstoque/></EstoqueProvider></StatusServidorProvider>
-  },
-  {
-    path: "/gerenciar-estoque",
-    element: <StatusServidorProvider><EstoqueProvider><GerenciarEstoque/></EstoqueProvider></StatusServidorProvider>
-  },
-  {
-    path: "/pedidos-compra",
-    element: <StatusServidorProvider><EstoqueProvider><PedidosCompra/></EstoqueProvider></StatusServidorProvider>
+      {
+        path: "/criar-estoque",
+        element: <EstoqueProvider><CriarEstoque/></EstoqueProvider>
+      },
+      {
+        path: "/gerenciar-estoque",
+        element: <EstoqueProvider><GerenciarEstoque/></EstoqueProvider>
+      },
+      {
+        path: "/pedidos-compra",
+        element: <EstoqueProvider><PedidosCompra/></EstoqueProvider>
+      }
+    ]
   }
+
+  
   
 ]);
 

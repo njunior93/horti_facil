@@ -63,29 +63,52 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
       try{
         const internetOk = await verificarInternet();
         setConexaoInternet(internetOk)
+        
+        if (!internetOk) {
+          setServidorOnline(false);
+        return;
+    }
 
         const response = await axios.get('http://localhost:3000/status-servidor', { timeout: 5000 });
 
-        if (response.data.status !== 'ok') {
-          setServidorOnline(false);
-          return;
+        if (response.data.status === 'ok') {
+          if (!servidorOnline) setServidorOnline(true);
+        } else{
+          if (servidorOnline) setServidorOnline(false);
         }
 
-        setServidorOnline(true)       
+        console.log(servidorOnline)
 
       } catch (err: any) {
         if (axios.isAxiosError(err)) {
           const codigoErro = err.code;
           const mensagemErro = err.message;
 
-          if (codigoErro === 'ERR_NETWORK' || mensagemErro.includes('Network Error')) {        
-            console.error("FALHA NA INTERNET", codigoErro || mensagemErro);
-            setConexaoInternet(false)
+          if(!conexaoInternet){
+            return;
           }
-        } else {
-          console.error("Falha ao verificar servidor:", err);
-          setServidorOnline(false);
+
+          if (codigoErro === 'ECONNABORTED') {
+            console.error("Servidor demorou para responder", mensagemErro);
+            if (servidorOnline) setServidorOnline(false);
+            return;
+          }
+
+          if (codigoErro === 'ERR_NETWORK' && conexaoInternet) {
+            console.error("Servidor fora do ar", mensagemErro);        
+            if (servidorOnline) setServidorOnline(false);
+            return;
+          }
+
+          if (codigoErro === 'ERR_NETWORK' && !conexaoInternet) {
+            console.error("Sem conexão com a internet", mensagemErro);        
+            if (conexaoInternet) setConexaoInternet(false);
+            return;
+          }
         }
+          
+          console.error("Falha ao verificar servidor:", err);
+          if (servidorOnline) setServidorOnline(false);    
       }
     };
 
@@ -98,16 +121,16 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
       verificarInternet();
       verificarServidor();
       verificarSessao();        
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(intervalo);
 
-  }, []);
+  }, [conexaoInternet, servidorOnline]);
 
   return (
     <StatusServidorContext.Provider value={{conexaoInternet,servidorOnline, sessaoAtiva }}>
       {children}
-      {/* <StatusServidor /> */}
+      <StatusServidor />
     </StatusServidorContext.Provider>
   );
 };

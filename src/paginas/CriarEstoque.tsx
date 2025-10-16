@@ -39,6 +39,8 @@ function CriarEstoque() {
     );
   }
 
+   console.log("EXISTE", existeEstoque)
+
   if (existeEstoque){
     return (
       <div className="flex flex-col justify-center items-center h-screen w-screen bg-[#FDEFD6] text-center px-4">

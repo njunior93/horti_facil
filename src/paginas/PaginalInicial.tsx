@@ -7,7 +7,8 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
-import { AppContext } from "../context/context";
+import { useInternet} from '../context/StatusServidorProvider.tsx';
+import { useEstoque } from '../context/EstoqueProvider.tsx'
 
 const PaginalInicial = () => {
 
@@ -18,7 +19,13 @@ const PaginalInicial = () => {
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
   const [loading, setLoading] = useState(false);
   const {session} = useAuth();
-  const { servidorOnline, setServidorOnline } = useContext(AppContext);
+  const StatusServidorContext = useInternet();
+  const estoqueContext = useEstoque();
+
+  const existeEstoque = estoqueContext?.existeEstoque;
+  const verificarInternet = StatusServidorContext?.conexaoInternet;
+  const verificarServidor = StatusServidorContext?.servidorOnline;
+
 
   const dadosUsuario: any | undefined = session?.user.user_metadata;
 
@@ -38,51 +45,49 @@ const PaginalInicial = () => {
     );
   }
 
-  const verificarEstoque = async () =>{
+  // const verificarEstoque = async () =>{
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
+  //   const { data: { session } } = await supabase.auth.getSession();
+  //   const token = session?.access_token;
 
-    if (!session){
-      setAlerta(alertaMensagem('Faça login para gerenciar seu estoque.', 'warning', <ReportProblemIcon/>));
-      navigate("/")
-      return false;
-    }
+  //   if (!session){
+  //     setAlerta(alertaMensagem('Faça login para gerenciar seu estoque.', 'warning', <ReportProblemIcon/>));
+  //     navigate("/")
+  //     return false;
+  //   }
 
-    if (!token){
-      setAlerta(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
-      navigate("/")
-      return false;
-    }
+  //   if (!token){
+  //     setAlerta(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
+  //     navigate("/")
+  //     return false;
+  //   }
 
-    try {
-    const response = await axios.get('http://localhost:3000/estoque/verificar-estoque', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  //   try {
+  //   const response = await axios.get('http://localhost:3000/estoque/verificar-estoque', {
+  //     headers: {
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //   });
 
-    return response.data.existe;
+  //   return response.data.existe;
 
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response){
-        setAlerta(alertaMensagem(`Erro: ${error.response.data.message}`, 'warning', <ReportProblemIcon/>));          
-      } else {
-        setAlerta(alertaMensagem(`Não foi possível verificar o estoque. ${error}`, 'warning', <ReportProblemIcon/>));
-      }
-      throw error;
-    }
-  }
+  //   } catch (error) {
+  //     if (axios.isAxiosError(error) && error.response){
+  //       setAlerta(alertaMensagem(`Erro: ${error.response.data.message}`, 'warning', <ReportProblemIcon/>));          
+  //     } else {
+  //       setAlerta(alertaMensagem(`Não foi possível verificar o estoque. ${error}`, 'warning', <ReportProblemIcon/>));
+  //     }
+  //     throw error;
+  //   }
+  // }
 
   const criarEstoque = async () =>{
 
     try{
-      if (!servidorOnline){
+      if (!verificarServidor){
         setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
         return;
       }
-      
-      const existeEstoque = await verificarEstoque();
 
       if(existeEstoque){
         setAlerta(alertaMensagem("Ja existe estoque criado. Gerencie o seu estoque", 'warning', <ReportProblemIcon />));
@@ -106,12 +111,10 @@ const PaginalInicial = () => {
   const gerenciarEstoque = async  () =>{
 
     try{
-      if (!servidorOnline){
+      if (!verificarServidor){
         setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
         return;
       }
-      
-      const existeEstoque = await verificarEstoque();
 
       if(!existeEstoque){
         setAlerta(alertaMensagem('Não existe um estoque criado! Crie um estoque', 'warning', <ReportProblemIcon/>));
@@ -125,7 +128,7 @@ const PaginalInicial = () => {
     
     } catch (error){
       console.error("Erro ao verificar estoque: ", error);
-      setAlerta(alertaMensagem("Erro ao conectar ao servidor. Tente novamente mais tarde.", 'error', <ReportProblemIcon />));
+      setAlerta(alertaMensagem("Erro ao conectar ao servidor. Tente novamente em instantes.", 'error', <ReportProblemIcon />));
       return;
     }
 
@@ -134,12 +137,10 @@ const PaginalInicial = () => {
   const pedidoCompra = async () =>{
 
     try{
-      if (!servidorOnline){
+      if (!verificarServidor){
         setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
         return;
       }
-      
-      const existeEstoque = await verificarEstoque();
 
       if(!existeEstoque){
         setAlerta(alertaMensagem("É preciso ter um estoque criado! Crie um estoque", 'warning', <ReportProblemIcon />));
@@ -153,7 +154,7 @@ const PaginalInicial = () => {
 
     } catch (error){
       console.error("Erro ao verificar estoque: ", error);
-      setAlerta(alertaMensagem("Erro ao conectar ao servidor. Tente novamente mais tarde.", 'error', <ReportProblemIcon />));
+      setAlerta(alertaMensagem("Erro ao conectar ao servidor. Tente novamente em instantes.", 'error', <ReportProblemIcon />));
       return;
     }
   }
