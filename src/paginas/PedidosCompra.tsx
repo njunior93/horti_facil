@@ -165,8 +165,10 @@ useEffect(() => {
 }, []); 
 
 const sair = () => {
-    navigate("/pagina-inicial");
-  }
+  navigate("/pagina-inicial");
+  setTipoModal('')
+  setHandleModal(false);
+}
 
 
 const colunas: GridColDef<(typeof linhas)[number]>[] = [

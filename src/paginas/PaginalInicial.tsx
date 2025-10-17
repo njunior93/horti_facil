@@ -84,6 +84,7 @@ const PaginalInicial = () => {
   const criarEstoque = async () =>{
 
     try{
+
       if (!verificarServidor){
         setAlerta(alertaMensagem("Conexão com servidor perdida. Tente novamente em instantes", 'error', <ReportProblemIcon />));
         return;
@@ -227,6 +228,7 @@ const PaginalInicial = () => {
             <List>
             <ListItem disablePadding>
               <ListItemButton
+              disabled={existeEstoque === null}
               onClick={criarEstoque}
               sx={{
                 backgroundColor: "#FDEFD6",
@@ -244,6 +246,7 @@ const PaginalInicial = () => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
+              disabled={existeEstoque === null}
               onClick={(gerenciarEstoque)}
               sx={{
                 backgroundColor: "#FDEFD6",
@@ -261,6 +264,7 @@ const PaginalInicial = () => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
+              disabled={existeEstoque === null}
               onClick={() => { pedidoCompra(); }}
               sx={{
                 backgroundColor: "#FDEFD6",

@@ -615,6 +615,18 @@ const ModalMov = () => {
   const gerarRelatorioMovimentacao = () => {
     const timeZone = 'America/Sao_Paulo';
 
+    if(!conexaoInternet ){
+      console.error("Sem acesso a internet. Verifique sua conexão");
+      setAlertaAddProduto(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+      return;
+    }
+
+    if(!servidorOnline){
+      console.error("Servidor fora do ar. Tente novamente em instantes");
+      setAlertaAddProduto(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+      return;
+    }
+
     try{
 
       if (tipoMovSelecionado === '' || movimentacaoSelecionada === '' || dataInicio === null || dataFim === null) {
@@ -675,51 +687,6 @@ const ModalMov = () => {
     } catch (error) {
       console.error("Erro ao gerar relatorio:", error);
       setAlertaAddProduto(alertaMensagem("Erro ao gerar relatorio", "error", <ReportProblemIcon/>));
-
-      if(axios.isAxiosError(error)){
-
-        if(!conexaoInternet ){
-          console.error("Sem acesso a internet. Verifique sua conexão", error);
-          setAlertaAddProduto(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
-          return;
-        }
-
-        if(!servidorOnline){
-          console.error("Servidor fora do ar. Tente novamente em instantes", error);
-          setAlertaAddProduto(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
-          return;
-        }
-
-        if(error.response){
-          const status = error.response.status;
-          const mensagem = error.response.data?.message || error.message;
-
-          if(status >= 500){
-            console.error(`Erro ao gerar relatorio ${status} ${mensagem}`)
-            setAlertaAddProduto(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
-          } else if (status === 404){
-            console.error(`Erro ao gerar relatorio ${status} ${mensagem}`)
-            setAlertaAddProduto(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
-          } else {
-            console.error(`Erro ao gerar relatorio ${status} ${mensagem}`)
-            setAlertaAddProduto(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
-          }
-
-           return;
-        }
-
-        if(error.code === 'ECONNABORTED'){
-          console.error(`Erro ao gerar relatorio ${error}`)
-          setAlertaAddProduto(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
-          return;
-        }
-
-        setAlertaAddProduto(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
-        return;    
-      }
-
-      setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
-      return;
     }   
   }
 

@@ -108,7 +108,8 @@ const GerenciarEstoque = () => {
   },[verificarEstoque])
 
   const sair = () => {
-    navigate("/pagina-inicial");
+    setLoadingProdutos(false)
+    navigate("/pagina-inicial");   
   }
 
   if (loading){

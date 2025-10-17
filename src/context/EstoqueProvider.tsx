@@ -21,8 +21,7 @@ export const EstoqueProvider = ({ children }: { children: React.ReactNode }) => 
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
   const navigate = useNavigate();
   
-
-  const verificarEstoque = useCallback(async () =>{
+    const verificarEstoque = useCallback(async () =>{
 
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
@@ -59,6 +58,11 @@ export const EstoqueProvider = ({ children }: { children: React.ReactNode }) => 
       setLoading(false)
     }
   }, []);
+
+  useEffect(() =>{
+    verificarEstoque();
+  },[verificarEstoque])
+
 
   return (
       <EstoqueContext.Provider value={{ existeEstoque, loading, verificarEstoque }}>

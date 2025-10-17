@@ -125,6 +125,12 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
 
   }, [conexaoInternet, servidorOnline]);
 
+  const carregando = conexaoInternet === null || servidorOnline === null || sessaoAtiva === null;
+
+  if(carregando) {
+    return<div>Carregando status do sistema...</div>
+  }
+
   return (
     <StatusServidorContext.Provider value={{conexaoInternet,servidorOnline, sessaoAtiva }}>
       {children}
