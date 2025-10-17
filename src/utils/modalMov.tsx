@@ -21,6 +21,8 @@ import Tooltip from '@mui/material/Tooltip';
 import ListaFornecedor from '../componentes/ListaFornecedor';
 import DoneIcon from '@mui/icons-material/Done';
 import type { iPedido } from '../type/iPedido';
+import { useInternet } from '../context/StatusServidorProvider';
+import { useEstoque } from '../context/EstoqueProvider';
 
 
 const ModalMov = () => {
@@ -54,6 +56,12 @@ const ModalMov = () => {
     const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
     const [iDfornecedorSelecionado, setiDFornecedorSelecionado] = useState<string>('');
     const {listaPedidosCompra, setListaPedidosCompra} = useContext(AppContext);
+    const StatusServidorContext = useInternet();
+    const estoqueContext = useEstoque();
+
+    const existeEstoque = estoqueContext?.existeEstoque;
+    const conexaoInternet = StatusServidorContext?.conexaoInternet;
+    const servidorOnline = StatusServidorContext?.servidorOnline;
 
     
 
@@ -63,19 +71,7 @@ const ModalMov = () => {
     }
   },4000);
 
-  useEffect(() => {
-
-    if (tipoMovSelecionado === 'Entrada'){
-      setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("entrada")));
-    } else if (tipoMovSelecionado === "Saída") {
-      setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("saída")));
-    } else {
-      setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("todas")));
-    }
-
-    setMovimentacaoSelecionada?.('');
-
-    const listarMovimentacoes = async () => {
+  const listarMovimentacoes = async () => {
 
       try{
         const {data: {session}} = await supabase.auth.getSession();
@@ -95,13 +91,15 @@ const ModalMov = () => {
       } catch (error) {
         if(axios.isAxiosError(error) && error.response){
           setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+          return;
         } else {
-          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar o histórico de movimentações. Tente novamente em instantes. ${error}`, 'error', <ReportProblemIcon />));
+          return;
         }
       }
     }
 
-    const listaFornecedores = async () => {
+  const listarFornecedores = async () => {
       
       const {data: {session}} = await supabase.auth.getSession();
       const token = session?.access_token;
@@ -118,24 +116,41 @@ const ModalMov = () => {
         );
 
         setListaFornecedores(response.data);
-        console.log(response.data);
 
       } catch (error) {
         if(axios.isAxiosError(error) && error.response){
           console.log(error);
           setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
+          return;
         } else {
           console.log(error);
-          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar a lista de fornecedores. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao buscar a lista de fornecedores. ${error}`, 'error', <ReportProblemIcon />));
+          return;
         }
       }
 
-    }
+  }
 
-    listarMovimentacoes();
-
+  useEffect(() =>{
     if (tipoModal === 'CriarPedidoCompra' || tipoModal === 'CadastroFornecedor'){
-      listaFornecedores();
+      listarFornecedores();
+    }
+  }, [tipoModal]);
+
+  useEffect(() => {
+
+    if (tipoModal === 'MovimentacaoEstoque'){   
+      if (tipoMovSelecionado === 'Entrada'){
+        setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("entrada")));
+      } else if (tipoMovSelecionado === "Saída") {
+        setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("saída")));
+      } else {
+        setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("todas")));
+      }
+
+      setMovimentacaoSelecionada?.('');
+
+      listarMovimentacoes(); 
     }
 
   },[tipoMovSelecionado, estoqueSalvo, tipoModal]);
@@ -315,16 +330,52 @@ const ModalMov = () => {
       console.error("Erro ao atualizar o estoque:", error);
       setAlertaAddProduto(alertaMensagem("Erro ao atualizar estoque", "error", <ReportProblemIcon/>));
 
-      if(axios.isAxiosError(error) && error.response){
-        console.error("Erro ao atualizar o estoque:", error);
-        setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
-        return;
-      } else {
-        console.error("Erro ao atualizar o estoque:", error);
-        setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao atualizar o estoque. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
-        return;
+      if(axios.isAxiosError(error)){
+
+        if(!conexaoInternet ){
+          console.error("Sem acesso a internet. Verifique sua conexão", error);
+          setAlertaAddProduto(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+          return;
+        }
+
+        if(!servidorOnline){
+          console.error("Servidor fora do ar. Tente novamente em instantes", error);
+          setAlertaAddProduto(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          return;
+        }
+
+        if(error.response){
+          const status = error.response.status;
+          const mensagem = error.response.data?.message || error.message;
+
+          if(status >= 500){
+            console.error(`Erro ao atualizar estoque ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          } else if (status === 404){
+            console.error(`Erro ao atualizar estoque ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          } else {
+            console.error(`Erro ao atualizar estoque ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+          }
+
+           return;
+        }
+
+        if(error.code === 'ECONNABORTED'){
+          console.error(`Erro ao atualizar estoque ${error}`)
+          setAlertaAddProduto(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+          return;
+        }
+
+        setAlertaAddProduto(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+        return;    
       }
+
+      setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
+      return;
     }
+      
     
     setHandleModal(false)
     setTipoModal('')
@@ -354,7 +405,7 @@ const ModalMov = () => {
 
       if (!session){
           setAlertaAddProduto(alertaMensagem('Faça login para salvar um estoque.', 'warning', <ReportProblemIcon/>));
-           return;
+          return;
       }
 
       const pedidoNovo = {
@@ -384,20 +435,55 @@ const ModalMov = () => {
 
 
       } catch (error) {
-        console.error("Erro ao criar pedido de compra:", error);
-        setAlertaAddProduto(alertaMensagem("Erro ao criar pedido de compra", "error", <ReportProblemIcon/>));
+      console.error("Erro ao criar pedido de compra", error);
+      setAlertaAddProduto(alertaMensagem("Erro ao criar pedido de compra", "error", <ReportProblemIcon/>));
 
-        if(axios.isAxiosError(error) && error.response){
-          console.error("Erro na API:", error);
-          setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
-          return;
-        } else {
-          console.error("Erro ao ao criar pedido de compra:", error);
-          setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao criar pedido de compra. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
+      if(axios.isAxiosError(error)){
+
+        if(!conexaoInternet ){
+          console.error("Sem acesso a internet. Verifique sua conexão", error);
+          setAlertaAddProduto(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
           return;
         }
 
-    }
+        if(!servidorOnline){
+          console.error("Servidor fora do ar. Tente novamente em instantes", error);
+          setAlertaAddProduto(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          return;
+        }
+
+        if(error.response){
+          const status = error.response.status;
+          const mensagem = error.response.data?.message || error.message;
+
+          if(status >= 500){
+            console.error(`Erro ao criar pedido de compra ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          } else if (status === 404){
+            console.error(`Erro ao criar pedido de compra ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          } else {
+            console.error(`Erro ao criar pedido de compra${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+          }
+
+           return;
+        }
+
+        if(error.code === 'ECONNABORTED'){
+          console.error(`Erro ao criar pedido de compra ${error}`)
+          setAlertaAddProduto(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+          return;
+        }
+
+        setAlertaAddProduto(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+        return;    
+      }
+
+      setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
+      return;
+      }
+
 
     setProdutoSelecionado({} as iProduto)
     setListaProdutoMov([]);
@@ -448,19 +534,54 @@ const ModalMov = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
         } catch (error) {
-          console.error("Erro ao criar fornecedor:", error);  
+          console.error("Erro ao criar fornecedor", error);
           setAlertaAddProduto(alertaMensagem("Erro ao criar fornecedor", "error", <ReportProblemIcon/>));
 
-          if(axios.isAxiosError(error) && error.response){
-            console.error("Erro na API:", error);
-            setAlertaAddProduto(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
-            return;
-          } else {
-            console.error("Erro ao criar fornecedor:", error);
-            setAlertaAddProduto(alertaMensagem(`Ocorreu um erro ao criar fornecedor. Tente novamente. ${error}`, 'error', <ReportProblemIcon />));
-            return;
+          if(axios.isAxiosError(error)){
+
+            if(!conexaoInternet ){
+              console.error("Sem acesso a internet. Verifique sua conexão", error);
+              setAlertaAddProduto(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+              return;
+            }
+
+            if(!servidorOnline){
+              console.error("Servidor fora do ar. Tente novamente em instantes", error);
+              setAlertaAddProduto(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+              return;
+            }
+
+            if(error.response){
+              const status = error.response.status;
+              const mensagem = error.response.data?.message || error.message;
+
+              if(status >= 500){
+                console.error(`Erro ao criar fornecedor ${status} ${mensagem}`)
+                setAlertaAddProduto(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+              } else if (status === 404){
+                console.error(`Erro ao criar fornecedor ${status} ${mensagem}`)
+                setAlertaAddProduto(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+              } else {
+                console.error(`Erro ao criar fornecedor ${status} ${mensagem}`)
+                setAlertaAddProduto(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+              }
+
+              return;
+            }
+
+            if(error.code === 'ECONNABORTED'){
+              console.error(`Erro ao criar fornecedor ${error}`)
+              setAlertaAddProduto(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+              return;
+            }
+
+            setAlertaAddProduto(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+            return;    
           }
-      }
+
+      setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
+      return;
+    }
 
       setRazaoSocial('');
       setTelefone('');
@@ -549,13 +670,55 @@ const ModalMov = () => {
         return;
       }
 
-      console.log(relatorioFiltrado);
-
       gerarRelatorioPDF(relatorioFiltrado, tipoMovSelecionado,movimentacaoSelecionada,dataInicio, dataFim);
 
-    } catch(error){
-      console.error("Erro ao gerar o relatorio:", error);
-      setAlertaAddProduto(alertaMensagem(`Erro ao buscar o histórico de movimentações`+ error, "error" , <ReportProblemIcon/>));
+    } catch (error) {
+      console.error("Erro ao gerar relatorio:", error);
+      setAlertaAddProduto(alertaMensagem("Erro ao gerar relatorio", "error", <ReportProblemIcon/>));
+
+      if(axios.isAxiosError(error)){
+
+        if(!conexaoInternet ){
+          console.error("Sem acesso a internet. Verifique sua conexão", error);
+          setAlertaAddProduto(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+          return;
+        }
+
+        if(!servidorOnline){
+          console.error("Servidor fora do ar. Tente novamente em instantes", error);
+          setAlertaAddProduto(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          return;
+        }
+
+        if(error.response){
+          const status = error.response.status;
+          const mensagem = error.response.data?.message || error.message;
+
+          if(status >= 500){
+            console.error(`Erro ao gerar relatorio ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          } else if (status === 404){
+            console.error(`Erro ao gerar relatorio ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          } else {
+            console.error(`Erro ao gerar relatorio ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+          }
+
+           return;
+        }
+
+        if(error.code === 'ECONNABORTED'){
+          console.error(`Erro ao gerar relatorio ${error}`)
+          setAlertaAddProduto(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+          return;
+        }
+
+        setAlertaAddProduto(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+        return;    
+      }
+
+      setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
       return;
     }   
   }
@@ -983,14 +1146,14 @@ const ModalMov = () => {
             
             <div className="flex flex-row gap-2">
               {tipoModal !== 'CadastroFornecedor' ? (
-                <Button  variant="contained" onClick={btnCancelar} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}>Cancelar</Button>         
+                <Button  variant="contained" onClick={btnCancelar} sx={{backgroundColor: "#f44336",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#d32f2f",},}}>Cancelar</Button>         
               ) : (
-                <Button  variant="contained" onClick={btnCancelarFornecedor} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}>Cancelar</Button>
+                <Button  variant="contained" onClick={btnCancelarFornecedor} sx={{backgroundColor: "#f44336",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#d32f2f",},}}>Cancelar</Button>
               )}
               { tipoModal === 'MovimentacaoEstoque' ? (
-                <Button variant="contained" onClick={gerarRelatorioMovimentacao} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} >Gerar</Button>
+                <Button variant="contained" onClick={gerarRelatorioMovimentacao} sx={{backgroundColor: "#4caf50",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#388e3c",},}} >Gerar</Button>
               ) : tipoModal === 'Entrada' || tipoModal === 'Saída' ?  (
-                <Button variant="contained" onClick={atualizarEstoque} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Confirmar</Button>
+                <Button variant="contained" onClick={atualizarEstoque} sx={{backgroundColor: "#4caf50",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#388e3c",},}} disabled={listaProdutoMov.length === 0}>Confirmar</Button>
               ) : tipoModal === 'CriarPedidoCompra' ? (
                 <Button variant="contained" onClick={criarPedidoCompra} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Pedido</Button>
               ) : tipoModal === 'CadastroFornecedor' ? (

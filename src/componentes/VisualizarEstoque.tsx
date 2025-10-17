@@ -178,9 +178,9 @@ const VisualizarEstoque = () => {
 
 
         <div className="flex flex-col gap-3 justify-center h-2/5 w-2/5 border-1 border-gray-500/50 sm:p-5">
-          <Button  variant="contained" startIcon={<ArchiveOutlinedIcon />} sx={{ boxSizing: 'border-box', backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "black", '&:hover': { backgroundColor: "#6FE6FC",},}} onClick={() => handleAbrirModalEntrada()}>Entrada</Button>
-          <Button  variant="contained" startIcon={<UnarchiveOutlinedIcon />} sx={{ boxSizing: 'border-box', backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "black", '&:hover': { backgroundColor: "#6FE6FC",},}} onClick={() => handleAbrirModalSaida()}>Saida</Button>
-          <Button  variant="contained" startIcon={<LogoutOutlinedIcon />} sx={{ boxSizing: 'border-box', backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "black", '&:hover': { backgroundColor: "#6FE6FC",},}} onClick={() => sairGerenciarEstoque()}>Voltar</Button>
+          <Button  variant="contained" startIcon={<ArchiveOutlinedIcon />} sx={{backgroundColor: "#f7931e",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#e67e00",},}} onClick={() => handleAbrirModalEntrada()}>Entrada</Button>
+          <Button  variant="contained" startIcon={<UnarchiveOutlinedIcon />} sx={{backgroundColor: "#f7931e",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#e67e00",},}} onClick={() => handleAbrirModalSaida()}>Saida</Button>
+          <Button  variant="contained" startIcon={<LogoutOutlinedIcon />} sx={{backgroundColor: "#f7931e",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#e67e00",},}} onClick={() => sairGerenciarEstoque()}>Voltar</Button>
         </div>
       </div>
 

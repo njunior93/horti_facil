@@ -77,8 +77,6 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
           if (servidorOnline) setServidorOnline(false);
         }
 
-        console.log(servidorOnline)
-
       } catch (err: any) {
         if (axios.isAxiosError(err)) {
           const codigoErro = err.code;
@@ -121,7 +119,7 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
       verificarInternet();
       verificarServidor();
       verificarSessao();        
-    }, 5000);
+    }, 2000);
 
     return () => clearInterval(intervalo);
 

@@ -10,14 +10,16 @@ import PaginalInicial from './paginas/PaginalInicial.tsx';
 import PedidosCompra from './paginas/PedidosCompra.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { EstoqueProvider } from './context/EstoqueProvider.tsx';
-import {MainLayout} from "./mainlayout.tsx";
+import {MainLayout} from "./MainLayout.tsx";
+import { StatusServidor } from './utils/statusServidor.tsx';
+import { StatusServidorProvider } from './context/StatusServidorProvider.tsx';
 
 
 const router = createBrowserRouter([
 
   {
     path: "/",
-    element: <App/>
+    element: <StatusServidorProvider><App/><StatusServidor /></StatusServidorProvider>
   },
 
   {
