@@ -948,10 +948,6 @@ const ModalMov = () => {
                   </>
               )}
 
-              {tipoModal === 'EfetivarPedidoCompra' && (
-                <>Ola</>
-              )} 
-
               {tipoModal === 'MovimentacaoEstoque' && (
                 <Stack spacing={2} direction="column">
                   <FormControl fullWidth required>
@@ -1128,7 +1124,7 @@ const ModalMov = () => {
               ) : null}
             </div>
             
-          </Box>
+        </Box>
       </Modal>
     </div>
   )

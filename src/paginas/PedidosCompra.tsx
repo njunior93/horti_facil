@@ -1,5 +1,5 @@
 import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext, useGridSelector, type GridColDef, type GridRowSelectionModel} from '@mui/x-data-grid';
-import { Box } from '@mui/material';
+import { Box, CardHeader, Collapse, Typography } from '@mui/material';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import { useContext, useState } from 'react';
@@ -17,6 +17,10 @@ import PaginationItem from '@mui/material/PaginationItem';
 import React from 'react';
 import { useEstoque } from '../context/EstoqueProvider.tsx'
 import { useNavigate } from "react-router-dom";
+import type { iPedido } from '../type/iPedido.ts';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
 
 
 const PedidosCompra = () => {
@@ -30,13 +34,22 @@ const { listaPedidosCompra, setListaPedidosCompra } = useContext(AppContext);
 const { estoqueId, setEstoqueId } = useContext(AppContext);
 const [selectedRows, setSelectedRows] = useState<any[]>([]);
 const [idsSelecionados, setIdsSelecionados] = useState<any[]>([]);
+const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
 const navigate = useNavigate();
+const [cardAberto, setCardAberto] = useState(false);
+const [pedido, setPedido] = useState<iPedido>()
+const [btnOperacao, setbtnOperacao] = useState<'efetivar' | 'cancelar' | 'visualizar'>()
 
 const estoqueContext = useEstoque();
 const verificarEstoque = estoqueContext?.verificarEstoque;
 const existeEstoque = estoqueContext?.existeEstoque;
 const loading = estoqueContext?.loading;
 
+setTimeout(() =>{
+    if(alerta){
+      setAlerta(null)
+    }
+  },4000);
 
 
  setTimeout(() =>{
@@ -261,9 +274,32 @@ const criarPedido = () => {
   setHandleModal(true); 
 }
 
-const efetivarPedido = () => {
-  setTipoModal('EfetivarPedidoCompra');
-  setHandleModal(true);
+const abrirPedido = async (pedidoId: number) => {
+
+  if(idsSelecionados.length !== 1){
+    setAlerta(alertaMensagem('Selecione apenas um pedido para realizar esta operação.', 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
+  setCardAberto(true);
+
+  const {data : {session}} = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  try{
+    const response = await axios.get(`http://localhost:3000/pedido/localizar-pedido/${pedidoId}`,{
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    setPedido(response.data)
+    console.log(response.data)
+
+  }catch(error){
+
+  }
+
 }
 
 
@@ -357,7 +393,7 @@ if (loading){
         </Button>
 
         <Button
-          onClick={() => efetivarPedido()}
+          onClick={() => abrirPedido(idsSelecionados[0])}
           disabled={selectedRows.length === 0 || idsSelecionados.length === 0}
           sx={{
             backgroundColor: "#4caf50",
@@ -422,6 +458,22 @@ if (loading){
     </div>
 
     <ModalMov/>
+
+    {cardAberto && (
+      <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>
+        <Card>
+          <CardHeader title={`Pedido nº: ${pedido?.id}`}/>
+          <CardContent>
+            <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}> <strong>Data de criação:</strong> {pedido?.data}</Typography>
+            <Typography variant='body1'><strong>Fornecedor:</strong></Typography>
+            <Typography sx={{ color: 'text.secondary', mb: 1.5 }}> <strong>Status do pedido:</strong> {pedido?.status}</Typography>
+           </CardContent>
+        </Card>
+      </Box>
+    )}
+
+    {alerta && <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>{alerta}</Box>}
+    
   </div>
   );
 }
