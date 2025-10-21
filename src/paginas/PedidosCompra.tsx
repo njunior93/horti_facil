@@ -39,6 +39,7 @@ const navigate = useNavigate();
 const [cardAberto, setCardAberto] = useState(false);
 const [pedido, setPedido] = useState<iPedido>()
 const [btnOperacao, setbtnOperacao] = useState<'efetivar' | 'cancelar' | 'visualizar'>()
+const [linhaPedidoItens, setLinhaPedidoItens] = useState<any[]>([]);
 
 const estoqueContext = useEstoque();
 const verificarEstoque = estoqueContext?.verificarEstoque;
@@ -268,6 +269,39 @@ const linhas = listaPedidosCompra.map((pedido) => {
 
 });
 
+const colunasPedidoItens: GridColDef[] = [
+  { 
+    field: 'id',
+    headerName: 'ID', 
+    width: 90 
+  },
+  { 
+    field: 'produto',
+    headerName: 'Produto', 
+    width: 90,
+  },
+  { 
+    field: 'unidade',
+    headerName: 'Unidade', 
+    width: 90,
+  },
+  { 
+    field: 'minimo',
+    headerName: 'Minimo', 
+    width: 90,
+  },
+  { 
+    field: 'reposicao',
+    headerName: 'Solicitado', 
+    width: 90,
+  },
+  { 
+    field: 'recebido',
+    headerName: 'Recebido', 
+    width: 90,
+    editable: true
+  },
+]
 
 const criarPedido = () => {
   setTipoModal('CriarPedidoCompra');
@@ -293,15 +327,31 @@ const abrirPedido = async (pedidoId: number) => {
       }
     });
 
-    setPedido(response.data)
-    console.log(response.data)
+    const novoPedido = response.data;
+
+    setPedido(novoPedido)
+
+    if(novoPedido?.itens && Array.isArray(novoPedido.itens)){
+      const linhasFormatadas = novoPedido.itens.map((item: any,index: any) =>({
+        id: index +1,
+        produto: item.produto?.nome || '',
+        unidade: item.produto.uniMedida,
+        minimo: item.produto.estoqueMinimo,
+        reposicao: item.quantidade,
+        recebido: item.quantidade
+      }))
+      setLinhaPedidoItens(linhasFormatadas)
+      console.log(linhasFormatadas)
+
+    }else{
+      setLinhaPedidoItens([])
+    }
 
   }catch(error){
 
   }
 
 }
-
 
 function CustomPagination() {
   const apiRef = useGridApiContext();
@@ -460,15 +510,22 @@ if (loading){
     <ModalMov/>
 
     {cardAberto && (
-      <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301,pointerEvents: 'none' }}>
+      <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301}}>
         <Card>
           <CardHeader title={`Pedido nº: ${pedido?.id}`}/>
           <CardContent>
             <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}> <strong>Data de criação:</strong> {pedido?.data}</Typography>
-            <Typography variant='body1'><strong>Fornecedor:</strong></Typography>
+            <Typography variant='body1'><strong>Fornecedor: {pedido?.fornecedor.nome}</strong></Typography>
             <Typography sx={{ color: 'text.secondary', mb: 1.5 }}> <strong>Status do pedido:</strong> {pedido?.status}</Typography>
            </CardContent>
         </Card>
+        <DataGrid
+          rows={linhaPedidoItens}
+          columns={colunasPedidoItens}
+          initialState={{pagination:{paginationModel:{pageSize: 5},},}}
+          pageSizeOptions={[5]}
+          slots={{pagination: CustomPagination}}
+        />
       </Box>
     )}
 
