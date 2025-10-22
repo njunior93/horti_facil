@@ -1,5 +1,5 @@
-import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext, useGridSelector, type GridColDef, type GridRowSelectionModel} from '@mui/x-data-grid';
-import { Box, CardHeader, Collapse, Typography } from '@mui/material';
+import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext, type GridRowId ,useGridSelector, type GridColDef, type GridRowSelectionModel, type GridRowModel} from '@mui/x-data-grid';
+import { Box, CardHeader, CircularProgress, Collapse, Stack, Tooltip, Typography } from '@mui/material';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import { useContext, useState } from 'react';
@@ -21,6 +21,10 @@ import type { iPedido } from '../type/iPedido.ts';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
+import type {LinhaItem} from '../type/iLinhaItem';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { useInternet } from '../context/StatusServidorProvider.tsx';
+
 
 
 const PedidosCompra = () => {
@@ -37,14 +41,20 @@ const [idsSelecionados, setIdsSelecionados] = useState<any[]>([]);
 const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
 const navigate = useNavigate();
 const [cardAberto, setCardAberto] = useState(false);
-const [pedido, setPedido] = useState<iPedido>()
+const [pedidoSelecionado, setPedidoSelecionado,] = useState<iPedido>()
 const [btnOperacao, setbtnOperacao] = useState<'efetivar' | 'cancelar' | 'visualizar'>()
-const [linhaPedidoItens, setLinhaPedidoItens] = useState<any[]>([]);
-
+const [linhaPedidoItens, setLinhaPedidoItens] = useState<LinhaItem[]>([]);
+const [isLoadingItems, setIsLoadingItems] = useState(true);
 const estoqueContext = useEstoque();
+const StatusServidorContext = useInternet();
+
+const conexaoInternet = StatusServidorContext?.conexaoInternet;
+const servidorOnline = StatusServidorContext?.servidorOnline;
 const verificarEstoque = estoqueContext?.verificarEstoque;
 const existeEstoque = estoqueContext?.existeEstoque;
 const loading = estoqueContext?.loading;
+
+    
 
 setTimeout(() =>{
     if(alerta){
@@ -176,6 +186,7 @@ useEffect(() => {
     fetchListaProdutos();
     fetchListaPedidosCompra();
     
+    
 }, []); 
 
 const sair = () => {
@@ -269,46 +280,77 @@ const linhas = listaPedidosCompra.map((pedido) => {
 
 });
 
+const valorRecebido = (novoValor: GridRowModel, antigoValor:GridRowModel) =>{
+  
+  if (isNaN(novoValor.recebido) || novoValor.recebido < 0 || novoValor.recebido === null || novoValor.recebido === undefined || novoValor.recebido === '' || !Number.isInteger(Number(novoValor.recebido))) {
+    setAlerta(alertaMensagem('Digite apenas números inteiros e positivos.', 'warning', <ReportProblemIcon/>));
+
+    return antigoValor;
+  }
+  return novoValor;
+}
+
 const colunasPedidoItens: GridColDef[] = [
-  { 
-    field: 'id',
-    headerName: 'ID', 
-    width: 90 
-  },
+  // { 
+  //   field: 'id',
+  //   headerName: 'ID', 
+  //   width: 90 
+  // },
   { 
     field: 'produto',
     headerName: 'Produto', 
-    width: 90,
+    width: 100,
   },
   { 
     field: 'unidade',
     headerName: 'Unidade', 
-    width: 90,
+    width: 120,
   },
   { 
     field: 'minimo',
-    headerName: 'Minimo', 
-    width: 90,
+    headerName: 'Estoque Minimo', 
+    width: 130,
   },
   { 
     field: 'reposicao',
     headerName: 'Solicitado', 
-    width: 90,
+    width: 120,
   },
   { 
     field: 'recebido',
     headerName: 'Recebido', 
-    width: 90,
-    editable: true
+    width: 125,
+    editable: true,
+    cellClassName: 'celula-recebido-editavel',
+    renderHeader: () => (    
+      <Tooltip title={<span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Recebido (Editável): Digite ou ajuste o valor recebido. Atenção: Se este campo for alterado, ao finalizar, o pedido passará para o status de 'Efetivado Parcialmente'</span>}>
+        <span>Recebido <HelpOutlineIcon sx={{ bgcolor: 'yellow', borderRadius: '100%' }}/></span>
+      </Tooltip>
+    )
   },
 ]
 
-const criarPedido = () => {
+const handlecriarPedido = () => {
   setTipoModal('CriarPedidoCompra');
   setHandleModal(true); 
 }
 
 const abrirPedido = async (pedidoId: number) => {
+
+  setAlerta(null);
+
+  const {data: {session}} = await supabase.auth.getSession();
+  const token = session?.access_token;
+  
+  if (!token) {
+    setAlerta(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+    return;
+  }
+  
+  if (!session){
+    setAlerta(alertaMensagem('Faça login para salvar o fornecedor.', 'warning', <ReportProblemIcon/>));
+    return;
+  }
 
   if(idsSelecionados.length !== 1){
     setAlerta(alertaMensagem('Selecione apenas um pedido para realizar esta operação.', 'warning', <ReportProblemIcon/>));
@@ -316,9 +358,7 @@ const abrirPedido = async (pedidoId: number) => {
   }
 
   setCardAberto(true);
-
-  const {data : {session}} = await supabase.auth.getSession();
-  const token = session?.access_token;
+  setIsLoadingItems(true);
 
   try{
     const response = await axios.get(`http://localhost:3000/pedido/localizar-pedido/${pedidoId}`,{
@@ -329,7 +369,7 @@ const abrirPedido = async (pedidoId: number) => {
 
     const novoPedido = response.data;
 
-    setPedido(novoPedido)
+    setPedidoSelecionado(novoPedido)
 
     if(novoPedido?.itens && Array.isArray(novoPedido.itens)){
       const linhasFormatadas = novoPedido.itens.map((item: any,index: any) =>({
@@ -341,16 +381,66 @@ const abrirPedido = async (pedidoId: number) => {
         recebido: item.quantidade
       }))
       setLinhaPedidoItens(linhasFormatadas)
-      console.log(linhasFormatadas)
 
-    }else{
+    } else {
       setLinhaPedidoItens([])
     }
 
-  }catch(error){
+  } catch (error) { 
+    console.error("Erro ao abrir pedido", error);
+    setAlerta(alertaMensagem("Erro ao abrir pedido", "error", <ReportProblemIcon/>));
 
+    if(axios.isAxiosError(error)){
+
+    if(!conexaoInternet ){
+      console.error("Sem acesso a internet. Verifique sua conexão", error);
+      setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+      return;
+    }
+
+    if(!servidorOnline){
+      console.error("Servidor fora do ar. Tente novamente em instantes", error);
+      setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+      return;
+    }
+
+    if(error.response){
+      const status = error.response.status;
+      const mensagem = error.response.data?.message || error.message;
+
+     if(status >= 500){
+        console.error(`Erro ao abrir pedido ${status} ${mensagem}`)
+        setAlerta(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+      } else if (status === 404){
+        console.error(`Erro ao abrir pedido ${status} ${mensagem}`)
+        setAlerta(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+      } else {
+        console.error(`Erro ao abrir pedido ${status} ${mensagem}`)
+        setAlerta(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+      }
+
+       return;
+    }
+
+    if(error.code === 'ECONNABORTED'){
+      console.error(`Erro ao abrir pedido ${error}`)
+      setAlerta(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+       return;
+    }
+
+    setAlerta(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+    return; 
   }
 
+  } finally {
+    setIsLoadingItems(false);
+}
+
+}
+
+const fecharPedido = () =>{
+  setCardAberto(false);
+  setIsLoadingItems(false);
 }
 
 function CustomPagination() {
@@ -408,7 +498,7 @@ if (loading){
     <div className='flex flex-col items-center space-y-6 w-4/5'>
       <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1}}>
         <Button 
-          onClick={() => criarPedido()}
+          onClick={() => handlecriarPedido()}
           disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0}
           sx={{
             backgroundColor: "#f7931e", // laranja
@@ -510,22 +600,77 @@ if (loading){
     <ModalMov/>
 
     {cardAberto && (
-      <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301}}>
-        <Card>
-          <CardHeader title={`Pedido nº: ${pedido?.id}`}/>
-          <CardContent>
-            <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}> <strong>Data de criação:</strong> {pedido?.data}</Typography>
-            <Typography variant='body1'><strong>Fornecedor: {pedido?.fornecedor.nome}</strong></Typography>
-            <Typography sx={{ color: 'text.secondary', mb: 1.5 }}> <strong>Status do pedido:</strong> {pedido?.status}</Typography>
-           </CardContent>
-        </Card>
-        <DataGrid
-          rows={linhaPedidoItens}
-          columns={colunasPedidoItens}
-          initialState={{pagination:{paginationModel:{pageSize: 5},},}}
-          pageSizeOptions={[5]}
-          slots={{pagination: CustomPagination}}
-        />
+      <Box sx={{  position: 'fixed',top: '50%',left: '50%',transform: 'translate(-50%, -50%)',zIndex: 1301,bgcolor: '#FDEFD6', boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',borderRadius: '16px',width: '650px',padding: 3,border: '2px solid #f7d9a8', display: 'flex',flexDirection: 'column',gap: 2,animation: 'fadeIn 0.3s ease-in-out','@keyframes fadeIn': {from: { opacity: 0, transform: 'translate(-50%, -45%)' },to: { opacity: 1, transform: 'translate(-50%, -50%)' },},}}>
+        {isLoadingItems ? (
+          <Box sx={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1301}}>
+            <CircularProgress size={30} />
+          </Box>
+        ) : (
+          <>
+            <Card>
+              <CardHeader title={`Pedido nº: ${pedidoSelecionado?.id}`}/>
+              <CardContent>
+                <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}> <strong>Data de criação:</strong> {pedidoSelecionado?.data}</Typography>
+                <Typography variant='body1'><strong>Fornecedor: {pedidoSelecionado?.fornecedor.nome}</strong></Typography>
+                <Typography sx={{ color: 'text.secondary', mb: 1.5 }}> <strong>Status do pedido:</strong> {pedidoSelecionado?.status}</Typography>
+              </CardContent>
+            </Card>
+            <DataGrid
+              rows={linhaPedidoItens}
+              columns={colunasPedidoItens}
+              sx={{
+          
+          '& .celula-recebido-editavel': {
+              backgroundColor: 'rgba(255, 255, 0, 0.2)', 
+              color: '#333', 
+              fontWeight: 'bold', 
+              borderLeft: '4px solid #FFC107', 
+          },
+          
+          '& .celula-recebido-editavel.Mui-focusVisible': {
+              outline: '2px solid #1976D2', 
+          },
+              }}
+              processRowUpdate={valorRecebido}
+              initialState={{pagination:{paginationModel:{pageSize: 4},},}}
+              pageSizeOptions={[4]}
+              slots={{pagination: CustomPagination}}
+              disableColumnSorting={true}
+              disableColumnMenu={true}
+              disableRowSelectionOnClick/>
+
+              <Stack direction="row" justifyContent="flex-end" spacing={2}>
+                <Button
+                  onClick={fecharPedido} 
+                  sx={{
+                  backgroundColor: "#f44336",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  borderRadius: "20px",
+                  border: "2px solid #fff",
+                  paddingX: 3,
+                  "&:hover": {
+                    backgroundColor: "#D32F2F",
+                  },
+                }}>Cancelar</Button>
+                <Button sx={{
+                  backgroundColor: "#4caf50",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  borderRadius: "20px",
+                  border: "2px solid #fff",
+                  paddingX: 3,
+                  "&:hover": {
+                    backgroundColor: "#388e3c",
+                  },
+                }}>
+                  Finalizar
+                </Button>
+              </Stack>
+          </>
+          
+        )}
+        
       </Box>
     )}
 

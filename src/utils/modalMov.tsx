@@ -581,7 +581,7 @@ const ModalMov = () => {
 
       setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
       return;
-    }
+        }
 
       setRazaoSocial('');
       setTelefone('');
