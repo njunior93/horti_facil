@@ -408,8 +408,11 @@ const ModalMov = () => {
           return;
       }
 
-      const pedidoNovo = {
-        data: new Date().toISOString().split("T")[0], 
+      const agora = new Date();
+      const dataSaoPaulo = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000);
+
+      const pedidoNovo = {       
+        data_criacao: dataSaoPaulo.toISOString(), 
         status: "pendente", 
         fornecedor_id: iDfornecedorSelecionado, 
         estoque_id: estoqueId,

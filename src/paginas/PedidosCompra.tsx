@@ -227,9 +227,9 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
         switch (status.toLowerCase()) {
           case "pendente":
             return "#fbc02d";
-          case "efetivado":
+          case "entregue":
             return "#4caf50"; 
-          case "efetivado-parcial":
+          case "entregue parcialmente":
             return "#4caf50";
           case "cancelado":
             return "#f44336"; 
@@ -268,7 +268,7 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
 
 const linhas = listaPedidosCompra.map((pedido) => {
   
-  const data = pedido.data ? new Date(pedido.data) : null;
+  const data = pedido.data_criacao ? new Date(pedido.data_criacao) : null;
   const dataFormatada = data ? data.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-';
 
   return {
@@ -370,6 +370,7 @@ const abrirPedido = async (pedidoId: number) => {
     const novoPedido = response.data;
 
     setPedidoSelecionado(novoPedido)
+    
 
     if(novoPedido?.itens && Array.isArray(novoPedido.itens)){
       const linhasFormatadas = novoPedido.itens.map((item: any,index: any) =>({
@@ -438,9 +439,42 @@ const abrirPedido = async (pedidoId: number) => {
 
 }
 
+const efetivarPedido = async (pedidoId: number) => {
+  const {data: {session}} = await supabase.auth.getSession();
+  const token = session?.access_token;
+  
+  if (!token) {
+    setAlerta(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+    return;
+  }
+  
+  if (!session){
+    setAlerta(alertaMensagem('Faça login para salvar o fornecedor.', 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
+  try{
+    await axios.patch(`http://localhost:3000/pedido/efetivar-pedido/${pedidoId}`,
+      {
+        status: "entregue",
+        estoqueId: estoqueId
+      },
+      {
+        headers: { Authorization: `Bearer ${token}`}
+      }
+    )
+    
+  } catch (error) {
+    console.error("Erro ao efetivar pedido", error);
+    setAlerta(alertaMensagem("Erro ao efetivar pedido", "error", <ReportProblemIcon/>));
+  }
+} 
+
 const fecharPedido = () =>{
   setCardAberto(false);
   setIsLoadingItems(false);
+  setPedidoSelecionado(undefined);
+  setLinhaPedidoItens([]);
 }
 
 function CustomPagination() {
@@ -610,7 +644,7 @@ if (loading){
             <Card>
               <CardHeader title={`Pedido nº: ${pedidoSelecionado?.id}`}/>
               <CardContent>
-                <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}> <strong>Data de criação:</strong> {pedidoSelecionado?.data}</Typography>
+                <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}> <strong>Data de criação:</strong> {pedidoSelecionado?.data_criacao}</Typography>
                 <Typography variant='body1'><strong>Fornecedor: {pedidoSelecionado?.fornecedor.nome}</strong></Typography>
                 <Typography sx={{ color: 'text.secondary', mb: 1.5 }}> <strong>Status do pedido:</strong> {pedidoSelecionado?.status}</Typography>
               </CardContent>
@@ -632,8 +666,8 @@ if (loading){
           },
               }}
               processRowUpdate={valorRecebido}
-              initialState={{pagination:{paginationModel:{pageSize: 4},},}}
-              pageSizeOptions={[4]}
+              initialState={{pagination:{paginationModel:{pageSize: 3},},}}
+              pageSizeOptions={[3]}
               slots={{pagination: CustomPagination}}
               disableColumnSorting={true}
               disableColumnMenu={true}
@@ -653,7 +687,9 @@ if (loading){
                     backgroundColor: "#D32F2F",
                   },
                 }}>Cancelar</Button>
-                <Button sx={{
+                <Button
+                  onClick={() => efetivarPedido(pedidoSelecionado!.id)} 
+                  sx={{
                   backgroundColor: "#4caf50",
                   color: "#fff",
                   fontWeight: "bold",
@@ -663,9 +699,7 @@ if (loading){
                   "&:hover": {
                     backgroundColor: "#388e3c",
                   },
-                }}>
-                  Finalizar
-                </Button>
+                }}>Finalizar</Button>
               </Stack>
           </>
           

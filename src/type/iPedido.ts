@@ -1,7 +1,8 @@
 export interface iPedido{
   id: number;
   status: string;
-  data: string;
+  data_criacao: string;
+  data_efetivacao?: string
   fornecedor: {
     nome: string;
   }
