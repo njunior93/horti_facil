@@ -8,5 +8,6 @@ export interface iProdutoMov {
   tipoMov: string;
   dataMov: Date;
   saldo_anterior?: number;
-  saldo_atual?: number; 
+  saldo_atual?: number;
+  pedido_compra_id?: number | null; 
 }
