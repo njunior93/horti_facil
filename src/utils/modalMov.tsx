@@ -418,7 +418,7 @@ const ModalMov = () => {
         estoque_id: estoqueId,
         itens: listaProdutoMov.map((mov) => ({
           produto_id: mov.produto?.id,
-          quantidade: mov.qtdMov
+          qtd_solicitado: mov.qtdMov
         }))
       };
 

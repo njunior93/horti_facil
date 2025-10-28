@@ -24,6 +24,7 @@ import CardContent from '@mui/material/CardContent';
 import type {LinhaItem} from '../type/iLinhaItem';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useInternet } from '../context/StatusServidorProvider.tsx';
+import { set } from 'date-fns';
 
 
 
@@ -47,6 +48,7 @@ const [linhaPedidoItens, setLinhaPedidoItens] = useState<LinhaItem[]>([]);
 const [isLoadingItems, setIsLoadingItems] = useState(true);
 const estoqueContext = useEstoque();
 const StatusServidorContext = useInternet();
+const [statusPedido, setStatusPedido] = useState<string>('pendente');
 
 const conexaoInternet = StatusServidorContext?.conexaoInternet;
 const servidorOnline = StatusServidorContext?.servidorOnline;
@@ -287,6 +289,25 @@ const valorRecebido = (novoValor: GridRowModel, antigoValor:GridRowModel) =>{
 
     return antigoValor;
   }
+
+  const recebido = Number(novoValor.recebido);
+  const solicitado = Number(novoValor.reposicao);
+
+  if (recebido >= solicitado && solicitado > 0) {
+    setStatusPedido('entregue');
+  } else if (recebido > 0 && recebido < solicitado) {
+    setStatusPedido('entregue_parcialmente');
+  } else {
+    setStatusPedido('entregue_parcialmente');
+  }
+
+  setLinhaPedidoItens((prevItens) =>
+  prevItens.map((item) =>
+    item.id === novoValor.id ? { ...item, recebido: recebido } : item
+    )
+  );
+
+
   return novoValor;
 }
 
@@ -374,12 +395,12 @@ const abrirPedido = async (pedidoId: number) => {
 
     if(novoPedido?.itens && Array.isArray(novoPedido.itens)){
       const linhasFormatadas = novoPedido.itens.map((item: any,index: any) =>({
-        id: index +1,
+        id: item.produto_id,
         produto: item.produto?.nome || '',
         unidade: item.produto.uniMedida,
         minimo: item.produto.estoqueMinimo,
-        reposicao: item.quantidade,
-        recebido: item.quantidade
+        reposicao: item.qtd_solicitado,
+        recebido: item.qtd_solicitado
       }))
       setLinhaPedidoItens(linhasFormatadas)
 
@@ -453,21 +474,90 @@ const efetivarPedido = async (pedidoId: number) => {
     return;
   }
 
+  let novoStatus = statusPedido;
+
+  if(!novoStatus || novoStatus === 'pendente'){
+    const todosEntregues = linhaPedidoItens.every((item) => item.recebido >= item.reposicao);
+    const algumEntregue = linhaPedidoItens.some((item) => item.recebido > 0 && item.recebido < item.reposicao);
+
+    if(todosEntregues){
+      novoStatus = 'entregue';
+    } else if (algumEntregue){
+      novoStatus = 'entregue_parcialmente';
+    } else {
+      novoStatus = 'entregue_parcialmente';
+    }
+  }
+
   try{
     await axios.patch(`http://localhost:3000/pedido/efetivar-pedido/${pedidoId}`,
       {
-        status: "entregue",
-        estoqueId: estoqueId
+        status: novoStatus,
+        estoqueId: estoqueId,
+        itens:linhaPedidoItens.map((item) => ({
+          id: item.id,
+          qtdRecebida: item.recebido
+        }))
       },
       {
         headers: { Authorization: `Bearer ${token}`}
       }
     )
+
+    fecharPedido();
+    setAlerta(alertaMensagem("Pedido finalizado com sucesso!", "success", <ReportProblemIcon/>));
     
   } catch (error) {
-    console.error("Erro ao efetivar pedido", error);
-    setAlerta(alertaMensagem("Erro ao efetivar pedido", "error", <ReportProblemIcon/>));
+    console.error("Erro ao finalizar pedido", error);
+    setAlerta(alertaMensagem("Erro ao finalizar pedido", "error", <ReportProblemIcon/>));
+
+    if(axios.isAxiosError(error)){
+
+      if(!conexaoInternet ){
+        console.error("Sem acesso a internet. Verifique sua conexão", error);
+        setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+        return;
+      }
+
+      if(!servidorOnline){
+        console.error("Servidor fora do ar. Tente novamente em instantes", error);
+        setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        return;
+      }
+
+      if(error.response){
+        const status = error.response.status;
+        const mensagem = error.response.data?.message || error.message;
+
+      if(status >= 500){
+          console.error(`Erro ao finalizar pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        } else if (status === 404){
+          console.error(`Erro ao finalizar pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        } else {
+          console.error(`Erro ao finalizar pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+        }
+
+        return;
+      }
+
+      if(error.code === 'ECONNABORTED'){
+        console.error(`Erro ao finalizar pedido ${error}`)
+        setAlerta(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+        return;
+      }
+
+      setAlerta(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+      return; 
+    }
+    
+    fecharPedido();
   }
+
+
+
 } 
 
 const fecharPedido = () =>{
@@ -475,6 +565,11 @@ const fecharPedido = () =>{
   setIsLoadingItems(false);
   setPedidoSelecionado(undefined);
   setLinhaPedidoItens([]);
+  setbtnOperacao(undefined);
+  setAlerta(null);
+  setSelectedRows([]);
+  setIdsSelecionados([]);
+  setMensagemErro(null);
 }
 
 function CustomPagination() {
