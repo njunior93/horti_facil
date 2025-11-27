@@ -7,7 +7,6 @@ import { toZonedTime } from 'date-fns-tz';
 export const gerarRelatorioPDF = (listaDeProdutosMov: iProdutoMov[], tipoMovSelecionado: string,movimentacaoSelecionada: string, dataInicio: Date, dataFim: Date) => {
 
     const doc = new jsPDF();
-    // const alturaPagina = doc.internal.pageSize.getHeight();
     const timeZone = 'America/Sao_Paulo';
 
     doc.text("Relatório de Movimentações de Estoque", 14, 20);

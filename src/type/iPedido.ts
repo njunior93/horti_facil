@@ -8,7 +8,8 @@ export interface iPedido{
   }
   itens: {
     produto_id: number;
-    quantidade: number;
+    qtd_solicitado: number;
+    qtd_recebido: number;
     produto: {
       id: number;
       nome: string;

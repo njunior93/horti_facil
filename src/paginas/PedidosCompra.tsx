@@ -1,5 +1,5 @@
-import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext, type GridRowId ,useGridSelector, type GridColDef, type GridRowSelectionModel, type GridRowModel} from '@mui/x-data-grid';
-import { Box, CardHeader, CircularProgress, Collapse, Stack, Tooltip, Typography } from '@mui/material';
+import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext ,useGridSelector, type GridColDef, type GridRowModel} from '@mui/x-data-grid';
+import { Box, CardHeader, CircularProgress, Stack, Tooltip, Typography } from '@mui/material';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import { useContext, useState } from 'react';
@@ -19,12 +19,11 @@ import { useEstoque } from '../context/EstoqueProvider.tsx'
 import { useNavigate } from "react-router-dom";
 import type { iPedido } from '../type/iPedido.ts';
 import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import type {LinhaItem} from '../type/iLinhaItem';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useInternet } from '../context/StatusServidorProvider.tsx';
-import { set } from 'date-fns';
+import { gerarVisualizacaoPedidoPDF } from '../utils/gerarVisualizacaoPedidoPDF.ts';
 
 
 
@@ -49,6 +48,7 @@ const [isLoadingItems, setIsLoadingItems] = useState(true);
 const estoqueContext = useEstoque();
 const StatusServidorContext = useInternet();
 const [statusPedido, setStatusPedido] = useState<string>('pendente');
+const [statusAtualPedidoSelecionado, setStatusAtualPedidoSelecionado] = useState<string>('');
 
 const conexaoInternet = StatusServidorContext?.conexaoInternet;
 const servidorOnline = StatusServidorContext?.servidorOnline;
@@ -202,12 +202,12 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
   { 
     field: 'id',
     headerName: 'ID', 
-    width: 90 
+    width: 150 
   },
   {
     field: 'fornecedor',
     headerName: 'Fornecedor',
-    width: 200,
+    width: 300,
     editable: false,
   },
   {
@@ -219,7 +219,7 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
   { 
     field: 'status', 
     headerName: 'Status do Pedido', 
-    width: 150 ,
+    width: 250 ,
     renderCell: (params) => {
 
       const status = params.value || "";
@@ -231,8 +231,8 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
             return "#fbc02d";
           case "entregue":
             return "#4caf50"; 
-          case "entregue parcialmente":
-            return "#4caf50";
+          case "entregue_parcialmente":
+            return "#f0870eff";
           case "cancelado":
             return "#f44336"; 
           default:
@@ -344,7 +344,7 @@ const colunasPedidoItens: GridColDef[] = [
     editable: true,
     cellClassName: 'celula-recebido-editavel',
     renderHeader: () => (    
-      <Tooltip title={<span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Recebido (Editável): Digite ou ajuste o valor recebido. Atenção: Se este campo for alterado, ao finalizar, o pedido passará para o status de 'Efetivado Parcialmente'</span>}>
+      <Tooltip title={<span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Recebido (Editável): Digite ou ajuste o valor recebido. Atenção: Se este campo for alterado, ao finalizar, o pedido passará para o status de 'Entregue Parcialmente'</span>}>
         <span>Recebido <HelpOutlineIcon sx={{ bgcolor: 'yellow', borderRadius: '100%' }}/></span>
       </Tooltip>
     )
@@ -391,10 +391,9 @@ const abrirPedido = async (pedidoId: number) => {
     const novoPedido = response.data;
 
     setPedidoSelecionado(novoPedido)
-    
 
     if(novoPedido?.itens && Array.isArray(novoPedido.itens)){
-      const linhasFormatadas = novoPedido.itens.map((item: any,index: any) =>({
+      const linhasFormatadas = novoPedido.itens.map((item: any) =>({
         id: item.produto_id,
         produto: item.produto?.nome || '',
         unidade: item.produto.uniMedida,
@@ -470,7 +469,7 @@ const efetivarPedido = async (pedidoId: number) => {
   }
   
   if (!session){
-    setAlerta(alertaMensagem('Faça login para salvar o fornecedor.', 'warning', <ReportProblemIcon/>));
+    setAlerta(alertaMensagem('Faça login para efetivar o pedido.', 'warning', <ReportProblemIcon/>));
     return;
   }
 
@@ -558,7 +557,89 @@ const efetivarPedido = async (pedidoId: number) => {
 
 
 
-} 
+}
+
+const visualizarPedido = async (pedidoId: number) => {
+  const {data: {session}} = await supabase.auth.getSession();
+  const token = session?.access_token;
+  
+  if (!token) {
+    setAlerta(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+    return;
+  }
+  
+  if (!session){
+    setAlerta(alertaMensagem('Faça login para efetivar o pedido.', 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
+  if(idsSelecionados.length !== 1){
+    setAlerta(alertaMensagem('Selecione apenas um pedido para realizar esta operação.', 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
+  try{
+    const response = await axios.get(`http://localhost:3000/pedido/localizar-pedido/${pedidoId}`,{
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const novoPedido: iPedido = response.data;
+    console.log(novoPedido);
+
+    gerarVisualizacaoPedidoPDF(novoPedido);
+    
+  }catch (error) {
+    console.error("Erro ao visualizar pedido", error);
+    setAlerta(alertaMensagem("Erro ao visualizar pedido", "error", <ReportProblemIcon/>));
+
+    if(axios.isAxiosError(error)){
+
+      if(!conexaoInternet ){
+        console.error("Sem acesso a internet. Verifique sua conexão", error);
+        setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+        return;
+      }
+
+      if(!servidorOnline){
+        console.error("Servidor fora do ar. Tente novamente em instantes", error);
+        setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        return;
+      }
+
+      if(error.response){
+        const status = error.response.status;
+        const mensagem = error.response.data?.message || error.message;
+
+      if(status >= 500){
+          console.error(`Erro ao visualizar pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        } else if (status === 404){
+          console.error(`Erro ao visualizar pedido${status} ${mensagem}`)
+          setAlerta(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        } else {
+          console.error(`Erro ao visualizar pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+        }
+
+        return;
+      }
+
+      if(error.code === 'ECONNABORTED'){
+        console.error(`Erro ao visualizar pedido ${error}`)
+        setAlerta(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+        return;
+      }
+
+      setAlerta(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+      return; 
+    }
+    
+    fecharPedido();
+  }
+
+}
 
 const fecharPedido = () =>{
   setCardAberto(false);
@@ -628,7 +709,7 @@ if (loading){
       <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1}}>
         <Button 
           onClick={() => handlecriarPedido()}
-          disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0}
+          disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0 || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'pendente'}
           sx={{
             backgroundColor: "#f7931e", // laranja
             color: "#fff",
@@ -645,7 +726,7 @@ if (loading){
         </Button>
 
         <Button
-          disabled={selectedRows.length === 0 || idsSelecionados.length === 0}
+          disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1 || statusAtualPedidoSelecionado === 'cancelado'}
           sx={{
             backgroundColor: "#f44336",
             color: "#fff",
@@ -663,7 +744,7 @@ if (loading){
 
         <Button
           onClick={() => abrirPedido(idsSelecionados[0])}
-          disabled={selectedRows.length === 0 || idsSelecionados.length === 0}
+          disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || idsSelecionados.length > 1}
           sx={{
             backgroundColor: "#4caf50",
             color: "#fff",
@@ -680,7 +761,8 @@ if (loading){
         </Button>
 
         <Button
-          disabled={selectedRows.length === 0 || idsSelecionados.length === 0}
+          onClick={() => visualizarPedido(idsSelecionados[0])}
+          disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1}
           sx={{
             backgroundColor: "#2196f3",
             color: "#fff",
@@ -719,6 +801,15 @@ if (loading){
 
           setSelectedRows(selecionados)
           setIdsSelecionados(idsSelecionados)
+
+          if (selecionados.length === 1){
+            setStatusAtualPedidoSelecionado(selecionados[0].status);
+          }else{
+            setStatusAtualPedidoSelecionado('');
+          }
+
+
+
           }}
           checkboxSelection
           disableRowSelectionOnClick
