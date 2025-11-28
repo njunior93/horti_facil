@@ -44,7 +44,7 @@ export const gerarVisualizacaoPedidoPDF = (pedido: iPedido) => {
       p.produto.uniMedida,
       p.produto.estoqueMinimo,
       p.qtd_solicitado,
-      status === 'entregue' || status === 'entregue_parcialmente' ? p.qtd_recebido : '0'
+      p.qtd_recebido
     ])
   })
 

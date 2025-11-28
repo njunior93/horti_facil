@@ -235,6 +235,12 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
     width: 150,
     editable: false,
   },
+  {
+    field: 'dataEfetivacao',
+    headerName: 'Data de efetivação',
+    width: 150,
+    editable: false,
+  },   
   { 
     field: 'status', 
     headerName: 'Status do Pedido', 
@@ -296,6 +302,7 @@ const linhas = listaPedidosCompra.map((pedido) => {
     id: pedido.id,
     status: pedido.status,
     dataPedido: dataFormatada,
+    dataEfetivacao: pedido.data_efetivacao ? new Date(pedido.data_efetivacao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-',
     fornecedor: pedido.fornecedor?.nome ?? '-'
   };
 
@@ -708,7 +715,10 @@ const cancelamentoPedido = async () =>{
     return;
   }
 
-  await axios.patch(`http://localhost:3000/pedido/cancelar-pedido/${pedidoIdParaCancelar}`, {},
+  await axios.patch(`http://localhost:3000/pedido/cancelar-pedido/${pedidoIdParaCancelar}`, 
+    {
+      estoqueId: estoqueId
+    },
     { headers: { Authorization: `Bearer ${token}` } }
   );
 
@@ -876,6 +886,24 @@ if (loading){
             </Button>
           </DialogActions>
           </Dialog>
+
+        <Button
+          onClick={() => abrirPedido(idsSelecionados[0])}
+          disabled={true}
+          sx={{
+            backgroundColor: "#fffb00ff",
+            color: "#fff",
+            fontWeight: "bold",
+            borderRadius: "20px",
+            border: "2px solid #fff",
+            paddingX: 3,
+            "&:hover": {
+              backgroundColor: "#dbcf27ff",
+            },
+          }}
+        >
+          Excluir
+        </Button>
 
         <Button
           onClick={() => abrirPedido(idsSelecionados[0])}
