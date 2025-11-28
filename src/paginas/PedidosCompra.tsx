@@ -8,6 +8,7 @@ import ModalMov from '../utils/modalMov';
 import { useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import alertaMensagem from "../utils/alertaMensagem";
 import axios from 'axios';
 import { 
@@ -24,6 +25,7 @@ import type {LinhaItem} from '../type/iLinhaItem';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useInternet } from '../context/StatusServidorProvider.tsx';
 import { gerarVisualizacaoPedidoPDF } from '../utils/gerarVisualizacaoPedidoPDF.ts';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 
 
 
@@ -49,6 +51,9 @@ const estoqueContext = useEstoque();
 const StatusServidorContext = useInternet();
 const [statusPedido, setStatusPedido] = useState<string>('pendente');
 const [statusAtualPedidoSelecionado, setStatusAtualPedidoSelecionado] = useState<string>('');
+const [openCancelamento, setOpenCancelamento] = useState(false);
+const [pedidoIdParaCancelar, setPedidoIdParaCancelar] = useState<number | null>(null);
+
 
 const conexaoInternet = StatusServidorContext?.conexaoInternet;
 const servidorOnline = StatusServidorContext?.servidorOnline;
@@ -191,12 +196,26 @@ useEffect(() => {
     
 }, []); 
 
-const sair = () => {
-  navigate("/pagina-inicial");
-  setTipoModal('')
-  setHandleModal(false);
+const fecharPedido = () =>{
+  setCardAberto(false);
+  setIsLoadingItems(false);
+  setPedidoSelecionado(undefined);
+  setLinhaPedidoItens([]);
+  setbtnOperacao(undefined);
+  setAlerta(null);
+  // setSelectedRows([]);
+  // setIdsSelecionados([]);
+  setMensagemErro(null);
+  setStatusAtualPedidoSelecionado('');
+  setOpenCancelamento(false);
+  setPedidoIdParaCancelar(null);
 }
 
+const sair = () => {
+  navigate("/pagina-inicial");
+  setTipoModal('');
+  setHandleModal(false);
+}
 
 const colunas: GridColDef<(typeof linhas)[number]>[] = [
   { 
@@ -555,8 +574,6 @@ const efetivarPedido = async (pedidoId: number) => {
     fecharPedido();
   }
 
-
-
 }
 
 const visualizarPedido = async (pedidoId: number) => {
@@ -586,7 +603,6 @@ const visualizarPedido = async (pedidoId: number) => {
     });
 
     const novoPedido: iPedido = response.data;
-    console.log(novoPedido);
 
     gerarVisualizacaoPedidoPDF(novoPedido);
     
@@ -641,16 +657,114 @@ const visualizarPedido = async (pedidoId: number) => {
 
 }
 
-const fecharPedido = () =>{
-  setCardAberto(false);
-  setIsLoadingItems(false);
-  setPedidoSelecionado(undefined);
-  setLinhaPedidoItens([]);
-  setbtnOperacao(undefined);
-  setAlerta(null);
-  setSelectedRows([]);
-  setIdsSelecionados([]);
-  setMensagemErro(null);
+const cancelarPedido = async (pedidoId: number) =>{
+  setPedidoIdParaCancelar(pedidoId);
+  setOpenCancelamento(true); 
+}
+
+const cancelamentoPedido = async () =>{
+  if (!pedidoIdParaCancelar){
+    return;
+  }
+
+  setOpenCancelamento(false);
+
+  const {data: {session}} = await supabase.auth.getSession();
+  const token = session?.access_token;
+  
+  if (!token) {
+    setAlerta(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+    return;
+  }
+  
+  if (!session){
+    setAlerta(alertaMensagem('Faça login para cancelar o pedido.', 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
+  if(idsSelecionados.length !== 1){
+    setAlerta(alertaMensagem('Selecione apenas um pedido para realizar esta operação.', 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
+  try{
+    const response = await axios.get(`http://localhost:3000/pedido/localizar-pedido/${pedidoIdParaCancelar}`,{
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+  });
+
+  const horarioAtual = new Date().getTime();
+  const horarioPedido = new Date(response.data.data_criacao).getTime();
+
+  const diferencaHoras = horarioAtual - horarioPedido;
+
+  const horaDia = 24 * 60 * 60 * 1000;
+
+  const limite24horas = diferencaHoras > horaDia;
+
+  if (limite24horas && (response.data.status === 'entregue' || response.data.status === 'entregue_parcialmente')){
+    setAlerta(alertaMensagem("O pedido não pode ser cancelado após 24 horas de sua criação.", "warning", <ReportProblemIcon/>));
+    return;
+  }
+
+  await axios.patch(`http://localhost:3000/pedido/cancelar-pedido/${pedidoIdParaCancelar}`, {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  fecharPedido();
+  setAlerta(alertaMensagem(`Pedido Nº ${pedidoIdParaCancelar} cancelado!`, 'success', <CheckCircleIcon/>));
+
+  } catch (error) {
+    console.error("Erro ao cancelar pedido", error);
+    setAlerta(alertaMensagem("Erro ao cancelar pedido", "error", <ReportProblemIcon/>));
+
+    if(axios.isAxiosError(error)){
+
+      if(!conexaoInternet ){
+        console.error("Sem acesso a internet. Verifique sua conexão", error);
+        setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+        return;
+      }
+
+      if(!servidorOnline){
+        console.error("Servidor fora do ar. Tente novamente em instantes", error);
+        setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        return;
+      }
+
+      if(error.response){
+        const status = error.response.status;
+        const mensagem = error.response.data?.message || error.message;
+
+      if(status >= 500){
+          console.error(`Erro ao cancelar pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        } else if (status === 404){
+          console.error(`Erro ao cancelar pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        } else {
+          console.error(`Erro ao cancelar pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+        }
+
+        return;
+      }
+
+      if(error.code === 'ECONNABORTED'){
+        console.error(`Erro ao cancelar pedido ${error}`)
+        setAlerta(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+        return;
+      }
+
+      setAlerta(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+      return; 
+    }
+
+    fecharPedido();
+
+  }
+
 }
 
 function CustomPagination() {
@@ -726,6 +840,7 @@ if (loading){
         </Button>
 
         <Button
+          onClick={() => cancelarPedido(idsSelecionados[0])}
           disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1 || statusAtualPedidoSelecionado === 'cancelado'}
           sx={{
             backgroundColor: "#f44336",
@@ -741,6 +856,26 @@ if (loading){
         >
           Cancelar
         </Button>
+
+          <Dialog open={openCancelamento} onClose={() => setOpenCancelamento(false)}>
+          <DialogTitle>Pedido Nº {pedidoIdParaCancelar}</DialogTitle>
+          <DialogContent>
+            Tem certeza que deseja cancelar este pedido?
+            {statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' ? (
+              <Typography sx={{ color: 'red', marginTop: 1, fontSize: 12}}>
+                * Atenção: Prazo de 24 horas para cancelamento de um pedido efetivado
+              </Typography>
+            ) : (
+              <></>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenCancelamento(false)} color="error" variant="contained">Não</Button>
+            <Button onClick={cancelamentoPedido} color="success" variant="contained">
+              Sim
+            </Button>
+          </DialogActions>
+          </Dialog>
 
         <Button
           onClick={() => abrirPedido(idsSelecionados[0])}
