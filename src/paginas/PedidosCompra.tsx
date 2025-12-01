@@ -69,22 +69,19 @@ setTimeout(() =>{
     }
   },4000);
 
-
  setTimeout(() =>{
     if(mensagemErro){
       setMensagemErro(null)
     }
-  },4000);
+},4000);
 
-useEffect(() => {
-
-  const checarEstoque = async () => {
+const checarEstoque = async () => {
     if (verificarEstoque) {
       await verificarEstoque();
     }
   };
 
-  const fetchListaProdutos = async () => {
+const fetchListaProdutos = async () => {
     const {data : {session}} = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -107,7 +104,7 @@ useEffect(() => {
       } 
   };
 
-  const fetchlistaFornecedores = async () => {
+const fetchlistaFornecedores = async () => {
           
     const {data: {session}} = await supabase.auth.getSession();
     const token = session?.access_token;
@@ -137,7 +134,7 @@ useEffect(() => {
     
   };
 
-  const fetchEstoqueId = async () => {
+const fetchEstoqueId = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
@@ -159,7 +156,7 @@ useEffect(() => {
       }
   };
 
-  const fetchListaPedidosCompra = async () => {
+const fetchListaPedidosCompra = async () => {
     
     try{
 
@@ -177,6 +174,8 @@ useEffect(() => {
 
       setListaPedidosCompra(response.data);
 
+      return response.data;
+
     } catch (error) {
       if(axios.isAxiosError(error) && error.response){
         setMensagemErro(alertaMensagem(`Erro na API: ${error.response.data || error.message}`, 'warning', <ReportProblemIcon/>));
@@ -186,6 +185,9 @@ useEffect(() => {
   }
 
   };
+
+useEffect(() => {
+
 
     checarEstoque();
     fetchEstoqueId();
@@ -206,7 +208,7 @@ const fecharPedido = () =>{
   // setSelectedRows([]);
   // setIdsSelecionados([]);
   setMensagemErro(null);
-  setStatusAtualPedidoSelecionado('');
+  // setStatusAtualPedidoSelecionado('');
   setOpenCancelamento(false);
   setPedidoIdParaCancelar(null);
 }
@@ -529,6 +531,14 @@ const efetivarPedido = async (pedidoId: number) => {
       }
     )
 
+    
+    const listaAtualizada = await fetchListaPedidosCompra();
+    const pedidoAtualizado = listaAtualizada.find((pedido: iPedido) => pedido.id === pedidoId);
+
+    if(pedidoAtualizado){
+      setStatusAtualPedidoSelecionado(pedidoAtualizado?.status);
+    }
+    
     fecharPedido();
     setAlerta(alertaMensagem("Pedido finalizado com sucesso!", "success", <ReportProblemIcon/>));
     
@@ -715,12 +725,21 @@ const cancelamentoPedido = async () =>{
     return;
   }
 
-  await axios.patch(`http://localhost:3000/pedido/cancelar-pedido/${pedidoIdParaCancelar}`, 
+  const pedidoCancelado = await axios.patch(`http://localhost:3000/pedido/cancelar-pedido/${pedidoIdParaCancelar}`, 
     {
       estoqueId: estoqueId
     },
     { headers: { Authorization: `Bearer ${token}` } }
   );
+
+
+  
+  const listaAtualizada = await fetchListaPedidosCompra();
+  const pedidoAtualizado = listaAtualizada.find((pedido: iPedido) => pedido.id === pedidoCancelado.data.id);
+
+  if(pedidoAtualizado){
+    setStatusAtualPedidoSelecionado(pedidoAtualizado?.status);
+  }
 
   fecharPedido();
   setAlerta(alertaMensagem(`Pedido Nº ${pedidoIdParaCancelar} cancelado!`, 'success', <CheckCircleIcon/>));
@@ -970,8 +989,6 @@ if (loading){
           }else{
             setStatusAtualPedidoSelecionado('');
           }
-
-
 
           }}
           checkboxSelection

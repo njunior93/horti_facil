@@ -3,6 +3,7 @@ export interface iPedido{
   status: string;
   data_criacao: string;
   data_efetivacao?: string
+  data_cancelamento?: string;
   fornecedor: {
     nome: string;
   }
