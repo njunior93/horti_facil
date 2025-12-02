@@ -1,5 +1,5 @@
 import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext ,useGridSelector, type GridColDef, type GridRowModel} from '@mui/x-data-grid';
-import { Box, CardHeader, CircularProgress, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, CardHeader, Checkbox, CircularProgress, FormControl, FormControlLabel, FormGroup, FormLabel, MenuItem, Select, Stack, Tooltip, Typography } from '@mui/material';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import { useContext, useState } from 'react';
@@ -26,6 +26,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useInternet } from '../context/StatusServidorProvider.tsx';
 import { gerarVisualizacaoPedidoPDF } from '../utils/gerarVisualizacaoPedidoPDF.ts';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { set } from 'date-fns';
 
 
 
@@ -37,6 +38,7 @@ const { setHandleModal} = useContext(AppContext);
 const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
 const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
 const { listaPedidosCompra, setListaPedidosCompra } = useContext(AppContext);
+const [listaPedidoFiltrados, setListaPedidoFiltrados] = useState<iPedido[]>([]);
 const { estoqueId, setEstoqueId } = useContext(AppContext);
 const [selectedRows, setSelectedRows] = useState<any[]>([]);
 const [idsSelecionados, setIdsSelecionados] = useState<any[]>([]);
@@ -53,6 +55,13 @@ const [statusPedido, setStatusPedido] = useState<string>('pendente');
 const [statusAtualPedidoSelecionado, setStatusAtualPedidoSelecionado] = useState<string>('');
 const [openCancelamento, setOpenCancelamento] = useState(false);
 const [pedidoIdParaCancelar, setPedidoIdParaCancelar] = useState<number | null>(null);
+
+const [todos, setTodos] = useState(true);
+const [pendente, setPendente] = useState(true);
+const [entregue, setEntregue] = useState(true);
+const [entregueParcial, setEntregueParcial] = useState(true);
+const [cancelado, setCancelado] = useState(true);
+
 
 
 const conexaoInternet = StatusServidorContext?.conexaoInternet;
@@ -173,6 +182,7 @@ const fetchListaPedidosCompra = async () => {
       );
 
       setListaPedidosCompra(response.data);
+      setListaPedidoFiltrados(response.data);
 
       return response.data;
 
@@ -197,6 +207,26 @@ useEffect(() => {
     
     
 }, []); 
+
+const atualizarLista = () =>{
+  let filtrados = listaPedidosCompra.filter((pedido) =>{
+
+    const filtrosStatus = [];
+
+    if(pendente) filtrosStatus.push('pendente');
+    if(entregue) filtrosStatus.push('entregue');
+    if(entregueParcial) filtrosStatus.push('entregue_parcialmente');
+    if(cancelado) filtrosStatus.push('cancelado');
+
+    return filtrosStatus.includes(pedido.status);
+  });
+
+  setListaPedidoFiltrados(filtrados)
+}
+
+useEffect(() => {
+  atualizarLista();
+}, [pendente, entregue, entregueParcial, cancelado, listaPedidosCompra]);
 
 const fecharPedido = () =>{
   setCardAberto(false);
@@ -295,7 +325,7 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
  
 ];
 
-const linhas = listaPedidosCompra.map((pedido) => {
+const linhas = listaPedidoFiltrados.map((pedido) => {
   
   const data = pedido.data_criacao ? new Date(pedido.data_criacao) : null;
   const dataFormatada = data ? data.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-';
@@ -810,6 +840,13 @@ const excluirPedido = async (pedidosId: number[]) =>{
     return;
   }
 
+  for(const pedido of selectedRows){
+    if(pedido.dataEfetivacao !== '-'){
+      setAlerta(alertaMensagem('Somente pedidos não efetivados podem ser excluídos.', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+  }
+
   try{
 
     await axios.delete(`http://localhost:3000/pedido/excluir-pedido`,
@@ -821,6 +858,18 @@ const excluirPedido = async (pedidosId: number[]) =>{
         }
       },
     );
+
+    const listaAtualizada = await fetchListaPedidosCompra();
+
+    if (pedidosId.length === 1) {
+      const pedidoAtualizado = listaAtualizada.find(
+        (pedido: iPedido) => pedido.id === pedidosId[0]
+      );
+    
+      setStatusAtualPedidoSelecionado(pedidoAtualizado?.status);
+
+    }
+
 
   } catch (error) {
     console.error("Erro ao excluir pedido", error);
@@ -859,7 +908,7 @@ const excluirPedido = async (pedidosId: number[]) =>{
       }
 
       if(error.code === 'ECONNABORTED'){
-        console.error(`Erro ao cancelar pedido ${error}`)
+        console.error(`Erro ao excluir pedido ${error}`)
         setAlerta(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
         return;
       }
@@ -873,6 +922,18 @@ const excluirPedido = async (pedidosId: number[]) =>{
   }
       
 }
+
+const handleTodos = (checked: boolean) =>{
+  setTodos(checked);
+  setPendente(checked);
+  setEntregue(checked);
+  setEntregueParcial(checked);
+  setCancelado(checked);
+}
+
+const atualizarTodos = (pendente: boolean, entregue: boolean, entregueParcial: boolean, cancelado: boolean) => {
+  setTodos(pendente && entregue && entregueParcial && cancelado);
+ }
 
 function CustomPagination() {
   const apiRef = useGridApiContext();
@@ -926,117 +987,139 @@ if (loading){
 
   return (
   <div className='flex items-center justify-center h-screen w-screen bg-gray-100'>
-    <div className='flex flex-col items-center space-y-6 w-4/5'>
-      <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1}}>
-        <Button 
-          onClick={() => handlecriarPedido()}
-          disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0 || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'pendente'}
-          sx={{
-            backgroundColor: "#f7931e", // laranja
-            color: "#fff",
-            fontWeight: "bold",
-            borderRadius: "20px",
-            border: "2px solid #fff",
-            paddingX: 3,
-            "&:hover": {
-              backgroundColor: "#e67e00",
-            },
-          }}
-        >
-          Criar Pedido
-        </Button>
+    <div className='flex flex-col items-center space-y-6 w-4/5 bg-white'>
+      <div className='w-5/5'>
+        <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1}}>
+          <Button 
+            onClick={() => handlecriarPedido()}
+            disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0 || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'pendente'}
+            sx={{
+              backgroundColor: "#f7931e", // laranja
+              color: "#fff",
+              fontWeight: "bold",
+              borderRadius: "20px",
+              border: "2px solid #fff",
+              paddingX: 3,
+              "&:hover": {
+                backgroundColor: "#e67e00",
+              },
+            }}
+          >
+            Criar Pedido
+          </Button>
 
-        <Button
-          onClick={() => cancelarPedido(idsSelecionados[0])}
-          disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1 || statusAtualPedidoSelecionado === 'cancelado'}
-          sx={{
-            backgroundColor: "#f44336",
-            color: "#fff",
-            fontWeight: "bold",
-            borderRadius: "20px",
-            border: "2px solid #fff",
-            paddingX: 3,
-            "&:hover": {
-              backgroundColor: "#d32f2f",
-            },
-          }}
-        >
-          Cancelar
-        </Button>
+          <Button
+            onClick={() => cancelarPedido(idsSelecionados[0])}
+            disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1 || statusAtualPedidoSelecionado === 'cancelado'}
+            sx={{
+              backgroundColor: "#f44336",
+              color: "#fff",
+              fontWeight: "bold",
+              borderRadius: "20px",
+              border: "2px solid #fff",
+              paddingX: 3,
+              "&:hover": {
+                backgroundColor: "#d32f2f",
+              },
+            }}
+          >
+            Cancelar
+          </Button>
 
-          <Dialog open={openCancelamento} onClose={() => setOpenCancelamento(false)}>
-          <DialogTitle>Pedido Nº {pedidoIdParaCancelar}</DialogTitle>
-          <DialogContent>
-            Tem certeza que deseja cancelar este pedido?
-            {statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' ? (
-              <Typography sx={{ color: 'red', marginTop: 1, fontSize: 12}}>
-                * Atenção: Prazo de 24 horas para cancelamento de um pedido efetivado
-              </Typography>
-            ) : (
-              <></>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenCancelamento(false)} color="error" variant="contained">Não</Button>
-            <Button onClick={cancelamentoPedido} color="success" variant="contained">
-              Sim
-            </Button>
-          </DialogActions>
-          </Dialog>
+            <Dialog open={openCancelamento} onClose={() => setOpenCancelamento(false)}>
+            <DialogTitle>Pedido Nº {pedidoIdParaCancelar}</DialogTitle>
+            <DialogContent>
+              Tem certeza que deseja cancelar este pedido?
+              {statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' ? (
+                <Typography sx={{ color: 'red', marginTop: 1, fontSize: 12}}>
+                  * Atenção: Prazo de 24 horas para cancelamento de um pedido efetivado
+                </Typography>
+              ) : (
+                <></>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenCancelamento(false)} color="error" variant="contained">Não</Button>
+              <Button onClick={cancelamentoPedido} color="success" variant="contained">
+                Sim
+              </Button>
+            </DialogActions>
+            </Dialog>
 
-        <Button
-          onClick={() => excluirPedido(idsSelecionados)}
-          sx={{
-            backgroundColor: "#fffb00ff",
-            color: "#fff",
-            fontWeight: "bold",
-            borderRadius: "20px",
-            border: "2px solid #fff",
-            paddingX: 3,
-            "&:hover": {
-              backgroundColor: "#dbcf27ff",
-            },
-          }}
-        >
-          Excluir
-        </Button>
+          <Button
+            onClick={() => excluirPedido(idsSelecionados)}
+            disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || selectedRows.some((pedido) => pedido.status === 'entregue') || selectedRows.some((pedido) => pedido.status === 'entregue_parcialmente') || selectedRows.some((pedido) => pedido.status === 'pendente') || selectedRows.some((pedido) => pedido.dataEfetivacao !== '-')}
+            sx={{
+              backgroundColor: "#fffb00ff",
+              color: "#fff",
+              fontWeight: "bold",
+              borderRadius: "20px",
+              border: "2px solid #fff",
+              paddingX: 3,
+              "&:hover": {
+                backgroundColor: "#dbcf27ff",
+              },
+            }}
+          >
+            Excluir
+          </Button>
 
-        <Button
-          onClick={() => abrirPedido(idsSelecionados[0])}
-          disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || idsSelecionados.length > 1}
-          sx={{
-            backgroundColor: "#4caf50",
-            color: "#fff",
-            fontWeight: "bold",
-            borderRadius: "20px",
-            border: "2px solid #fff",
-            paddingX: 3,
-            "&:hover": {
-              backgroundColor: "#388e3c",
-            },
-          }}
-        >
-          Efetivar
-        </Button>
+          <Button
+            onClick={() => abrirPedido(idsSelecionados[0])}
+            disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || idsSelecionados.length > 1}
+            sx={{
+              backgroundColor: "#4caf50",
+              color: "#fff",
+              fontWeight: "bold",
+              borderRadius: "20px",
+              border: "2px solid #fff",
+              paddingX: 3,
+              "&:hover": {
+                backgroundColor: "#388e3c",
+              },
+            }}
+          >
+            Efetivar
+          </Button>
 
-        <Button
-          onClick={() => visualizarPedido(idsSelecionados[0])}
-          disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1}
-          sx={{
-            backgroundColor: "#2196f3",
-            color: "#fff",
-            fontWeight: "bold",
-            borderRadius: "20px",
-            border: "2px solid #fff",
-            paddingX: 3,
-            "&:hover": {
-              backgroundColor: "#1976d2",
-            },
-          }}
-        >
-          Visualizar
-        </Button>
-      </ButtonGroup>
+          <Button
+            onClick={() => visualizarPedido(idsSelecionados[0])}
+            disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1}
+            sx={{
+              backgroundColor: "#2196f3",
+              color: "#fff",
+              fontWeight: "bold",
+              borderRadius: "20px",
+              border: "2px solid #fff",
+              paddingX: 3,
+              "&:hover": {
+                backgroundColor: "#1976d2",
+              },
+            }}
+          >
+            Visualizar
+          </Button>
+        </ButtonGroup>
+
+        <div className='p-2'>
+          <h3 className='text-lg font-semibold mb-2 text-gray-700'>Filtros:</h3>
+          <Box sx={{display: 'flex', flexDirection: 'row', ml:3}}>
+            <FormControl component="fieldset">
+              <FormLabel component="legend">
+                Status do Pedido
+              </FormLabel>
+              <FormGroup row>
+                <FormControlLabel label="Todos" control={<Checkbox checked={todos} onChange={(e) => handleTodos(e.target.checked)} defaultChecked/>} />
+                <FormControlLabel label="Pendente" control={<Checkbox checked={pendente} onChange={(e) =>  {const checked = e.target.checked; setPendente(checked); atualizarTodos(checked, entregue, entregueParcial, cancelado);}}/>} />
+                <FormControlLabel label="Entregue" control={<Checkbox checked={entregue} onChange={(e) => {const checked = e.target.checked; setEntregue(checked); atualizarTodos(pendente, checked, entregueParcial, cancelado);}}/>} />
+                <FormControlLabel label="Entregue parcialmente" control={<Checkbox checked={entregueParcial} onChange={(e) => {const checked = e.target.checked; setEntregueParcial(checked); atualizarTodos(pendente, entregue, checked, cancelado);}}/>} />
+                <FormControlLabel label="Cancelado" control={<Checkbox checked={cancelado} onChange={(e) => {const checked = e.target.checked; setCancelado(checked); atualizarTodos(checked, entregue, entregueParcial, checked);}}/>} />
+              </FormGroup>
+            </FormControl>
+          </Box>
+        </div>
+    </div>
+      
 
       <Box sx={{ height: 400, width: '100%' }}>
         <DataGrid

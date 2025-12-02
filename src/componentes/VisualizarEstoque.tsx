@@ -8,11 +8,8 @@ import { AppContext } from "../context/context";
 import ModalMov from '../utils/modalMov';
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
 import alertaMensagem from "../utils/alertaMensagem";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
-import axios from "axios";
-
 
 const VisualizarEstoque = () => {
 
@@ -23,10 +20,7 @@ const VisualizarEstoque = () => {
   const setTipoEntrada = useContext(AppContext).setTipoEntrada;
   const setTipoSaida = useContext(AppContext).setTipoSaida;
   const {handleModal, setHandleModal} = useContext(AppContext);
-  const [loading, setLoading] = useState(true);
-  const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
-  const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
-  const {estoqueId,setEstoqueId} = useContext(AppContext);
+  const {estoqueId} = useContext(AppContext);
   const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
 
   
@@ -127,8 +121,6 @@ const VisualizarEstoque = () => {
       return;
     }
   }
-
-  console.log("LISTA PRODUTOS",estoqueSalvo?.listaProdutos)
 
   return (
 
