@@ -796,6 +796,84 @@ const cancelamentoPedido = async () =>{
 
 }
 
+const excluirPedido = async (pedidosId: number[]) =>{
+  const {data: {session}} = await supabase.auth.getSession();
+  const token = session?.access_token;
+  
+  if (!token) {
+    setAlerta(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+    return;
+  }
+  
+  if (!session){
+    setAlerta(alertaMensagem('Faça login para excluir o pedido.', 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
+  try{
+
+    await axios.delete(`http://localhost:3000/pedido/excluir-pedido`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        data: {
+          pedidoId: pedidosId,
+          estoqueId: estoqueId  
+        }
+      },
+    );
+
+  } catch (error) {
+    console.error("Erro ao excluir pedido", error);
+    setAlerta(alertaMensagem("Erro ao xcluir  pedido", "error", <ReportProblemIcon/>));
+
+    if(axios.isAxiosError(error)){
+
+      if(!conexaoInternet ){
+        console.error("Sem acesso a internet. Verifique sua conexão", error);
+        setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+        return;
+      }
+
+      if(!servidorOnline){
+        console.error("Servidor fora do ar. Tente novamente em instantes", error);
+        setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        return;
+      }
+
+      if(error.response){
+        const status = error.response.status;
+        const mensagem = error.response.data?.message || error.message;
+
+      if(status >= 500){
+          console.error(`Erro ao excluir  pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        } else if (status === 404){
+          console.error(`Erro ao excluir  pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+        } else {
+          console.error(`Erro ao excluir  pedido ${status} ${mensagem}`)
+          setAlerta(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+        }
+
+        return;
+      }
+
+      if(error.code === 'ECONNABORTED'){
+        console.error(`Erro ao cancelar pedido ${error}`)
+        setAlerta(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+        return;
+      }
+
+      setAlerta(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+      return; 
+    }
+
+    fecharPedido();
+
+  }
+      
+}
+
 function CustomPagination() {
   const apiRef = useGridApiContext();
   const page = useGridSelector(apiRef, gridPageSelector);
@@ -907,8 +985,7 @@ if (loading){
           </Dialog>
 
         <Button
-          onClick={() => abrirPedido(idsSelecionados[0])}
-          disabled={true}
+          onClick={() => excluirPedido(idsSelecionados)}
           sx={{
             backgroundColor: "#fffb00ff",
             color: "#fff",

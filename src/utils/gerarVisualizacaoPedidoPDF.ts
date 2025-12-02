@@ -13,7 +13,7 @@ export const gerarVisualizacaoPedidoPDF = (pedido: iPedido) => {
 
   doc.setFontSize(20);
   doc.setFont("helvetica","bold");
-  doc.text(`Visualização do Pedido Nº ${pedidoId}`, 105, 15, { align: 'center' });
+  doc.text(`Pedido Nº ${pedidoId}`, 105, 15, { align: 'center' });
 
   doc.setLineWidth(0.5);
   doc.line(10, 22, 200, 22); 
