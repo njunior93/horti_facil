@@ -1,5 +1,5 @@
 import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext ,useGridSelector, type GridColDef, type GridRowModel} from '@mui/x-data-grid';
-import { Box, CardHeader, Checkbox, CircularProgress, FormControl, FormControlLabel, FormGroup, FormLabel, MenuItem, Select, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, CardHeader, Checkbox, CircularProgress, FormControl, FormControlLabel, FormGroup, FormLabel, MenuItem, Select, Stack, Tooltip, Typography, type SelectChangeEvent } from '@mui/material';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import { useContext, useState } from 'react';
@@ -26,6 +26,9 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useInternet } from '../context/StatusServidorProvider.tsx';
 import { gerarVisualizacaoPedidoPDF } from '../utils/gerarVisualizacaoPedidoPDF.ts';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { ptBR } from 'date-fns/locale/pt-BR'
 import { set } from 'date-fns';
 
 
@@ -61,6 +64,11 @@ const [pendente, setPendente] = useState(true);
 const [entregue, setEntregue] = useState(true);
 const [entregueParcial, setEntregueParcial] = useState(true);
 const [cancelado, setCancelado] = useState(true);
+const [dataFiltroInicio, setDataFiltroInicio] = useState<Date | null>(null);
+const [dataFiltroFim, setDataFiltroFim] = useState<Date | null>(null);
+const [tipoDataFiltro, setTipoDataFiltro] = useState('Tipo de data');
+const [limpaDataInicio, setLimpaDataInicio] = useState(false);
+const [limpaDataFim, setLimpaDataFim] = useState(false);
 
 
 
@@ -221,12 +229,66 @@ const atualizarLista = () =>{
     return filtrosStatus.includes(pedido.status);
   });
 
-  setListaPedidoFiltrados(filtrados)
+  const campoData = tipoDataFiltro === 'data de criacao' ? 'data_criacao' : tipoDataFiltro === 'data de efetivacao' ? 'data_efetivacao' : null;
+
+  if(!campoData){
+    setListaPedidoFiltrados(filtrados);
+    return;
+  }
+
+  const filtradosData = filtrados.filter((pedido) => {
+    const valorData = pedido[campoData];
+
+    if(!valorData){
+      return false;
+    }
+
+    const dataPedido = new Date(valorData);
+
+    const inicio = dataFiltroInicio
+      ? new Date(new Date(dataFiltroInicio).setHours(0, 0, 0, 0))
+      : null;
+
+    const fim = dataFiltroFim
+      ? new Date(new Date(dataFiltroFim).setHours(23, 59, 59, 999))
+      : null;
+
+
+    if(inicio && fim){
+      return dataPedido >= inicio && dataPedido <= fim;
+    } else if(inicio){
+      return dataPedido >= inicio;
+    } else if(fim){
+      return dataPedido <= fim;
+    }
+    return true;
+
+  });
+
+  setListaPedidoFiltrados(filtradosData);
 }
 
 useEffect(() => {
+  const datasVazias = !dataFiltroInicio && !dataFiltroFim;
+
+  if (datasVazias && tipoDataFiltro !== "Tipo de data") {
+    setTipoDataFiltro("Tipo de data");
+    return;
+  }
+
   atualizarLista();
-}, [pendente, entregue, entregueParcial, cancelado, listaPedidosCompra]);
+
+}, [
+  pendente,
+  entregue,
+  entregueParcial,
+  cancelado,
+  listaPedidosCompra,
+  dataFiltroInicio,
+  dataFiltroFim,
+  tipoDataFiltro
+]);
+
 
 const fecharPedido = () =>{
   setCardAberto(false);
@@ -935,6 +997,10 @@ const atualizarTodos = (pendente: boolean, entregue: boolean, entregueParcial: b
   setTodos(pendente && entregue && entregueParcial && cancelado);
  }
 
+ const selecaoTipoData = (e: SelectChangeEvent) =>{
+  setTipoDataFiltro(e.target.value);
+ }
+
 function CustomPagination() {
   const apiRef = useGridApiContext();
   const page = useGridSelector(apiRef, gridPageSelector);
@@ -986,10 +1052,10 @@ if (loading){
   }
 
   return (
-  <div className='flex items-center justify-center h-screen w-screen bg-gray-100'>
-    <div className='flex flex-col items-center space-y-6 w-4/5 bg-white'>
+  <div className='flex justify-center items-center min-h-screen w-full bg-gray-100 py-6'>
+    <div className='max-w-7xl mx-auto bg-white p-6 rounded shadow'>
       <div className='w-5/5'>
-        <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1}}>
+        <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1, borderBottom: '2px solid #929090ff'}}>
           <Button 
             onClick={() => handlecriarPedido()}
             disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0 || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'pendente'}
@@ -1101,24 +1167,170 @@ if (loading){
           </Button>
         </ButtonGroup>
 
-        <div className='p-2'>
-          <h3 className='text-lg font-semibold mb-2 text-gray-700'>Filtros:</h3>
-          <Box sx={{display: 'flex', flexDirection: 'row', ml:3}}>
+        <div className='p-4'>
+          <h3 className='text-lg font-semibold mb-4 text-gray-700'>Filtros:</h3>
+          <div className='flex flex-row justify-between items-start gap-8'>
             <FormControl component="fieldset">
-              <FormLabel component="legend">
+              <FormLabel component="legend" sx={{ marginBottom: 1 }}>
                 Status do Pedido
               </FormLabel>
-              <FormGroup row>
-                <FormControlLabel label="Todos" control={<Checkbox checked={todos} onChange={(e) => handleTodos(e.target.checked)} defaultChecked/>} />
-                <FormControlLabel label="Pendente" control={<Checkbox checked={pendente} onChange={(e) =>  {const checked = e.target.checked; setPendente(checked); atualizarTodos(checked, entregue, entregueParcial, cancelado);}}/>} />
-                <FormControlLabel label="Entregue" control={<Checkbox checked={entregue} onChange={(e) => {const checked = e.target.checked; setEntregue(checked); atualizarTodos(pendente, checked, entregueParcial, cancelado);}}/>} />
-                <FormControlLabel label="Entregue parcialmente" control={<Checkbox checked={entregueParcial} onChange={(e) => {const checked = e.target.checked; setEntregueParcial(checked); atualizarTodos(pendente, entregue, checked, cancelado);}}/>} />
-                <FormControlLabel label="Cancelado" control={<Checkbox checked={cancelado} onChange={(e) => {const checked = e.target.checked; setCancelado(checked); atualizarTodos(checked, entregue, entregueParcial, checked);}}/>} />
+
+              <FormGroup row sx={{ gap: 0.5 }}>
+                <FormControlLabel
+                  label="Todos"
+                  control={
+                    <Checkbox
+                      checked={todos}
+                      onChange={(e) => handleTodos(e.target.checked)}
+                    />
+                  }
+                />
+
+                <FormControlLabel
+                  label="Pendente"
+                  control={
+                    <Checkbox
+                      checked={pendente}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setPendente(checked);
+                        atualizarTodos(checked, entregue, entregueParcial, cancelado);
+                      }}
+                    />
+                  }
+                />
+
+                <FormControlLabel
+                  label="Entregue"
+                  control={
+                    <Checkbox
+                      checked={entregue}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setEntregue(checked);
+                        atualizarTodos(pendente, checked, entregueParcial, cancelado);
+                      }}
+                    />
+                  }
+                />
+
+                <FormControlLabel
+                  label="Entregue parcialmente"
+                  control={
+                    <Checkbox
+                      checked={entregueParcial}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setEntregueParcial(checked);
+                        atualizarTodos(pendente, entregue, checked, cancelado);
+                      }}
+                    />
+                  }
+                />
+
+                <FormControlLabel
+                  label="Cancelado"
+                  control={
+                    <Checkbox
+                      checked={cancelado}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setCancelado(checked);
+                        atualizarTodos(pendente, entregue, entregueParcial, checked);
+                      }}
+                    />
+                  }
+                />
               </FormGroup>
             </FormControl>
-          </Box>
+
+        
+            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <FormControl fullWidth sx={{ minWidth: 200 }}>
+                <Select
+                  displayEmpty
+                  value={tipoDataFiltro}
+                  onChange={selecaoTipoData}
+                  labelId="tipo-data-label"
+                  sx={{ height: 40 }}
+                >
+                  <MenuItem value="Tipo de data" disabled>Tipo de data</MenuItem>
+                  <MenuItem value="data de criacao">Data de criação</MenuItem>
+                  <MenuItem value="data de efetivacao">Data de efetivação</MenuItem>
+                </Select>
+              </FormControl>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <FormLabel component="legend" sx={{ whiteSpace: 'nowrap' }}>
+                Periodo
+              </FormLabel>
+
+                <DatePicker
+                  format="dd/MM/yyyy"
+                  label="Data início"
+                  value={dataFiltroInicio}
+                  maxDate={dataFiltroFim || undefined}
+                  disabled={tipoDataFiltro === "Tipo de data"}
+                  slotProps={{
+                    field: {
+                      clearable: true, 
+                      onClear: () => {setDataFiltroInicio(null); setLimpaDataInicio(true)}, 
+                    },
+                  }}
+                  onChange={(valor) => {
+                    if (dataFiltroFim && valor && valor > dataFiltroFim) {
+                      setAlerta(
+                        alertaMensagem(
+                          'Data inicial não pode ser maior que a final',
+                          'warning',
+                          <ReportProblemIcon />
+                        )
+                      );
+                    } else {
+                      setAlerta(null);
+                      setDataFiltroInicio(valor);
+                    }
+                  }}
+                  sx={{ width: 180 }}
+                />
+
+                <DatePicker
+                  format="dd/MM/yyyy"
+                  label="Data fim"
+                  value={dataFiltroFim}
+                  minDate={dataFiltroInicio || undefined}
+                  disabled={tipoDataFiltro === "Tipo de data"}
+                  slotProps={{
+                    field: {
+                      clearable: true, 
+                      onClear: () => {setDataFiltroFim(null); setLimpaDataFim(true)}, 
+                    },
+                  }}
+                  onChange={(valor) => {
+                    if (dataFiltroInicio && valor && valor < dataFiltroInicio) {
+                      setAlerta(
+                        alertaMensagem(
+                          'Data final não pode ser maior que a inicial',
+                          'warning',
+                          <ReportProblemIcon />
+                        )
+                      );
+                    } else {
+                      setAlerta(null);
+                      setDataFiltroFim(valor);
+                    }
+                  }}
+                  sx={{ width: 180 }}
+                />
+              </Box>
+            </Box>
+
+            </LocalizationProvider>
+          </div>
         </div>
-    </div>
+
+      </div>
       
 
       <Box sx={{ height: 400, width: '100%' }}>
