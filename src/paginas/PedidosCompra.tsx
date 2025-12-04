@@ -64,13 +64,10 @@ const [pendente, setPendente] = useState(true);
 const [entregue, setEntregue] = useState(true);
 const [entregueParcial, setEntregueParcial] = useState(true);
 const [cancelado, setCancelado] = useState(true);
-const [dataFiltroInicio, setDataFiltroInicio] = useState<Date | null>(null);
-const [dataFiltroFim, setDataFiltroFim] = useState<Date | null>(null);
-const [tipoDataFiltro, setTipoDataFiltro] = useState('Tipo de data');
-const [limpaDataInicio, setLimpaDataInicio] = useState(false);
-const [limpaDataFim, setLimpaDataFim] = useState(false);
-
-
+const [dataFiltroInicioCriacao, setDataFiltroInicioCriacao] = useState<Date | null>(null);
+const [dataFiltroFimCriacao, setDataFiltroFimCriacao,] = useState<Date | null>(null);
+const [dataFiltroInicioEfetiv, setDataFiltroInicioEfetiv] = useState<Date | null>(null);
+const [dataFiltroFimEfetiv, setDataFiltroFimCEfetiv] = useState<Date | null>(null);
 
 const conexaoInternet = StatusServidorContext?.conexaoInternet;
 const servidorOnline = StatusServidorContext?.servidorOnline;
@@ -226,68 +223,70 @@ const atualizarLista = () =>{
     if(entregueParcial) filtrosStatus.push('entregue_parcialmente');
     if(cancelado) filtrosStatus.push('cancelado');
 
-    return filtrosStatus.includes(pedido.status);
-  });
+    const passaStatus = filtrosStatus.includes(pedido.status);
 
-  const campoData = tipoDataFiltro === 'data de criacao' ? 'data_criacao' : tipoDataFiltro === 'data de efetivacao' ? 'data_efetivacao' : null;
+    if(!passaStatus) return false;
 
-  if(!campoData){
-    setListaPedidoFiltrados(filtrados);
-    return;
-  }
+    //-------------------
 
-  const filtradosData = filtrados.filter((pedido) => {
-    const valorData = pedido[campoData];
+    const inicioCriacao = dataFiltroInicioCriacao
+      ? new Date(new Date(dataFiltroInicioCriacao).setHours(0, 0, 0, 0))
+      : null;
 
-    if(!valorData){
+    const fimCriacao = dataFiltroFimCriacao
+      ? new Date(new Date(dataFiltroFimCriacao).setHours(23, 59, 59, 999))
+      : null;
+
+    const inicioEfetiv = dataFiltroInicioEfetiv
+      ? new Date(new Date(dataFiltroInicioEfetiv).setHours(0, 0, 0, 0))
+      : null;
+
+    const fimEfetiv = dataFiltroFimEfetiv
+      ? new Date(new Date(dataFiltroFimEfetiv).setHours(23, 59, 59, 999))
+      : null;
+
+    //-------------------
+
+    const dataCriacao = new Date( pedido.data_criacao);
+
+    if (inicioCriacao && dataCriacao < inicioCriacao) {
       return false;
     }
 
-    const dataPedido = new Date(valorData);
-
-    const inicio = dataFiltroInicio
-      ? new Date(new Date(dataFiltroInicio).setHours(0, 0, 0, 0))
-      : null;
-
-    const fim = dataFiltroFim
-      ? new Date(new Date(dataFiltroFim).setHours(23, 59, 59, 999))
-      : null;
-
-
-    if(inicio && fim){
-      return dataPedido >= inicio && dataPedido <= fim;
-    } else if(inicio){
-      return dataPedido >= inicio;
-    } else if(fim){
-      return dataPedido <= fim;
+    if (fimCriacao && dataCriacao > fimCriacao) {
+      return false;
     }
+
+    if (inicioEfetiv || fimEfetiv) {
+
+      if (!pedido.data_efetivacao) {
+        return false;
+      }
+
+      const dataEfetiv = new Date(pedido.data_efetivacao);
+
+      if (inicioEfetiv && dataEfetiv < inicioEfetiv) {
+        return false;
+      }
+
+      if (fimEfetiv && dataEfetiv > fimEfetiv) {
+        return false;
+      }
+    }
+
     return true;
 
   });
 
-  setListaPedidoFiltrados(filtradosData);
+  setListaPedidoFiltrados(filtrados);
+
 }
 
 useEffect(() => {
-  const datasVazias = !dataFiltroInicio && !dataFiltroFim;
-
-  if (datasVazias && tipoDataFiltro !== "Tipo de data") {
-    setTipoDataFiltro("Tipo de data");
-    return;
-  }
 
   atualizarLista();
 
-}, [
-  pendente,
-  entregue,
-  entregueParcial,
-  cancelado,
-  listaPedidosCompra,
-  dataFiltroInicio,
-  dataFiltroFim,
-  tipoDataFiltro
-]);
+}, [pendente,entregue,entregueParcial,cancelado, dataFiltroInicioCriacao, dataFiltroFimCriacao, dataFiltroInicioEfetiv, dataFiltroFimEfetiv]);
 
 
 const fecharPedido = () =>{
@@ -995,11 +994,7 @@ const handleTodos = (checked: boolean) =>{
 
 const atualizarTodos = (pendente: boolean, entregue: boolean, entregueParcial: boolean, cancelado: boolean) => {
   setTodos(pendente && entregue && entregueParcial && cancelado);
- }
-
- const selecaoTipoData = (e: SelectChangeEvent) =>{
-  setTipoDataFiltro(e.target.value);
- }
+}
 
 function CustomPagination() {
   const apiRef = useGridApiContext();
@@ -1247,83 +1242,130 @@ if (loading){
         
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <FormControl fullWidth sx={{ minWidth: 200 }}>
-                <Select
-                  displayEmpty
-                  value={tipoDataFiltro}
-                  onChange={selecaoTipoData}
-                  labelId="tipo-data-label"
-                  sx={{ height: 40 }}
-                >
-                  <MenuItem value="Tipo de data" disabled>Tipo de data</MenuItem>
-                  <MenuItem value="data de criacao">Data de criação</MenuItem>
-                  <MenuItem value="data de efetivacao">Data de efetivação</MenuItem>
-                </Select>
-              </FormControl>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <FormLabel component="legend" sx={{ whiteSpace: 'nowrap' }}>
+                    Dt. Criação
+                  </FormLabel>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <FormLabel component="legend" sx={{ whiteSpace: 'nowrap' }}>
-                Periodo
-              </FormLabel>
+                  <DatePicker
+                    format="dd/MM/yyyy"
+                    label="Data início"
+                    value={dataFiltroInicioCriacao}
+                    maxDate={dataFiltroFimCriacao || undefined}
+                    slotProps={{
+                      field: {
+                        clearable: true, 
+                        onClear: () => {setDataFiltroInicioCriacao(null);}, 
+                      },
+                    }}
+                    onChange={(valor) => {
+                      if (dataFiltroFimCriacao && valor && valor > dataFiltroFimCriacao) {
+                        setAlerta(
+                          alertaMensagem(
+                            'Data inicial não pode ser maior que a final',
+                            'warning',
+                            <ReportProblemIcon />
+                          )
+                        );
+                      } else {
+                        setAlerta(null);
+                        setDataFiltroInicioCriacao(valor);
+                      }
+                    }}
+                    sx={{ width: 180 }}
+                  />
 
-                <DatePicker
-                  format="dd/MM/yyyy"
-                  label="Data início"
-                  value={dataFiltroInicio}
-                  maxDate={dataFiltroFim || undefined}
-                  disabled={tipoDataFiltro === "Tipo de data"}
-                  slotProps={{
-                    field: {
-                      clearable: true, 
-                      onClear: () => {setDataFiltroInicio(null); setLimpaDataInicio(true)}, 
-                    },
-                  }}
-                  onChange={(valor) => {
-                    if (dataFiltroFim && valor && valor > dataFiltroFim) {
-                      setAlerta(
-                        alertaMensagem(
-                          'Data inicial não pode ser maior que a final',
-                          'warning',
-                          <ReportProblemIcon />
-                        )
-                      );
-                    } else {
-                      setAlerta(null);
-                      setDataFiltroInicio(valor);
-                    }
-                  }}
-                  sx={{ width: 180 }}
-                />
+                  <DatePicker
+                    format="dd/MM/yyyy"
+                    label="Data fim"
+                    value={dataFiltroFimCriacao}
+                    minDate={dataFiltroInicioCriacao || undefined}
+                    slotProps={{
+                      field: {
+                        clearable: true, 
+                        onClear: () => {setDataFiltroFimCriacao(null);}, 
+                      },
+                    }}
+                    onChange={(valor) => {
+                      if (dataFiltroInicioCriacao && valor && valor < dataFiltroInicioCriacao) {
+                        setAlerta(
+                          alertaMensagem(
+                            'Data final não pode ser maior que a inicial',
+                            'warning',
+                            <ReportProblemIcon />
+                          )
+                        );
+                      } else {
+                        setAlerta(null);
+                        setDataFiltroFimCriacao(valor);
+                      }
+                    }}
+                    sx={{ width: 180 }}
+                  />
+                </Box>
+              
 
-                <DatePicker
-                  format="dd/MM/yyyy"
-                  label="Data fim"
-                  value={dataFiltroFim}
-                  minDate={dataFiltroInicio || undefined}
-                  disabled={tipoDataFiltro === "Tipo de data"}
-                  slotProps={{
-                    field: {
-                      clearable: true, 
-                      onClear: () => {setDataFiltroFim(null); setLimpaDataFim(true)}, 
-                    },
-                  }}
-                  onChange={(valor) => {
-                    if (dataFiltroInicio && valor && valor < dataFiltroInicio) {
-                      setAlerta(
-                        alertaMensagem(
-                          'Data final não pode ser maior que a inicial',
-                          'warning',
-                          <ReportProblemIcon />
-                        )
-                      );
-                    } else {
-                      setAlerta(null);
-                      setDataFiltroFim(valor);
-                    }
-                  }}
-                  sx={{ width: 180 }}
-                />
-              </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <FormLabel component="legend" sx={{ whiteSpace: 'nowrap' }}>
+                    Dt. Efetivação
+                  </FormLabel>
+
+                  <DatePicker
+                    format="dd/MM/yyyy"
+                    label="Data início"
+                    value={dataFiltroInicioEfetiv}
+                    maxDate={dataFiltroFimEfetiv || undefined}
+                    slotProps={{
+                      field: {
+                        clearable: true, 
+                        onClear: () => {setDataFiltroInicioEfetiv(null);}, 
+                      },
+                    }}
+                    onChange={(valor) => {
+                      if (dataFiltroFimEfetiv && valor && valor > dataFiltroFimEfetiv) {
+                        setAlerta(
+                          alertaMensagem(
+                            'Data inicial não pode ser maior que a final',
+                            'warning',
+                            <ReportProblemIcon />
+                          )
+                        );
+                      } else {
+                        setAlerta(null);
+                        setDataFiltroInicioEfetiv(valor);
+                      }
+                    }}
+                    sx={{ width: 180 }}
+                  />
+
+                  <DatePicker
+                    format="dd/MM/yyyy"
+                    label="Data fim"
+                    value={dataFiltroFimEfetiv}
+                    minDate={dataFiltroInicioEfetiv || undefined}
+                    slotProps={{
+                      field: {
+                        clearable: true, 
+                        onClear: () => {setDataFiltroFimCEfetiv(null);}, 
+                      },
+                    }}
+                    onChange={(valor) => {
+                      if (dataFiltroInicioEfetiv && valor && valor < dataFiltroInicioEfetiv) {
+                        setAlerta(
+                          alertaMensagem(
+                            'Data final não pode ser maior que a inicial',
+                            'warning',
+                            <ReportProblemIcon />
+                          )
+                        );
+                      } else {
+                        setAlerta(null);
+                        setDataFiltroFimCEfetiv(valor);
+                      }
+                    }}
+                    sx={{ width: 180 }}
+                  />
+                </Box>
             </Box>
 
             </LocalizationProvider>
