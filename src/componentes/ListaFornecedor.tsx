@@ -159,12 +159,17 @@ const ListaFornecedor = () => {
 
     try{
       await axios.delete(`http://localhost:3000/fornecedor/excluir-fornecedor/${fornecedor.id}`, {
-      headers: { Authorization: `Bearer ${token}`}
-    });
+        headers: { Authorization: `Bearer ${token}`}
+      });
 
       setListaFornecedores(listaFornecedores.filter(f => f.id !== fornecedor.id));
-    } catch (error) {
-      setAlerta(alertaMensagem('Erro ao excluir fornecedor',  'warning', <ReportProblemIcon/>));
+
+    } catch (error: any) {
+      const mensagem =
+        error?.response?.data?.message ??
+        error?.message ??
+        'Erro desconhecido ao excluir fornecedor.';
+        setAlerta(alertaMensagem(mensagem,'warning', <ReportProblemIcon/>));
     }   
 
   }

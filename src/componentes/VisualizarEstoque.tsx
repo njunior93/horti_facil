@@ -176,7 +176,7 @@ const VisualizarEstoque = () => {
         </div>
       </div>
 
-      <ModalMov />
+      <ModalMov/>
 
       <ListarProdutosVisualizar nome={nomeProduto} tipo={tipo} qtd={quantidade}/>
 

@@ -24,8 +24,12 @@ import type { iPedido } from '../type/iPedido';
 import { useInternet } from '../context/StatusServidorProvider';
 import { useEstoque } from '../context/EstoqueProvider';
 
+interface ModalMovProps{
+  atualizarPedidos?: () => void;
+}
 
-const ModalMov = () => {
+
+const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
 
     const {handleModal, setHandleModal} = useContext(AppContext);
     const {tipoModal, setTipoModal} = useContext(AppContext);
@@ -58,6 +62,7 @@ const ModalMov = () => {
     const {listaPedidosCompra, setListaPedidosCompra} = useContext(AppContext);
     const StatusServidorContext = useInternet();
     const estoqueContext = useEstoque();
+    const {origemDoModal, setOrigemDoModal} = useContext(AppContext);
 
     const existeEstoque = estoqueContext?.existeEstoque;
     const conexaoInternet = StatusServidorContext?.conexaoInternet;
@@ -185,7 +190,7 @@ const ModalMov = () => {
     }
 
     if(tipoModal === 'CadastroFornecedor'){
-      setTipoModal('CriarPedidoCompra')
+      setTipoModal('CriarPedidoCompra');
     }
 
   }
@@ -201,8 +206,11 @@ const ModalMov = () => {
     setErrorEmail(false);
     setNotiEmail(false);
     setNotiWhats(false);
-    setTipoModal('CriarPedidoCompra');
-
+    if(origemDoModal === 'modalCriarPedido'){
+      setTipoModal('CriarPedidoCompra');
+    }else{
+      btnCancelar();
+    }
   }
 
   const selecaoProduto = (e: SelectChangeEvent) => {
@@ -432,6 +440,10 @@ const ModalMov = () => {
         const pedidoCriado: iPedido = response.data;
 
         setAlertaAddProduto(alertaMensagem("Pedido de compra criado com sucesso", "success", <DoneIcon/>));
+
+        if(atualizarPedidos){
+          atualizarPedidos();
+        }
         
         const novaListaPedidos = [...listaPedidosCompra, pedidoCriado];
         setListaPedidosCompra(novaListaPedidos);
@@ -596,8 +608,11 @@ const ModalMov = () => {
       setErrorEmail(false);
       setNotiEmail(false);
       setNotiWhats(false);
-      setTipoModal('CriarPedidoCompra');
-
+      if(origemDoModal === 'modalCriarPedido'){
+        setTipoModal('CriarPedidoCompra');
+      }else{
+        btnCancelar();
+      }
 
   }
 
@@ -1124,7 +1139,7 @@ const ModalMov = () => {
               ) : tipoModal === 'CriarPedidoCompra' ? (
                 <Button variant="contained" onClick={criarPedidoCompra} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Pedido</Button>
               ) : tipoModal === 'CadastroFornecedor' ? (
-                <Button variant="contained" onClick={criarFornecedor} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }}  disabled={!razaoSocial} >Criar Fornecedor</Button>
+                <Button variant="contained" onClick={criarFornecedor} sx={{backgroundColor: "#f1941aff", color: "#fff", fontWeight: "bold", borderRadius: "20px",border: "2px solid #ffffffff",paddingX: 3,"&:hover": {backgroundColor: "#fc9208ff",},}}  disabled={!razaoSocial} >Criar Fornecedor</Button>
               ) : null}
             </div>
             

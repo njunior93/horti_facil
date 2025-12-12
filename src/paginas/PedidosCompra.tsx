@@ -1,5 +1,5 @@
 import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext ,useGridSelector, type GridColDef, type GridRowModel} from '@mui/x-data-grid';
-import { Box, CardHeader, Checkbox, CircularProgress, FormControl, FormControlLabel, FormGroup, FormLabel, MenuItem, Select, Stack, Tooltip, Typography, type SelectChangeEvent } from '@mui/material';
+import { Box, CardHeader, Checkbox, CircularProgress, FormControl, FormControlLabel, FormGroup, FormLabel, InputLabel, MenuItem, Select, Stack, Tooltip, Typography, type SelectChangeEvent } from '@mui/material';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import { useContext, useState } from 'react';
@@ -29,7 +29,6 @@ import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale/pt-BR'
-import { set } from 'date-fns';
 
 
 
@@ -40,7 +39,7 @@ const setTipoModal = useContext(AppContext).setTipoModal;
 const { setHandleModal} = useContext(AppContext);
 const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
 const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
-const { listaPedidosCompra, setListaPedidosCompra } = useContext(AppContext);
+const {listaPedidosCompra, setListaPedidosCompra } = useContext(AppContext);
 const [listaPedidoFiltrados, setListaPedidoFiltrados] = useState<iPedido[]>([]);
 const { estoqueId, setEstoqueId } = useContext(AppContext);
 const [selectedRows, setSelectedRows] = useState<any[]>([]);
@@ -58,6 +57,7 @@ const [statusPedido, setStatusPedido] = useState<string>('pendente');
 const [statusAtualPedidoSelecionado, setStatusAtualPedidoSelecionado] = useState<string>('');
 const [openCancelamento, setOpenCancelamento] = useState(false);
 const [pedidoIdParaCancelar, setPedidoIdParaCancelar] = useState<number | null>(null);
+const {origemDoModal, setOrigemDoModal} = useContext(AppContext);
 
 const [todos, setTodos] = useState(true);
 const [pendente, setPendente] = useState(true);
@@ -68,14 +68,15 @@ const [dataFiltroInicioCriacao, setDataFiltroInicioCriacao] = useState<Date | nu
 const [dataFiltroFimCriacao, setDataFiltroFimCriacao,] = useState<Date | null>(null);
 const [dataFiltroInicioEfetiv, setDataFiltroInicioEfetiv] = useState<Date | null>(null);
 const [dataFiltroFimEfetiv, setDataFiltroFimCEfetiv] = useState<Date | null>(null);
+const [dataFiltroInicioCancelamento, setDataFiltroInicioCancelamento] = useState<Date | null>(null);
+const [dataFiltroFimCancelamento, setDataFiltroFimCancelamento] = useState<Date | null>(null);
+const [fornecedorFiltro, setFornecedorFiltro] = useState<String>('Todos');
 
 const conexaoInternet = StatusServidorContext?.conexaoInternet;
 const servidorOnline = StatusServidorContext?.servidorOnline;
 const verificarEstoque = estoqueContext?.verificarEstoque;
 const existeEstoque = estoqueContext?.existeEstoque;
 const loading = estoqueContext?.loading;
-
-    
 
 setTimeout(() =>{
     if(alerta){
@@ -88,6 +89,38 @@ setTimeout(() =>{
       setMensagemErro(null)
     }
 },4000);
+
+useEffect(() => {
+
+
+    checarEstoque();
+    fetchEstoqueId();
+    fetchlistaFornecedores();
+    fetchListaProdutos();
+    fetchListaPedidosCompra();
+    
+    
+}, []); 
+
+// useEffect(() => {
+//   if (idsSelecionados.length === 0) {
+//     setSelectedRows([]);
+//     return;
+//   }
+
+//   const atualizados = idsSelecionados.map(id => listaPedidosCompra.find(p => String(p.id) === String(id))).filter(Boolean);
+
+//   setSelectedRows(atualizados);
+
+// }, [listaPedidosCompra]);
+
+
+
+useEffect(() => {
+
+  atualizarLista();
+
+}, [pendente,entregue,entregueParcial,cancelado, dataFiltroInicioCriacao, dataFiltroFimCriacao, dataFiltroInicioEfetiv, dataFiltroFimEfetiv, dataFiltroInicioCancelamento, dataFiltroFimCancelamento, fornecedorFiltro, listaPedidosCompra]);
 
 const checarEstoque = async () => {
     if (verificarEstoque) {
@@ -187,7 +220,7 @@ const fetchListaPedidosCompra = async () => {
       );
 
       setListaPedidosCompra(response.data);
-      setListaPedidoFiltrados(response.data);
+      // setListaPedidoFiltrados(response.data);
 
       return response.data;
 
@@ -200,18 +233,6 @@ const fetchListaPedidosCompra = async () => {
   }
 
   };
-
-useEffect(() => {
-
-
-    checarEstoque();
-    fetchEstoqueId();
-    fetchlistaFornecedores();
-    fetchListaProdutos();
-    fetchListaPedidosCompra();
-    
-    
-}, []); 
 
 const atualizarLista = () =>{
   let filtrados = listaPedidosCompra.filter((pedido) =>{
@@ -227,27 +248,43 @@ const atualizarLista = () =>{
 
     if(!passaStatus) return false;
 
+    //------------------
+
+    if(fornecedorFiltro && fornecedorFiltro !== 'Todos'){
+      const fornecedorAchado = listaFornecedores.find(f => f.nome === fornecedorFiltro);
+
+      if(!fornecedorAchado){
+        return false;
+      }
+
+      const nomeFornecedor = fornecedorAchado.nome
+
+      if(pedido.fornecedor.nome !== nomeFornecedor){
+        return false;
+      }
+
+    }
+    
+
+
     //-------------------
 
-    const inicioCriacao = dataFiltroInicioCriacao
-      ? new Date(new Date(dataFiltroInicioCriacao).setHours(0, 0, 0, 0))
-      : null;
+    const inicioCriacao = dataFiltroInicioCriacao ? new Date(new Date(dataFiltroInicioCriacao).setHours(0, 0, 0, 0)) : null;
 
-    const fimCriacao = dataFiltroFimCriacao
-      ? new Date(new Date(dataFiltroFimCriacao).setHours(23, 59, 59, 999))
-      : null;
+    const fimCriacao = dataFiltroFimCriacao  ? new Date(new Date(dataFiltroFimCriacao).setHours(23, 59, 59, 999)) : null;
 
-    const inicioEfetiv = dataFiltroInicioEfetiv
-      ? new Date(new Date(dataFiltroInicioEfetiv).setHours(0, 0, 0, 0))
-      : null;
+    const inicioEfetiv = dataFiltroInicioEfetiv ? new Date(new Date(dataFiltroInicioEfetiv).setHours(0, 0, 0, 0)) : null;
 
-    const fimEfetiv = dataFiltroFimEfetiv
-      ? new Date(new Date(dataFiltroFimEfetiv).setHours(23, 59, 59, 999))
-      : null;
+    const fimEfetiv = dataFiltroFimEfetiv ? new Date(new Date(dataFiltroFimEfetiv).setHours(23, 59, 59, 999)) : null;
+
+    const inicioCanc = dataFiltroInicioCancelamento ? new Date(new Date(dataFiltroInicioCancelamento).setHours(0,0,0,0)) : null;
+
+    const fimCanc = dataFiltroFimCancelamento ? new Date(new Date(dataFiltroFimCancelamento).setHours(23,59,59,999)) : null
 
     //-------------------
 
-    const dataCriacao = new Date( pedido.data_criacao);
+
+    const dataCriacao = new Date(pedido.data_criacao);
 
     if (inicioCriacao && dataCriacao < inicioCriacao) {
       return false;
@@ -274,6 +311,22 @@ const atualizarLista = () =>{
       }
     }
 
+    if(inicioCanc || fimCanc){
+      if(!pedido.data_cancelamento){
+        return false;
+      }
+
+      const dataCanc = new Date(pedido.data_cancelamento);
+
+      if(inicioCanc && dataCanc < inicioCanc){
+        return false;
+      }
+
+      if(fimCanc && dataCanc > fimCanc){
+        return false;
+      }
+    }
+
     return true;
 
   });
@@ -281,13 +334,6 @@ const atualizarLista = () =>{
   setListaPedidoFiltrados(filtrados);
 
 }
-
-useEffect(() => {
-
-  atualizarLista();
-
-}, [pendente,entregue,entregueParcial,cancelado, dataFiltroInicioCriacao, dataFiltroFimCriacao, dataFiltroInicioEfetiv, dataFiltroFimEfetiv]);
-
 
 const fecharPedido = () =>{
   setCardAberto(false);
@@ -332,6 +378,12 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
     field: 'dataEfetivacao',
     headerName: 'Data de efetivação',
     width: 150,
+    editable: false,
+  },
+  {
+    field: 'dataCancelamento',
+    headerName: 'Data de cancelamento',
+    width: 180,
     editable: false,
   },   
   { 
@@ -389,13 +441,14 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
 const linhas = listaPedidoFiltrados.map((pedido) => {
   
   const data = pedido.data_criacao ? new Date(pedido.data_criacao) : null;
-  const dataFormatada = data ? data.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-';
+  const dataFormatada = data ? data.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : null;
 
   return {
     id: pedido.id,
     status: pedido.status,
     dataPedido: dataFormatada,
-    dataEfetivacao: pedido.data_efetivacao ? new Date(pedido.data_efetivacao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-',
+    dataEfetivacao: pedido.data_efetivacao ? new Date(pedido.data_efetivacao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : null,
+    dataCancelamento: pedido.data_cancelamento ? new Date(pedido.data_cancelamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : null,
     fornecedor: pedido.fornecedor?.nome ?? '-'
   };
 
@@ -823,9 +876,14 @@ const cancelamentoPedido = async () =>{
     { headers: { Authorization: `Bearer ${token}` } }
   );
 
-
   
   const listaAtualizada = await fetchListaPedidosCompra();
+
+  setSelectedRows(prev => prev.map(selecionado => listaAtualizada.find((p: { id: any; }) => p.id === selecionado.id) || selecionado));
+
+  setIdsSelecionados(prev =>prev.filter(id => listaAtualizada.some((p: { id: any; }) => p.id === id)));
+
+
   const pedidoAtualizado = listaAtualizada.find((pedido: iPedido) => pedido.id === pedidoCancelado.data.id);
 
   if(pedidoAtualizado){
@@ -902,7 +960,7 @@ const excluirPedido = async (pedidosId: number[]) =>{
   }
 
   for(const pedido of selectedRows){
-    if(pedido.dataEfetivacao !== '-'){
+    if(pedido.dataEfetivacao){
       setAlerta(alertaMensagem('Somente pedidos não efetivados podem ser excluídos.', 'warning', <ReportProblemIcon/>));
       return;
     }
@@ -1050,330 +1108,395 @@ if (loading){
   <div className='flex justify-center items-center min-h-screen w-full bg-gray-100 py-6'>
     <div className='max-w-7xl mx-auto bg-white p-6 rounded shadow'>
       <div className='w-5/5'>
-        <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1, borderBottom: '2px solid #929090ff'}}>
-          <Button 
-            onClick={() => handlecriarPedido()}
-            disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0 || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'pendente'}
-            sx={{
-              backgroundColor: "#f7931e", // laranja
-              color: "#fff",
-              fontWeight: "bold",
-              borderRadius: "20px",
-              border: "2px solid #fff",
-              paddingX: 3,
-              "&:hover": {
-                backgroundColor: "#e67e00",
-              },
-            }}
-          >
-            Criar Pedido
-          </Button>
+        <div className='flex justify-between border-b-4 border-[#FDEFD6]'>
+          <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1}}>
+            <Button 
+              onClick={() => {handlecriarPedido(); setOrigemDoModal('modalCriarPedido');}}
+              disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0 || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'pendente'}
+              sx={{
+                backgroundColor: "#f7931e", // laranja
+                color: "#fff",
+                fontWeight: "bold",
+                borderRadius: "20px",
+                border: "2px solid #fff",
+                paddingX: 3,
+                "&:hover": {
+                  backgroundColor: "#e67e00",
+                },
+              }}
+            >
+              Criar Pedido
+            </Button>
 
-          <Button
-            onClick={() => cancelarPedido(idsSelecionados[0])}
-            disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1 || statusAtualPedidoSelecionado === 'cancelado'}
-            sx={{
-              backgroundColor: "#f44336",
-              color: "#fff",
-              fontWeight: "bold",
-              borderRadius: "20px",
-              border: "2px solid #fff",
-              paddingX: 3,
-              "&:hover": {
-                backgroundColor: "#d32f2f",
-              },
-            }}
-          >
-            Cancelar
-          </Button>
+            <Button
+              onClick={() => cancelarPedido(idsSelecionados[0])}
+              disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1 || statusAtualPedidoSelecionado === 'cancelado'}
+              sx={{
+                backgroundColor: "#f44336",
+                color: "#fff",
+                fontWeight: "bold",
+                borderRadius: "20px",
+                border: "2px solid #fff",
+                paddingX: 3,
+                "&:hover": {
+                  backgroundColor: "#d32f2f",
+                },
+              }}
+            >
+              Cancelar
+            </Button>
 
-            <Dialog open={openCancelamento} onClose={() => setOpenCancelamento(false)}>
-            <DialogTitle>Pedido Nº {pedidoIdParaCancelar}</DialogTitle>
-            <DialogContent>
-              Tem certeza que deseja cancelar este pedido?
-              {statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' ? (
-                <Typography sx={{ color: 'red', marginTop: 1, fontSize: 12}}>
-                  * Atenção: Prazo de 24 horas para cancelamento de um pedido efetivado
-                </Typography>
-              ) : (
-                <></>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setOpenCancelamento(false)} color="error" variant="contained">Não</Button>
-              <Button onClick={cancelamentoPedido} color="success" variant="contained">
-                Sim
-              </Button>
-            </DialogActions>
-            </Dialog>
+              <Dialog open={openCancelamento} onClose={() => setOpenCancelamento(false)}>
+              <DialogTitle>Pedido Nº {pedidoIdParaCancelar}</DialogTitle>
+              <DialogContent>
+                Tem certeza que deseja cancelar este pedido?
+                {statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' ? (
+                  <Typography sx={{ color: 'red', marginTop: 1, fontSize: 12}}>
+                    * Atenção: Prazo de 24 horas para cancelamento de um pedido efetivado
+                  </Typography>
+                ) : (
+                  <></>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setOpenCancelamento(false)} color="error" variant="contained">Não</Button>
+                <Button onClick={cancelamentoPedido} color="success" variant="contained">
+                  Sim
+                </Button>
+              </DialogActions>
+              </Dialog>
 
-          <Button
-            onClick={() => excluirPedido(idsSelecionados)}
-            disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || selectedRows.some((pedido) => pedido.status === 'entregue') || selectedRows.some((pedido) => pedido.status === 'entregue_parcialmente') || selectedRows.some((pedido) => pedido.status === 'pendente') || selectedRows.some((pedido) => pedido.dataEfetivacao !== '-')}
-            sx={{
-              backgroundColor: "#fffb00ff",
-              color: "#fff",
-              fontWeight: "bold",
-              borderRadius: "20px",
-              border: "2px solid #fff",
-              paddingX: 3,
-              "&:hover": {
-                backgroundColor: "#dbcf27ff",
-              },
-            }}
-          >
-            Excluir
-          </Button>
+            <Button
+              onClick={() => excluirPedido(idsSelecionados)}
+              disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || selectedRows.some((pedido) => pedido.status === 'entregue') || selectedRows.some((pedido) => pedido.status === 'entregue_parcialmente') || selectedRows.some((pedido) => pedido.status === 'pendente' || !selectedRows.every((pedido) =>pedido.status === "cancelado" &&(!pedido.data_efetivacao || pedido.data_efetivacao === null)))}
+              sx={{
+                backgroundColor: "#fffb00ff",
+                color: "#fff",
+                fontWeight: "bold",
+                borderRadius: "20px",
+                border: "2px solid #fff",
+                paddingX: 3,
+                "&:hover": {
+                  backgroundColor: "#dbcf27ff",
+                },
+              }}
+            >
+              Excluir
+            </Button>
 
-          <Button
-            onClick={() => abrirPedido(idsSelecionados[0])}
-            disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || idsSelecionados.length > 1}
-            sx={{
-              backgroundColor: "#4caf50",
-              color: "#fff",
-              fontWeight: "bold",
-              borderRadius: "20px",
-              border: "2px solid #fff",
-              paddingX: 3,
-              "&:hover": {
-                backgroundColor: "#388e3c",
-              },
-            }}
-          >
-            Efetivar
-          </Button>
+            <Button
+              onClick={() => abrirPedido(idsSelecionados[0])}
+              disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || idsSelecionados.length > 1}
+              sx={{
+                backgroundColor: "#4caf50",
+                color: "#fff",
+                fontWeight: "bold",
+                borderRadius: "20px",
+                border: "2px solid #fff",
+                paddingX: 3,
+                "&:hover": {
+                  backgroundColor: "#388e3c",
+                },
+              }}
+            >
+              Efetivar
+            </Button>
 
-          <Button
-            onClick={() => visualizarPedido(idsSelecionados[0])}
-            disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1}
-            sx={{
-              backgroundColor: "#2196f3",
-              color: "#fff",
-              fontWeight: "bold",
-              borderRadius: "20px",
-              border: "2px solid #fff",
-              paddingX: 3,
-              "&:hover": {
-                backgroundColor: "#1976d2",
-              },
-            }}
-          >
-            Visualizar
-          </Button>
-        </ButtonGroup>
+            <Button
+              onClick={() => visualizarPedido(idsSelecionados[0])}
+              disabled={selectedRows.length === 0 || idsSelecionados.length === 0 || idsSelecionados.length > 1}
+              sx={{
+                backgroundColor: "#2196f3",
+                color: "#fff",
+                fontWeight: "bold",
+                borderRadius: "20px",
+                border: "2px solid #fff",
+                paddingX: 3,
+                "&:hover": {
+                  backgroundColor: "#1976d2",
+                },
+              }}
+            >
+              Visualizar
+            </Button>
+          </ButtonGroup>
 
-        <div className='p-4'>
-          <h3 className='text-lg font-semibold mb-4 text-gray-700'>Filtros:</h3>
-          <div className='flex flex-row justify-between items-start gap-8'>
-            <FormControl component="fieldset">
-              <FormLabel component="legend" sx={{ marginBottom: 1 }}>
-                Status do Pedido
-              </FormLabel>
+          <ButtonGroup>
+            <Button
+              onClick={() => {
+                setTipoModal('CadastroFornecedor');
+                setHandleModal(true);
+                setOrigemDoModal('paginaPedido')
+              }}
+              sx={{
+                backgroundColor: "#f7931e", // laranja
+                color: "#fff",
+                fontWeight: "bold",
+                borderRadius: "20px",
+                border: "2px solid #fff",
+                paddingX: 3,
+                "&:hover": {
+                  backgroundColor: "#e67e00",
+                },
+              }}
+            >
+              Fornecedor
+            </Button>
 
-              <FormGroup row sx={{ gap: 0.5 }}>
-                <FormControlLabel
-                  label="Todos"
-                  control={
-                    <Checkbox
-                      checked={todos}
-                      onChange={(e) => handleTodos(e.target.checked)}
-                    />
-                  }
-                />
+            <Button
+              onClick={() => {
+                navigate('/pagina-inicial'); 
+                fecharPedido();
+                setSelectedRows([]);
+                setIdsSelecionados([]);
+                setStatusAtualPedidoSelecionado('');
 
-                <FormControlLabel
-                  label="Pendente"
-                  control={
-                    <Checkbox
-                      checked={pendente}
+              }}
+              sx={{
+                backgroundColor: "#494949ff", // laranja
+                color: "#fff",
+                fontWeight: "bold",
+                borderRadius: "20px",
+                border: "2px solid #fff",
+                paddingX: 3,
+                "&:hover": {
+                  backgroundColor: "#1d1c1cff",
+                },
+              }}
+            >
+              Sair
+            </Button>
+          </ButtonGroup>
+        </div>
+
+        <div className="p-6 bg-white rounded-xl shadow-md w-full">
+          <h3 className="text-xl font-semibold mb-4 text-gray-700">
+            Filtros
+          </h3>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <FormControl component="fieldset" className="w-full">
+                <FormLabel component="legend" className="font-semibold text-gray-700 mb-2">Status do Pedido</FormLabel>
+
+                <FormGroup className="flex flex-wrap gap-x-4 gap-y-2">
+                  <FormControlLabel label="Todos" control={<Checkbox checked={todos} 
+                    onChange={(e) => handleTodos(e.target.checked)} />}/>
+
+                  <FormControlLabel label="Pendente" control={
+                    <Checkbox checked={pendente} 
                       onChange={(e) => {
                         const checked = e.target.checked;
                         setPendente(checked);
                         atualizarTodos(checked, entregue, entregueParcial, cancelado);
-                      }}
-                    />
-                  }
-                />
+                      }}/>
+                  }/>
 
-                <FormControlLabel
-                  label="Entregue"
-                  control={
-                    <Checkbox
-                      checked={entregue}
+                  <FormControlLabel label="Entregue" control={<Checkbox checked={entregue} 
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setEntregue(checked);
+                      atualizarTodos(pendente, checked, entregueParcial, cancelado);
+                    }} />
+                  }/>
+
+                  <FormControlLabel label="Entregue parcialmente" control={<Checkbox checked={entregueParcial} 
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setEntregueParcial(checked);
+                      atualizarTodos(pendente, entregue, checked, cancelado);
+                    }} />
+                  }/>
+
+                  <FormControlLabel label="Cancelado" control={<Checkbox checked={cancelado} 
                       onChange={(e) => {
-                        const checked = e.target.checked;
-                        setEntregue(checked);
-                        atualizarTodos(pendente, checked, entregueParcial, cancelado);
-                      }}
-                    />
-                  }
-                />
+                      const checked = e.target.checked;
+                      setCancelado(checked);
+                      atualizarTodos(pendente, entregue, entregueParcial, checked);
+                    }} />
+                  }/>
+                </FormGroup>
+              </FormControl>
+            </div>
 
-                <FormControlLabel
-                  label="Entregue parcialmente"
-                  control={
-                    <Checkbox
-                      checked={entregueParcial}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setEntregueParcial(checked);
-                        atualizarTodos(pendente, entregue, checked, cancelado);
-                      }}
-                    />
-                  }
-                />
-
-                <FormControlLabel
-                  label="Cancelado"
-                  control={
-                    <Checkbox
-                      checked={cancelado}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setCancelado(checked);
-                        atualizarTodos(pendente, entregue, entregueParcial, checked);
-                      }}
-                    />
-                  }
-                />
-              </FormGroup>
-            </FormControl>
-
-        
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <FormLabel component="legend" sx={{ whiteSpace: 'nowrap' }}>
-                    Dt. Criação
-                  </FormLabel>
+              <div className="bg-gray-50 p-4 rounded-lg border flex flex-col gap-4">
 
-                  <DatePicker
-                    format="dd/MM/yyyy"
-                    label="Data início"
-                    value={dataFiltroInicioCriacao}
-                    maxDate={dataFiltroFimCriacao || undefined}
-                    slotProps={{
+                <div className="flex flex-col gap-2">
+                  <p className="font-semibold text-gray-700">Dt. Criação</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <DatePicker
+                      format="dd/MM/yyyy"
+                      label="Data início"
+                      value={dataFiltroInicioCriacao}
+                      maxDate={dataFiltroFimCriacao || undefined}
+                      slotProps={{
                       field: {
                         clearable: true, 
                         onClear: () => {setDataFiltroInicioCriacao(null);}, 
                       },
                     }}
-                    onChange={(valor) => {
-                      if (dataFiltroFimCriacao && valor && valor > dataFiltroFimCriacao) {
-                        setAlerta(
-                          alertaMensagem(
+                      onChange={(valor) => {
+                        if (dataFiltroFimCriacao && valor && valor > dataFiltroFimCriacao) {
+                          setAlerta(alertaMensagem(
                             'Data inicial não pode ser maior que a final',
                             'warning',
                             <ReportProblemIcon />
-                          )
-                        );
-                      } else {
-                        setAlerta(null);
-                        setDataFiltroInicioCriacao(valor);
-                      }
-                    }}
-                    sx={{ width: 180 }}
-                  />
+                          ));
+                        } else {
+                          setAlerta(null);
+                          setDataFiltroInicioCriacao(valor);
+                        }
+                      }}
+                    />
 
-                  <DatePicker
-                    format="dd/MM/yyyy"
-                    label="Data fim"
-                    value={dataFiltroFimCriacao}
-                    minDate={dataFiltroInicioCriacao || undefined}
-                    slotProps={{
+                    <DatePicker
+                      format="dd/MM/yyyy"
+                      label="Data fim"
+                      value={dataFiltroFimCriacao}
+                      minDate={dataFiltroInicioCriacao || undefined}
+                      slotProps={{
                       field: {
                         clearable: true, 
                         onClear: () => {setDataFiltroFimCriacao(null);}, 
                       },
                     }}
-                    onChange={(valor) => {
-                      if (dataFiltroInicioCriacao && valor && valor < dataFiltroInicioCriacao) {
-                        setAlerta(
-                          alertaMensagem(
-                            'Data final não pode ser maior que a inicial',
-                            'warning',
-                            <ReportProblemIcon />
-                          )
-                        );
-                      } else {
-                        setAlerta(null);
-                        setDataFiltroFimCriacao(valor);
-                      }
-                    }}
-                    sx={{ width: 180 }}
-                  />
-                </Box>
-              
+                      onChange={(valor) => {
+                        if (dataFiltroInicioCriacao && valor && valor < dataFiltroInicioCriacao) {
+                          setAlerta(alertaMensagem('Data final não pode ser maior que a inicial','warning',<ReportProblemIcon />));
+                        } else {
+                          setAlerta(null);
+                          setDataFiltroFimCriacao(valor);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <FormLabel component="legend" sx={{ whiteSpace: 'nowrap' }}>
-                    Dt. Efetivação
-                  </FormLabel>
-
-                  <DatePicker
-                    format="dd/MM/yyyy"
-                    label="Data início"
-                    value={dataFiltroInicioEfetiv}
-                    maxDate={dataFiltroFimEfetiv || undefined}
-                    slotProps={{
+                <div className="flex flex-col gap-2">
+                  <p className="font-semibold text-gray-700">Dt. Efetivação</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <DatePicker
+                      format="dd/MM/yyyy"
+                      label="Data início"
+                      value={dataFiltroInicioEfetiv}
+                      maxDate={dataFiltroFimEfetiv || undefined}
+                      slotProps={{
                       field: {
                         clearable: true, 
                         onClear: () => {setDataFiltroInicioEfetiv(null);}, 
                       },
                     }}
-                    onChange={(valor) => {
-                      if (dataFiltroFimEfetiv && valor && valor > dataFiltroFimEfetiv) {
-                        setAlerta(
-                          alertaMensagem(
-                            'Data inicial não pode ser maior que a final',
-                            'warning',
-                            <ReportProblemIcon />
-                          )
-                        );
-                      } else {
-                        setAlerta(null);
-                        setDataFiltroInicioEfetiv(valor);
-                      }
-                    }}
-                    sx={{ width: 180 }}
-                  />
+                      onChange={(valor) => {
+                        if (dataFiltroFimEfetiv && valor && valor > dataFiltroFimEfetiv) {
+                          setAlerta(alertaMensagem('Data inicial não pode ser maior que a final','warning',<ReportProblemIcon />));
+                        } else {
+                          setAlerta(null);
+                          setDataFiltroInicioEfetiv(valor);
+                        }
+                      }}
+                    />
 
-                  <DatePicker
-                    format="dd/MM/yyyy"
-                    label="Data fim"
-                    value={dataFiltroFimEfetiv}
-                    minDate={dataFiltroInicioEfetiv || undefined}
-                    slotProps={{
+                    <DatePicker
+                      format="dd/MM/yyyy"
+                      label="Data fim"
+                      value={dataFiltroFimEfetiv}
+                      minDate={dataFiltroInicioEfetiv || undefined}
+                      slotProps={{
                       field: {
                         clearable: true, 
                         onClear: () => {setDataFiltroFimCEfetiv(null);}, 
                       },
                     }}
-                    onChange={(valor) => {
-                      if (dataFiltroInicioEfetiv && valor && valor < dataFiltroInicioEfetiv) {
-                        setAlerta(
-                          alertaMensagem(
-                            'Data final não pode ser maior que a inicial',
-                            'warning',
-                            <ReportProblemIcon />
-                          )
-                        );
-                      } else {
-                        setAlerta(null);
-                        setDataFiltroFimCEfetiv(valor);
-                      }
+                      onChange={(valor) => {
+                        if (dataFiltroInicioEfetiv && valor && valor < dataFiltroInicioEfetiv) {
+                          setAlerta(alertaMensagem('Data final não pode ser maior que a inicial','warning',<ReportProblemIcon />
+                          ));
+                        } else {
+                          setAlerta(null);
+                          setDataFiltroFimCEfetiv(valor);
+                        }
+                      }}
+                      
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <p className="font-semibold text-gray-700">Dt. Cancelamento</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <DatePicker
+                      format="dd/MM/yyyy"
+                      label="Data início"
+                      value={dataFiltroInicioCancelamento}
+                      maxDate={dataFiltroFimCancelamento || undefined}
+                      slotProps={{
+                      field: {
+                        clearable: true, 
+                        onClear: () => {setDataFiltroInicioCancelamento(null);}, 
+                      },
                     }}
-                    sx={{ width: 180 }}
-                  />
-                </Box>
-            </Box>
+                      onChange={(valor) => {
+                        if (dataFiltroFimCancelamento && valor && valor > dataFiltroFimCancelamento) 
+                          {setAlerta(alertaMensagem('Data inicial não pode ser maior que a final','warning',<ReportProblemIcon />
+                          ));
+                        } else {
+                          setAlerta(null);
+                          setDataFiltroInicioCancelamento(valor);
+                        }
+                      }}
+                      
+                    />
 
+                    <DatePicker
+                      format="dd/MM/yyyy"
+                      label="Data fim"
+                      value={dataFiltroFimCancelamento}
+                      minDate={dataFiltroInicioCancelamento || undefined}
+                      slotProps={{
+                      field: {
+                        clearable: true, 
+                        onClear: () => {setDataFiltroFimCancelamento(null);}, 
+                      },
+                    }}
+                      onChange={(valor) => {
+                        if (dataFiltroInicioCancelamento && valor && valor < dataFiltroInicioCancelamento) {
+                          setAlerta(alertaMensagem('Data final não pode ser maior que a inicial','warning',<ReportProblemIcon />));
+                        } else {
+                          setAlerta(null);
+                          setDataFiltroFimCancelamento(valor);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+              </div>
             </LocalizationProvider>
-          </div>
-        </div>
 
+          </div>
+
+          <div className="mt-6">
+            <FormControl fullWidth>
+              <InputLabel id="fornecedor-label">Selecione o fornecedor</InputLabel>
+              <Select
+                labelId="fornecedor-label"
+                id="fornecedor-select"
+                value={fornecedorFiltro}
+                label="Selecione o fornecedor"
+                onChange={(e) => setFornecedorFiltro(e.target.value)}>
+                <MenuItem value="Todos">Todos</MenuItem>
+                {listaFornecedores.map((f) => (
+                  <MenuItem key={f.id} value={f.nome}>{f.nome}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+
+        <Button variant="contained" className="mt-6"> Salvar Filtro</Button>
+        </div>
       </div>
-      
 
       <Box sx={{ height: 400, width: '100%' }}>
         <DataGrid
@@ -1391,8 +1514,8 @@ if (loading){
             {pagination: CustomPagination}
           }
           onRowSelectionModelChange={(newSelection) => {
-          const idsSelecionados = Array.from(newSelection.ids)
 
+          const idsSelecionados = Array.from(newSelection.ids)
           const selecionados = linhas.filter((linha) => idsSelecionados.includes(linha.id))
 
           setSelectedRows(selecionados)
@@ -1411,7 +1534,7 @@ if (loading){
       </Box>
     </div>
 
-    <ModalMov/>
+    <ModalMov atualizarPedidos={fetchListaPedidosCompra}/>
 
     {cardAberto && (
       <Box sx={{  position: 'fixed',top: '50%',left: '50%',transform: 'translate(-50%, -50%)',zIndex: 1301,bgcolor: '#FDEFD6', boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',borderRadius: '16px',width: '650px',padding: 3,border: '2px solid #f7d9a8', display: 'flex',flexDirection: 'column',gap: 2,animation: 'fadeIn 0.3s ease-in-out','@keyframes fadeIn': {from: { opacity: 0, transform: 'translate(-50%, -45%)' },to: { opacity: 1, transform: 'translate(-50%, -50%)' },},}}>
