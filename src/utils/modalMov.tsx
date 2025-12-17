@@ -416,9 +416,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
           return;
       }
 
-      const timeZone = 'America/Sao_Paulo';
-      const agora = new Date();
-      const dtCriacao = toZonedTime(new Date(agora),timeZone);
+      const dtCriacao = new Date().toISOString();
 
       const pedidoNovo = {       
         data_criacao: dtCriacao, 
@@ -704,7 +702,6 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
       gerarRelatorioPDF(relatorioFiltrado, tipoMovSelecionado,movimentacaoSelecionada,dataInicio, dataFim);
 
     } catch (error) {
-      console.error("Erro ao gerar relatorio:", error);
       setAlertaAddProduto(alertaMensagem("Erro ao gerar relatorio", "error", <ReportProblemIcon/>));
     }   
   }

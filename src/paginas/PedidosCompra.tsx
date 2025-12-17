@@ -29,6 +29,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale/pt-BR'
+import {gerarFiltrosListaPedidosPDF} from '../utils/gerarFiltrosListaPedidosPDF.ts'
 
 
 
@@ -70,7 +71,7 @@ const [dataFiltroInicioEfetiv, setDataFiltroInicioEfetiv] = useState<Date | null
 const [dataFiltroFimEfetiv, setDataFiltroFimCEfetiv] = useState<Date | null>(null);
 const [dataFiltroInicioCancelamento, setDataFiltroInicioCancelamento] = useState<Date | null>(null);
 const [dataFiltroFimCancelamento, setDataFiltroFimCancelamento] = useState<Date | null>(null);
-const [fornecedorFiltro, setFornecedorFiltro] = useState<String>('Todos');
+const [fornecedorFiltro, setFornecedorFiltro] = useState<string>('Todos');
 
 const conexaoInternet = StatusServidorContext?.conexaoInternet;
 const servidorOnline = StatusServidorContext?.servidorOnline;
@@ -282,7 +283,6 @@ const atualizarLista = () =>{
     const fimCanc = dataFiltroFimCancelamento ? new Date(new Date(dataFiltroFimCancelamento).setHours(23,59,59,999)) : null
 
     //-------------------
-
 
     const dataCriacao = new Date(pedido.data_criacao);
 
@@ -531,6 +531,16 @@ const handlecriarPedido = () => {
 const abrirPedido = async (pedidoId: number) => {
 
   setAlerta(null);
+  
+  if(!conexaoInternet ){
+      setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+      return;
+  }
+  
+  if(!servidorOnline){
+    setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+    return;
+  }
 
   const {data: {session}} = await supabase.auth.getSession();
   const token = session?.access_token;
@@ -634,6 +644,16 @@ const abrirPedido = async (pedidoId: number) => {
 const efetivarPedido = async (pedidoId: number) => {
   const {data: {session}} = await supabase.auth.getSession();
   const token = session?.access_token;
+
+   if(!conexaoInternet ){
+      setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+      return;
+  }
+  
+  if(!servidorOnline){
+    setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+    return;
+  }
   
   if (!token) {
     setAlerta(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
@@ -738,6 +758,18 @@ const efetivarPedido = async (pedidoId: number) => {
 }
 
 const visualizarPedido = async (pedidoId: number) => {
+
+  
+  if(!conexaoInternet ){
+      setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+      return;
+  }
+  
+  if(!servidorOnline){
+    setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
   const {data: {session}} = await supabase.auth.getSession();
   const token = session?.access_token;
   
@@ -829,6 +861,17 @@ const cancelamentoPedido = async () =>{
   }
 
   setOpenCancelamento(false);
+
+  
+  if(!conexaoInternet ){
+      setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+      return;
+  }
+  
+  if(!servidorOnline){
+    setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+    return;
+  }
 
   const {data: {session}} = await supabase.auth.getSession();
   const token = session?.access_token;
@@ -946,6 +989,17 @@ const cancelamentoPedido = async () =>{
 }
 
 const excluirPedido = async (pedidosId: number[]) =>{
+
+  if(!conexaoInternet ){
+      setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+      return;
+  }
+  
+  if(!servidorOnline){
+    setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
   const {data: {session}} = await supabase.auth.getSession();
   const token = session?.access_token;
   
@@ -1052,6 +1106,65 @@ const handleTodos = (checked: boolean) =>{
 
 const atualizarTodos = (pendente: boolean, entregue: boolean, entregueParcial: boolean, cancelado: boolean) => {
   setTodos(pendente && entregue && entregueParcial && cancelado);
+}
+
+const salvarFiltro = async () =>{
+
+  const {data: {session}} = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if(!conexaoInternet ){
+      setAlerta(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+      return;
+  }
+  
+  if(!servidorOnline){
+    setAlerta(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+    return;
+  }
+  
+  if (!token) {
+    setAlerta(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+    return;
+  }
+  
+  if (!session){
+    setAlerta(alertaMensagem('Faça login para excluir o pedido.', 'warning', <ReportProblemIcon/>));
+    return;
+  }
+
+  const filtrosUtilizados = {
+    status:{
+      todos,
+      pendente,
+      entregue,
+      entregueParcial,
+      cancelado
+    },
+    datas:{
+      criacao:{
+        inicio: dataFiltroInicioCriacao,
+        fim: dataFiltroFimCriacao
+      },
+      efetivacao:{
+        inicio: dataFiltroInicioEfetiv,
+        fim: dataFiltroFimEfetiv
+      },
+      cancelamento:{
+        inicio: dataFiltroInicioCancelamento,
+        fim: dataFiltroFimCancelamento
+      }
+    },
+    fornecedor: fornecedorFiltro
+  };
+
+  try{
+
+    gerarFiltrosListaPedidosPDF(listaPedidoFiltrados, filtrosUtilizados);
+
+  } catch(error){
+    setAlerta(alertaMensagem("Erro ao gerar relatorio", "error", <ReportProblemIcon/>));
+  }
 }
 
 function CustomPagination() {
@@ -1308,7 +1421,6 @@ if (loading){
                       atualizarTodos(pendente, entregue, checked, cancelado);
                     }} />
                   }/>
-
                   <FormControlLabel label="Cancelado" control={<Checkbox checked={cancelado} 
                       onChange={(e) => {
                       const checked = e.target.checked;
@@ -1494,7 +1606,7 @@ if (loading){
             </FormControl>
           </div>
 
-        <Button variant="contained" className="mt-6"> Salvar Filtro</Button>
+        <Button onClick={salvarFiltro} variant="contained" className="mt-6"> Salvar Filtro</Button>
         </div>
       </div>
 

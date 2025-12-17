@@ -33,11 +33,11 @@ export const gerarVisualizacaoPedidoPDF = (pedido: iPedido) => {
   doc.text(`Data do Pedido: ${dtPedido.toLocaleDateString('pt-BR')} - ${dtPedido.toLocaleTimeString('pt-BR')}`, 14, 56);
   if(data_efetivacao){
     const dtEfetivacao = new Date(data_efetivacao);
-    doc.text(`Data de Efetivação: ${dtEfetivacao.toLocaleDateString('pt-BR')} - ${dtEfetivacao.toLocaleTimeString('pt-BR')}`, 14, 63);
+    doc.text(`Data de Efetivação: ${dtEfetivacao.toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo'})} - ${dtEfetivacao.toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo'})}`, 14, 63);
   }
   if(data_cancelamento){
     const dtCancelamento = new Date(data_cancelamento);
-    doc.text(`Data de cancelamento: ${dtCancelamento.toLocaleDateString('pt-BR')} - ${dtCancelamento.toLocaleTimeString('pt-BR')}`, 14, 70);
+    doc.text(`Data de cancelamento: ${dtCancelamento.toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo'})} - ${dtCancelamento.toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo'})}`, 14, 70);
   }
 
   (doc as any).autoTable({

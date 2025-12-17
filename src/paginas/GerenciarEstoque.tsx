@@ -10,8 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { useEstoque } from '../context/EstoqueProvider.tsx'
 import { useInternet } from '../context/StatusServidorProvider.tsx';
 
-
-
 const GerenciarEstoque = () => {
 
   const {setEstoqueId} = useContext(AppContext);
