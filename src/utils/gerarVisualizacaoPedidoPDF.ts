@@ -8,7 +8,7 @@ export const gerarVisualizacaoPedidoPDF = (pedido: iPedido) => {
   const nomeFornecedor = fornecedor ? fornecedor.nome : 'N/A';
 
   const doc = new jsPDF();
-  // const timeZone = 'America/Sao_Paulo';
+  const timeZone = {timeZone:'America/Sao_Paulo'};
   // const dtPedido = toZonedTime(new Date(dataPedido),timeZone);
 
   doc.setFontSize(20);
@@ -29,15 +29,15 @@ export const gerarVisualizacaoPedidoPDF = (pedido: iPedido) => {
   doc.text(`Pedido Nº: ${pedidoId}`, 14, 35);
   doc.text(`Status: ${statusFormatado}`, 14, 42);
   doc.text(`Fornecedor: ${nomeFornecedor}`, 14, 49);
-  const dtPedido = new Date(data_criacao);
-  doc.text(`Data do Pedido: ${dtPedido.toLocaleDateString('pt-BR')} - ${dtPedido.toLocaleTimeString('pt-BR')}`, 14, 56);
+  const dtPedido = new Date(data_criacao + 'Z');
+  doc.text(`Data de Criação: ${dtPedido.toLocaleDateString('pt-BR', timeZone)} - ${dtPedido.toLocaleTimeString('pt-BR', timeZone)}`, 14, 56);
   if(data_efetivacao){
-    const dtEfetivacao = new Date(data_efetivacao);
-    doc.text(`Data de Efetivação: ${dtEfetivacao.toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo'})} - ${dtEfetivacao.toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo'})}`, 14, 63);
+    const dtEfetivacao = new Date(data_efetivacao + 'Z');
+    doc.text(`Data de Efetivação: ${dtEfetivacao.toLocaleDateString('pt-BR', timeZone)} - ${dtEfetivacao.toLocaleTimeString('pt-BR', timeZone)}`, 14, 63);
   }
   if(data_cancelamento){
-    const dtCancelamento = new Date(data_cancelamento);
-    doc.text(`Data de cancelamento: ${dtCancelamento.toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo'})} - ${dtCancelamento.toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo'})}`, 14, 70);
+    const dtCancelamento = new Date(data_cancelamento + 'Z');
+    doc.text(`Data de cancelamento: ${dtCancelamento.toLocaleDateString('pt-BR', timeZone)} - ${dtCancelamento.toLocaleTimeString('pt-BR', timeZone)}`, 14, 70);
   }
 
   (doc as any).autoTable({
