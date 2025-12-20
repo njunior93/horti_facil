@@ -28,7 +28,6 @@ interface ModalMovProps{
   atualizarPedidos?: () => void;
 }
 
-
 const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
 
     const {handleModal, setHandleModal} = useContext(AppContext);
@@ -56,7 +55,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     const [errorCel, setErrorCel] = useState(false);
     const [errorEmail, setErrorEmail] = useState(false);
     const [notiEmail, setNotiEmail] = useState(false);
-    const [notiWhats, setNotiWhats] = useState(false);
+    // const [notiWhats, setNotiWhats] = useState(false);
     const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
     const [iDfornecedorSelecionado, setiDFornecedorSelecionado] = useState<string>('');
     const {listaPedidosCompra, setListaPedidosCompra} = useContext(AppContext);
@@ -67,8 +66,6 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     const existeEstoque = estoqueContext?.existeEstoque;
     const conexaoInternet = StatusServidorContext?.conexaoInternet;
     const servidorOnline = StatusServidorContext?.servidorOnline;
-
-    
 
   setTimeout(() =>{
     if(alertaAddProduto){
@@ -171,7 +168,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     setErrorCel(false);
     setErrorEmail(false);
     setNotiEmail(false);
-    setNotiWhats(false);
+    // setNotiWhats(false);
     setHandleModal(false)
     setTipoModal("");
     setProdutoSelecionado(null)
@@ -205,7 +202,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     setErrorCel(false);
     setErrorEmail(false);
     setNotiEmail(false);
-    setNotiWhats(false);
+    // setNotiWhats(false);
     if(origemDoModal === 'modalCriarPedido'){
       setTipoModal('CriarPedidoCompra');
     }else{
@@ -430,9 +427,9 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
       };
 
       try {
-        const response = await axios.post('http://localhost:3000/pedido/criar-pedido', pedidoNovo,
+        const response = await axios.post('http://localhost:3000/pedido/criar-pedido',pedidoNovo,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         const pedidoCriado: iPedido = response.data;
@@ -539,7 +536,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
         whatsApp: celular,
         email: email,
         noti_email: notiEmail,
-        noti_whatsapp: notiWhats
+        noti_whatsapp: false
       }
 
       try {
@@ -605,7 +602,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
       setErrorCel(false);
       setErrorEmail(false);
       setNotiEmail(false);
-      setNotiWhats(false);
+      // setNotiWhats(false);
       if(origemDoModal === 'modalCriarPedido'){
         setTipoModal('CriarPedidoCompra');
       }else{
@@ -709,16 +706,16 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
   const checkNotificacao = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.checked;
     setNotiEmail(value);
-    setNotiWhats(value);
+    // setNotiWhats(value);
   };
 
   const checkEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNotiEmail(event.target.checked);
   };
 
-  const checkWhats = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNotiWhats(event.target.checked);
-  };
+  // const checkWhats = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setNotiWhats(event.target.checked);
+  // };
 
   const inputTelefone = (value: string) => {
     const somenteNumeros = value.replace(/\D/g, "");
@@ -787,8 +784,8 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     setErrorEmail(!regex.test(email));
   }
 
-  const todosNotificacoes = notiEmail && notiWhats; 
-  const algumaNotificacao = notiEmail || notiWhats;
+  const todosNotificacoes = notiEmail /*&& notiWhats*/; 
+  const algumaNotificacao = notiEmail /*|| notiWhats*/;
 
   const children = (
     <Box sx={{ display: 'flex', flexDirection: 'row', ml: 3 }}>
@@ -796,9 +793,9 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
         label="Email"
         control={<Checkbox checked={notiEmail} onChange={checkEmail} />}
       />
-      <FormControlLabel disabled={!razaoSocial}
+      <FormControlLabel disabled={true}
         label="WhatsApp"
-        control={<Checkbox checked={notiWhats} onChange={checkWhats} />}
+        control={<Checkbox /*checked={notiWhats} onChange={checkWhats}*/ />}
       />
     </Box>
   );
@@ -851,7 +848,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                               <Tooltip
                                 title={
                                   <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>
-                                    Ao finalizar um pedido de compra, o fornecedor pode ser notificado por e-mail ou WhatsApp.<br />
+                                    Ao finalizar um pedido de compra, o fornecedor pode ser notificado por e-mail ou WhatsApp (Notificação por Whatsapp esta em processo de desenvolvimento).<br />
                                     Para isso, ative a opção desejada e certifique-se de que os campos de e-mail e celular estão preenchidos corretamente.
                                   </span>
                                 }

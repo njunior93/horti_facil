@@ -6,7 +6,6 @@ import alertaMensagem from "../utils/alertaMensagem";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
-import axios from "axios";
 import { useInternet} from '../context/StatusServidorProvider.tsx';
 import { useEstoque } from '../context/EstoqueProvider.tsx'
 
@@ -25,7 +24,6 @@ const PaginalInicial = () => {
   const existeEstoque = estoqueContext?.existeEstoque;
   const verificarInternet = StatusServidorContext?.conexaoInternet;
   const verificarServidor = StatusServidorContext?.servidorOnline;
-
 
   const dadosUsuario: any | undefined = session?.user.user_metadata;
 

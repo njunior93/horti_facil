@@ -362,7 +362,7 @@ const ListaFornecedor = () => {
                  </TextField>
 
                  <FormGroup>
-                    <FormControlLabel control={<input type="checkbox" checked={noti_whatsapp} onChange={(e) => setNoti_whatsapp(e.target.checked)} />} label="Notificação por WhatsApp" />
+                    <FormControlLabel control={<input type="checkbox" disabled={true} checked={noti_whatsapp} onChange={(e) => setNoti_whatsapp(e.target.checked)} />} label="Notificação por WhatsApp" />
                     <FormControlLabel control={<input type="checkbox" checked={noti_email} onChange={(e) => setNoti_email(e.target.checked)} />} label="Notificação por Email" />
                  </FormGroup>
                           

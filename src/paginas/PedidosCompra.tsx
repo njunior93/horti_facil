@@ -31,8 +31,6 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale/pt-BR'
 import {gerarFiltrosListaPedidosPDF} from '../utils/gerarFiltrosListaPedidosPDF.ts'
 
-
-
 const PedidosCompra = () => {
 
 const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
@@ -1686,6 +1684,7 @@ if (loading){
               slots={{pagination: CustomPagination}}
               disableColumnSorting={true}
               disableColumnMenu={true}
+              checkboxSelection={false}
               disableRowSelectionOnClick/>
 
               <Stack direction="row" justifyContent="flex-end" spacing={2}>
