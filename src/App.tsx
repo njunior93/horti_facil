@@ -1,10 +1,10 @@
 import './App.css'
-import PaginaInicial from './paginas/PaginalInicial';
+import PaginaLogin from './pages/PaginaLogin';
 
 function App() {
   return (
     <>
-        <PaginaInicial />   
+        <PaginaLogin />
     </>
   )
 }

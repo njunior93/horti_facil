@@ -1,13 +1,12 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import type { iProdutoMov } from '../type/iProdutoMov';
+import type { iProdutoMov } from '../shared/type/iProdutoMov';
 import { toZonedTime } from 'date-fns-tz';
 
 
 export const gerarRelatorioPDF = (listaDeProdutosMov: iProdutoMov[], tipoMovSelecionado: string,movimentacaoSelecionada: string, dataInicio: Date, dataFim: Date) => {
 
     const doc = new jsPDF();
-    // const alturaPagina = doc.internal.pageSize.getHeight();
     const timeZone = 'America/Sao_Paulo';
 
     doc.text("Relatório de Movimentações de Estoque", 14, 20);
@@ -36,33 +35,33 @@ export const gerarRelatorioPDF = (listaDeProdutosMov: iProdutoMov[], tipoMovSele
         if (tipoMovSelecionado === 'Entrada') {
           return [
             produto.produto.nome,
-            produto.produto.estoque,
+            produto.saldo_anterior,
             produto.qtdMov.toString(),
             produto.tipoEntrada || '',
             new Date(produto.dataMov).toLocaleDateString(),
             new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            (produto.produto.estoque ?? 0) + produto.qtdMov
+            produto.saldo_atual
           ];
         } else if (tipoMovSelecionado === 'Saída') {
           return [
             produto.produto.nome,
-            produto.produto.estoque,
+            produto.saldo_anterior,
             produto.qtdMov.toString(),
             produto.tipoSaida || '',
             new Date(produto.dataMov).toLocaleDateString(),
-             new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            (produto.produto.estoque ?? 0) - produto.qtdMov
+            new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            produto.saldo_atual
           ];
         } else {
           return [
             produto.produto.nome,
-            produto.produto.estoque,
+            produto.saldo_anterior,
             produto.qtdMov.toString(),
             produto.tipoSaida || '',
             produto.tipoEntrada || '',
             new Date(produto.dataMov).toLocaleDateString(),
              new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            (produto.produto.estoque ?? 0) + (produto.tipoMov === 'Entrada' ? produto.qtdMov : -produto.qtdMov)
+            produto.saldo_atual
           ];
         }
       });
@@ -100,30 +99,30 @@ export const gerarRelatorioPDF = (listaDeProdutosMov: iProdutoMov[], tipoMovSele
 
     doc.setFontSize(10);
     if (movimentacaoSelecionada === 'Entrada Manual' ) { 
-      doc.text ('Total de Entradas (Manuais): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Entrada' && produto.tipoEntrada === 'Manual').length, 14, finalY + 10);   
-      doc.text ('Quantidade Total de Movimentações: ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Entrada' && produto.tipoEntrada === 'Manual').reduce((total, produto) => total + produto.qtdMov, 0), 132, finalY + 10);
+      doc.text ('Total de Entradas (Manuais): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'entrada' && produto.tipoEntrada === 'Manual').length, 14, finalY + 10);   
+      doc.text ('Quantidade Total de Movimentações: ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'entrada' && produto.tipoEntrada === 'Manual').reduce((total, produto) => total + produto.qtdMov, 0), 132, finalY + 10);
     } else if (movimentacaoSelecionada === 'Entrada Pedido') {
-      doc.text ('Total de Entradas (Pedido): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Entrada' && produto.tipoEntrada === 'Pedido').length, 14, finalY + 10);
-      doc.text ('Quantidade Total de Movimentações: ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Entrada' && produto.tipoEntrada === 'Pedido').reduce((total, produto) => total + produto.qtdMov, 0), 132, finalY + 10);
+      doc.text ('Total de Entradas (Pedido): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'entrada' && produto.tipoEntrada === 'Pedido').length, 14, finalY + 10);
+      doc.text ('Quantidade Total de Movimentações: ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'entrada' && produto.tipoEntrada === 'Pedido').reduce((total, produto) => total + produto.qtdMov, 0), 132, finalY + 10);
    
     }
 
     if (movimentacaoSelecionada === 'Saída Manual - AVARIA') {
-      doc.text ('Total de Saídas (Avaria): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Saída' && produto.tipoSaida === 'Avaria').length, 14, finalY + 10);
-      doc.text ('Quantidade Total de Movimentações: ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Saída' && produto.tipoSaida === 'Avaria').reduce((total, produto) => total + produto.qtdMov, 0), 132, finalY + 10);
+      doc.text ('Total de Saídas (Avaria): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'saida' && produto.tipoSaida === 'Avaria').length, 14, finalY + 10);
+      doc.text ('Quantidade Total de Movimentações: ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'saida' && produto.tipoSaida === 'Avaria').reduce((total, produto) => total + produto.qtdMov, 0), 132, finalY + 10);
 
     } else if (movimentacaoSelecionada === 'Saída Manual - VENDA') {
-      doc.text ('Total de Saídas (Venda): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Saída' && produto.tipoSaida === 'Venda').length, 14, finalY + 10);
-      doc.text ('Quantidade Total de Movimentações: ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Saída' && produto.tipoSaida === 'Venda').reduce((total, produto) => total + produto.qtdMov, 0), 132, finalY + 10);
+      doc.text ('Total de Saídas (Venda): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'saida' && produto.tipoSaida === 'Venda').length, 14, finalY + 10);
+      doc.text ('Quantidade Total de Movimentações: ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'saida' && produto.tipoSaida === 'Venda').reduce((total, produto) => total + produto.qtdMov, 0), 132, finalY + 10);
 
     }
 
     if (movimentacaoSelecionada === 'Todas as movimentações') {
       doc.text ('Total de Movimentações: ' + listaDeProdutosMov.length, 14, finalY + 10);
-      doc.text ('Total de Entradas (Manuais): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Entrada' && produto.tipoEntrada === 'Manual').length, 14, finalY + 15);   
-      doc.text ('Total de Entradas (Pedido): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Entrada' && produto.tipoEntrada === 'Pedido').length, 14, finalY + 20);
-      doc.text ('Total de Saídas (Avaria): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Saída' && produto.tipoSaida === 'Avaria').length, 14, finalY + 25);
-      doc.text ('Total de Saídas (Venda): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'Saída' && produto.tipoSaida === 'Venda').length, 14, finalY + 30);
+      doc.text ('Total de Entradas (Manuais): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'entrada' && produto.tipoEntrada === 'Manual').length, 14, finalY + 15);   
+      doc.text ('Total de Entradas (Pedido): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'entrada' && produto.tipoEntrada === 'Pedido').length, 14, finalY + 20);
+      doc.text ('Total de Saídas (Avaria): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'saida' && produto.tipoSaida === 'Avaria').length, 14, finalY + 25);
+      doc.text ('Total de Saídas (Venda): ' + listaDeProdutosMov.filter(produto => produto.tipoMov === 'saida' && produto.tipoSaida === 'Venda').length, 14, finalY + 30);
       doc.text ('Quantidade Total de Movimentações: ' + listaDeProdutosMov.reduce((total, produto) => total + produto.qtdMov, 0), 132, finalY + 35);
     }
     
