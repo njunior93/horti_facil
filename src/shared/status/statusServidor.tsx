@@ -22,43 +22,6 @@ export const StatusServidor = () => {
 
   const { servidorOnline, conexaoInternet } = context;
 
-  // const getStatus = () =>{
-  //   if (!conexaoInternet){
-  //     return {
-  //       cor: "#f44336",
-  //       texto: "Sem conexão com a Internet",
-  //       icone: <WifiOff fontSize="small" />, 
-  //     }
-  //   }
-
-  //   if (!servidorOnline){
-  //     return {
-  //       cor: "#f44336",
-  //       texto: "Sem conexão com o servidor",
-  //       icone: <CloudOff fontSize="small" />,
-  //     }
-
-  //     return {
-  //       cor: "#4caf50",
-  //       texto: "Conectado",
-  //       icone: <CloudDone fontSize="small" />,
-  //     }
-  //   }
-  // }
-
-  // const status = getStatus();
-
-  // const sair = () =>{
-  //   setListaProdutoEstoque([]);
-  //   setContQtdEstoque(0);
-  //   navigate("/pagina-inicial")
-  //   setTipoInput("auto");
-  // }
-
-  // const recarregarPagina = () =>{
-  //   window.location.reload();
-  // }
-
   return (
     // <Backdrop sx={{ color: '#f5880bff', zIndex: (theme) => theme.zIndex.drawer + 1 }}open={!conexaoInternet || !servidorOnline}>
 
