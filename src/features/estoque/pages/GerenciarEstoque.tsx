@@ -8,18 +8,18 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { useEstoque } from '../provider/EstoqueProvider.tsx';
-import { useInternet } from '../../../providers/StatusServidorProvider';
+// import { useInternet } from '../../../providers/StatusServidorProvider';
 
 const GerenciarEstoque = () => {
 
   const {setEstoqueId} = useContext(AppContext);
-  const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
+  const [, setAlerta] = useState<React.ReactNode | null>(null);
   const {estoqueSalvo,setEstoqueSalvo} = useContext(AppContext);
   const navigate = useNavigate();
-  const [loadingProdutos, setLoadingProdutos] = useState(false)
+  const [, setLoadingProdutos] = useState(false)
 
   const estoqueContext = useEstoque();
-  const servidorContext = useInternet();
+  // const servidorContext = useInternet();
   const verificarEstoque = estoqueContext?.verificarEstoque;
   const existeEstoque = estoqueContext?.existeEstoque;
   const loading = estoqueContext?.loading;

@@ -16,7 +16,7 @@ export const EstoqueContext = createContext<EstoqueContextType | undefined>(unde
 export const EstoqueProvider = ({ children }: { children: React.ReactNode }) => {
   const [existeEstoque, setExisteEstoque] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
-  const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
+  const [, setAlerta] = useState<React.ReactNode | null>(null);
   
     const verificarEstoque = useCallback(async () =>{
 

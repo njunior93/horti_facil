@@ -60,10 +60,10 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     const [iDfornecedorSelecionado, setiDFornecedorSelecionado] = useState<string>('');
     const {listaPedidosCompra, setListaPedidosCompra} = useContext(AppContext);
     const StatusServidorContext = useInternet();
-    const estoqueContext = useEstoque();
-    const {origemDoModal, setOrigemDoModal} = useContext(AppContext);
+    // const estoqueContext = useEstoque();
+    const {origemDoModal} = useContext(AppContext);
 
-    const existeEstoque = estoqueContext?.existeEstoque;
+    // const existeEstoque = estoqueContext?.existeEstoque;
     const conexaoInternet = StatusServidorContext?.conexaoInternet;
     const servidorOnline = StatusServidorContext?.servidorOnline;
 

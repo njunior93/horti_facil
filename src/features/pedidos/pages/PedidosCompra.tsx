@@ -47,7 +47,7 @@ const [alerta, setAlerta] = useState<React.ReactNode | null>(null);
 const navigate = useNavigate();
 const [cardAberto, setCardAberto] = useState(false);
 const [pedidoSelecionado, setPedidoSelecionado,] = useState<iPedido>()
-const [btnOperacao, setbtnOperacao] = useState<'efetivar' | 'cancelar' | 'visualizar'>()
+const [, setbtnOperacao] = useState<'efetivar' | 'cancelar' | 'visualizar'>()
 const [linhaPedidoItens, setLinhaPedidoItens] = useState<LinhaItem[]>([]);
 const [isLoadingItems, setIsLoadingItems] = useState(true);
 const estoqueContext = useEstoque();
@@ -56,7 +56,7 @@ const [statusPedido, setStatusPedido] = useState<string>('pendente');
 const [statusAtualPedidoSelecionado, setStatusAtualPedidoSelecionado] = useState<string>('');
 const [openCancelamento, setOpenCancelamento] = useState(false);
 const [pedidoIdParaCancelar, setPedidoIdParaCancelar] = useState<number | null>(null);
-const {origemDoModal, setOrigemDoModal} = useContext(AppContext);
+const {setOrigemDoModal} = useContext(AppContext);
 
 const [todos, setTodos] = useState(true);
 const [pendente, setPendente] = useState(true);
@@ -1179,7 +1179,7 @@ function CustomPagination() {
       count={pageCount}
       // @ts-expect-error
       renderItem={(props2) => <PaginationItem {...props2} disableRipple />}
-      onChange={(event: React.ChangeEvent<unknown>, value: number) =>
+      onChange={(_event: React.ChangeEvent<unknown>, value: number) =>
         apiRef.current.setPage(value - 1)
       }
     />

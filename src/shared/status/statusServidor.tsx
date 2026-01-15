@@ -14,13 +14,13 @@ export const StatusServidor = () => {
   const{setTipoInput} = useContext(AppContext);
   const context = useContext(StatusServidorContext)
 
-  const telaPrincipal = location.pathname === "/pagina-inicial"
+  // const telaPrincipal = location.pathname === "/pagina-inicial"
 
   if (!context) {
     throw new Error("StatusServidor deve ser usado dentro de StatusServidorProvider");
   }
 
-  const { servidorOnline, sessaoAtiva, conexaoInternet } = context;
+  const { servidorOnline, conexaoInternet } = context;
 
   const getStatus = () =>{
     if (!conexaoInternet){
@@ -46,18 +46,18 @@ export const StatusServidor = () => {
     }
   }
 
-  const status = getStatus();
+  // const status = getStatus();
 
-  const sair = () =>{
-    setListaProdutoEstoque([]);
-    setContQtdEstoque(0);
-    navigate("/pagina-inicial")
-    setTipoInput("auto");
-  }
+  // const sair = () =>{
+  //   setListaProdutoEstoque([]);
+  //   setContQtdEstoque(0);
+  //   navigate("/pagina-inicial")
+  //   setTipoInput("auto");
+  // }
 
-  const recarregarPagina = () =>{
-    window.location.reload();
-  }
+  // const recarregarPagina = () =>{
+  //   window.location.reload();
+  // }
 
   return (
     // <Backdrop sx={{ color: '#f5880bff', zIndex: (theme) => theme.zIndex.drawer + 1 }}open={!conexaoInternet || !servidorOnline}>

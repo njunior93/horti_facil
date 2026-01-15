@@ -22,7 +22,7 @@ const PaginalInicial = () => {
   const estoqueContext = useEstoque();
 
   const existeEstoque = estoqueContext?.existeEstoque;
-  const verificarInternet = StatusServidorContext?.conexaoInternet;
+  // const verificarInternet = StatusServidorContext?.conexaoInternet;
   const verificarServidor = StatusServidorContext?.servidorOnline;
 
   const dadosUsuario: any | undefined = session?.user.user_metadata;
