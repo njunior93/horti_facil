@@ -83,7 +83,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
           return;
         }
 
-        const response = await axios.get(`http://localhost:3000/estoque/lista-movimentacoes?estoqueId=${estoqueId}`,
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/estoque/lista-movimentacoes?estoqueId=${estoqueId}`,
           { headers: {Authorization: `Bearer ${token}`}}
         );
 
@@ -112,7 +112,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
           return;
         }
 
-        const response = await axios.get(`http://localhost:3000/fornecedor/listar-fornecedores`,
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/fornecedor/listar-fornecedores`,
           { headers: {Authorization: `Bearer ${token}`}}
         );
 
@@ -294,7 +294,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
         const nomeProduto = String(mov.produto?.nome);
 
         return axios.patch(
-          `http://localhost:3000/estoque/atualizar-produto/${produtoId}`,
+          `${import.meta.env.VITE_API_URL}/estoque/atualizar-produto/${produtoId}`,
           {
             tipoMov: tipoModal.toLowerCase() === 'entrada' ? 'entrada' : 'saida',
             tipoEntrada: mov.tipoEntrada ? mov.tipoEntrada : null,
@@ -428,7 +428,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
       };
 
       try {
-        const response = await axios.post('http://localhost:3000/pedido/criar-pedido',pedidoNovo,
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/pedido/criar-pedido`,pedidoNovo,
         {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -541,7 +541,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
       }
 
       try {
-          await axios.post('http://localhost:3000/fornecedor/criar-fornecedor', fornecedorNovo,
+          await axios.post(`${import.meta.env.VITE_API_URL}/fornecedor/criar-fornecedor`, fornecedorNovo,
           {
             headers: { Authorization: `Bearer ${token}` },
           });

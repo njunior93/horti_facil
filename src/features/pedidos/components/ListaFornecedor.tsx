@@ -119,7 +119,7 @@ const ListaFornecedor = () => {
     }
 
     try{
-      await axios.put(`http://localhost:3000/fornecedor/editar-fornecedor/${fornecedor.id}`, fornecedorEditado, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/fornecedor/editar-fornecedor/${fornecedor.id}`, fornecedorEditado, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -157,7 +157,7 @@ const ListaFornecedor = () => {
     }
 
     try{
-      await axios.delete(`http://localhost:3000/fornecedor/excluir-fornecedor/${fornecedor.id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/fornecedor/excluir-fornecedor/${fornecedor.id}`, {
         headers: { Authorization: `Bearer ${token}`}
       });
 

@@ -42,7 +42,7 @@ const GerenciarEstoque = () => {
       return false;
     }
 
-      const response = await axios.get('http://localhost:3000/estoque/id-estoque', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/estoque/id-estoque`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -69,7 +69,7 @@ const GerenciarEstoque = () => {
         }
   
         try{
-          const response = await axios.get('http://localhost:3000/estoque/lista-produtos', {
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/estoque/lista-produtos`, {
             headers: {
               Authorization: `Bearer ${token}`
             }

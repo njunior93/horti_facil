@@ -1,8 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { supabase } from "../../../supabaseClient";
+import { supabase } from "../supabaseClient";
+// // import { AppContext } from "./context";
+// import { useNavigate } from "react-router-dom";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
-import alertaMensagem from "../../../shared/components/alertaMensagem";
+import alertaMensagem from "../shared/components/alertaMensagem";
 
 
 export type EstoqueContextType = {
@@ -17,6 +19,7 @@ export const EstoqueProvider = ({ children }: { children: React.ReactNode }) => 
   const [existeEstoque, setExisteEstoque] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [, setAlerta] = useState<React.ReactNode | null>(null);
+  // const navigate = useNavigate();
   
     const verificarEstoque = useCallback(async () =>{
 

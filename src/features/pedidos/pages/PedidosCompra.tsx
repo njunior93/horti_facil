@@ -137,7 +137,7 @@ const fetchListaProdutos = async () => {
     }
 
     try{
-      const response = await axios.get('http://localhost:3000/estoque/lista-produtos', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/estoque/lista-produtos`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -161,8 +161,8 @@ const fetchlistaFornecedores = async () => {
         setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
         return;
       }
-    
-      const response = await axios.get(`http://localhost:3000/fornecedor/listar-fornecedores`,
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/fornecedor/listar-fornecedores`,
         { headers: {Authorization: `Bearer ${token}`}}
       );
 
@@ -187,7 +187,7 @@ const fetchEstoqueId = async () => {
         
         if (!token) return;
   
-        const response = await axios.get('http://localhost:3000/estoque/id-estoque', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/estoque/id-estoque`, {
           headers: { Authorization: `Bearer ${token}` }
         });
   
@@ -214,7 +214,7 @@ const fetchListaPedidosCompra = async () => {
         return;
       }
 
-      const response = await axios.get(`http://localhost:3000/pedido/listar-pedidos`,
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}pedido/listar-pedidos`,
         { headers: {Authorization: `Bearer ${token}`}}
       );
 
@@ -562,7 +562,7 @@ const abrirPedido = async (pedidoId: number) => {
   setIsLoadingItems(true);
 
   try{
-    const response = await axios.get(`http://localhost:3000/pedido/localizar-pedido/${pedidoId}`,{
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/pedido/localizar-pedido/${pedidoId}`,{
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -679,7 +679,7 @@ const efetivarPedido = async (pedidoId: number) => {
   }
 
   try{
-    await axios.patch(`http://localhost:3000/pedido/efetivar-pedido/${pedidoId}`,
+    await axios.patch(`${import.meta.env.VITE_API_URL}/pedido/efetivar-pedido/${pedidoId}`,
       {
         status: novoStatus,
         estoqueId: estoqueId,
@@ -787,7 +787,7 @@ const visualizarPedido = async (pedidoId: number) => {
   }
 
   try{
-    const response = await axios.get(`http://localhost:3000/pedido/localizar-pedido/${pedidoId}`,{
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/pedido/localizar-pedido/${pedidoId}`,{
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -890,7 +890,7 @@ const cancelamentoPedido = async () =>{
   }
 
   try{
-    const response = await axios.get(`http://localhost:3000/pedido/localizar-pedido/${pedidoIdParaCancelar}`,{
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/pedido/localizar-pedido/${pedidoIdParaCancelar}`,{
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -910,7 +910,7 @@ const cancelamentoPedido = async () =>{
     return;
   }
 
-  const pedidoCancelado = await axios.patch(`http://localhost:3000/pedido/cancelar-pedido/${pedidoIdParaCancelar}`, 
+  const pedidoCancelado = await axios.patch(`${import.meta.env.VITE_API_URL}/pedido/cancelar-pedido/${pedidoIdParaCancelar}`, 
     {
       estoqueId: estoqueId
     },
@@ -1020,7 +1020,7 @@ const excluirPedido = async (pedidosId: number[]) =>{
 
   try{
 
-    await axios.delete(`http://localhost:3000/pedido/excluir-pedido`,
+    await axios.delete(`${import.meta.env.VITE_API_URL}/pedido/excluir-pedido`,
       {
         headers: { Authorization: `Bearer ${token}` },
         data: {
