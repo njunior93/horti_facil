@@ -4,25 +4,25 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useContext, useState } from "react";
 import { AppContext } from "../context/context";
-import ListaMovManual from "../componentes/ListaMovManual";
+import ListaMovManual from "../components/ListaMovManual";
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import type { iProduto } from "../type/iProduto";
-import alertaMensagem from "./alertaMensagem";
+import type { iProduto } from "../../shared/type/iProduto";
+import alertaMensagem from "../../shared/components/alertaMensagem";
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale/pt-BR'
 import { movimentacoesEstoque } from '../context/context';
-import {gerarRelatorioPDF} from './gerarRelatorioPDF';
+import {gerarRelatorioPDF} from '../../utils/gerarRelatorioPDF';
 import { toZonedTime } from 'date-fns-tz';
 import { Stack } from '@mui/material';
 import axios from 'axios';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../supabaseClient';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Tooltip from '@mui/material/Tooltip';
-import ListaFornecedor from '../componentes/ListaFornecedor';
+import ListaFornecedor from '../../features/pedidos/components/ListaFornecedor';
 import DoneIcon from '@mui/icons-material/Done';
-import type { iPedido } from '../type/iPedido';
-import { useInternet } from '../context/StatusServidorProvider';
-import { useEstoque } from '../context/EstoqueProvider';
+import type { iPedido } from '../../features/pedidos/type/iPedido';
+import { useInternet } from '../../providers/StatusServidorProvider.tsx';
+import { useEstoque } from '../../features/estoque/provider/EstoqueProvider.tsx';
 
 interface ModalMovProps{
   atualizarPedidos?: () => void;
@@ -264,6 +264,8 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
   
     setListaProdutoMov([...listaProdutoMov, { produto, qtdMov, tipoSaida, tipoEntrada, tipoMov , dataMov}]);
     setValorMov('')
+    setTipoSaida(null);
+    setTipoEntrada(null);
     setAlertaAddProduto(null)
     setProdutoSelecionado(null)
   }
@@ -296,8 +298,8 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
           `http://localhost:3000/estoque/atualizar-produto/${produtoId}`,
           {
             tipoMov: tipoModal.toLowerCase() === 'entrada' ? 'entrada' : 'saida',
-            tipoEntrada: tipoEntrada ? tipoEntrada : null,
-            tipoSaida: tipoSaida ? tipoSaida : null,
+            tipoEntrada: mov.tipoEntrada ? mov.tipoEntrada : null,
+            tipoSaida: mov.tipoSaida ? mov.tipoSaida : null,
             qtdMov: qtdMovi,
             estoqueId: idEstoque,
             nome: nomeProduto

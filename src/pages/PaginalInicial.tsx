@@ -1,13 +1,13 @@
 import { Button } from "@mui/material"
-import {  useContext, useState } from "react";
+import { useState } from "react";
 import { Modal, Box, Typography, List, ListItem, ListItemButton, ListItemText } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import alertaMensagem from "../utils/alertaMensagem";
+import alertaMensagem from "../shared/components/alertaMensagem";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { supabase } from "../supabaseClient";
-import { useAuth } from "../context/AuthContext";
-import { useInternet} from '../context/StatusServidorProvider.tsx';
-import { useEstoque } from '../context/EstoqueProvider.tsx'
+import { useAuth } from "../shared/context/AuthContext";
+import { useInternet} from '../providers/StatusServidorProvider';
+import { useEstoque } from '../features/estoque/provider/EstoqueProvider.tsx';
 
 const PaginalInicial = () => {
 

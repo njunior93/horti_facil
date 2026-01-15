@@ -1,5 +1,5 @@
 import './App.css'
-import PaginaLogin from './paginas/PaginaLogin';
+import PaginaLogin from './pages/PaginaLogin';
 
 function App() {
   return (

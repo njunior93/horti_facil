@@ -1,9 +1,9 @@
 import { createContext, useState, type ReactNode } from 'react';
-import type { iProduto } from '../shared/type/iProduto';
-import type { iEstoque } from '../features/estoque/type/iEstoque';
-import type { iProdutoMov } from '../shared/type/iProdutoMov';
-import type { iFornecedor } from '../shared/type/iFornecedor';
-import type { iPedido } from '../features/pedidos/type/iPedido';
+import type { iProduto } from '../type/iProduto';
+import type { iEstoque } from '../../features/estoque/type/iEstoque';
+import type { iProdutoMov } from '../../shared/type/iProdutoMov';
+import type { iFornecedor } from '../../shared/type/iFornecedor';
+import type { iPedido } from '../../features/pedidos/type/iPedido';
 
 
 interface IContext {

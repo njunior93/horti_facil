@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import type { iProdutoMov } from '../type/iProdutoMov';
+import type { iProdutoMov } from '../shared/type/iProdutoMov';
 import { toZonedTime } from 'date-fns-tz';
 
 

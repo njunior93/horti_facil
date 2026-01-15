@@ -1,15 +1,15 @@
 import React from 'react';
 import { useContext, useState } from 'react';
-import { AppContext } from '../context/context';
+import { AppContext } from '../../../shared/context/context';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import { Box, Button, MenuItem, Modal, Select, Stack, TextField, Typography } from '@mui/material';
-import type { iProduto } from '../type/iProduto';
-import { unidadesMedida } from '../context/context';
-import alertaMensagem from '../utils/alertaMensagem';
+import type { iProduto } from '../../../shared/type/iProduto';
+import { unidadesMedida } from '../../../shared/context/context';
+import alertaMensagem from '../../../shared/components/alertaMensagem';
 
-function ListaProdutos() {
+function ListaProdutosEstoque() {
 
   const {listaProdutoEstoque, setListaProdutoEstoque}  = useContext(AppContext);
   const [modalAberto, setModalAberto] = useState(false);
@@ -64,23 +64,22 @@ function ListaProdutos() {
 
   const fecharModal = () => {
     setModalAberto(false);
+    setProdutoSelecionadoEdicao({} as iProduto);
+    setEstoqueMinimo(0);
+    setEstoqueMaximo(0);
+    setEstoqueAtual(0);
   }
 
   const salvarEdicao = (produto: iProduto) => {
     if (estoqueMinimo < 0 || estoqueMaximo < 0 || estoqueAtual < 0) {
-      setAlerta(alertaMensagem('Os valores não podem ser negativos.', 'warning', <ReportProblemIcon/>));
+      setAlerta(alertaMensagem('Os valores não podem ser negativos', 'warning', <ReportProblemIcon/>));
       return;
     }
-    if (estoqueMinimo >= estoqueMaximo) {
-      setAlerta(alertaMensagem('O estoque mínimo deve ser menor que o estoque máximo.', 'warning', <ReportProblemIcon/>));
-      return;
-    }
-    if (estoqueAtual < estoqueMinimo || estoqueAtual > estoqueMaximo) {
-      setAlerta(alertaMensagem('O estoque atual deve estar entre o estoque mínimo e máximo.', 'warning', <ReportProblemIcon/>));
+    if (estoqueMinimo === 0 || estoqueMaximo === 0) {
+      setAlerta(alertaMensagem('Valores de minimo e maximo não pode ser zerado', 'warning', <ReportProblemIcon/>));
       return;
     }
     
-
     const index = listaProdutoEstoque.findIndex(p => p.id === produto.id);
     if (index !== -1) {
       listaProdutoEstoque[index] = {
@@ -238,4 +237,4 @@ function ListaProdutos() {
   )
 }
 
-export default ListaProdutos
+export default ListaProdutosEstoque

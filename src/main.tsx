@@ -2,17 +2,17 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx';
-import { AppProvider } from './context/context.tsx'
+import { AppProvider } from './shared/context/context'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
-import CriarEstoque from './paginas/CriarEstoque.tsx';
-import GerenciarEstoque from './paginas/GerenciarEstoque.tsx';
-import PaginalInicial from './paginas/PaginalInicial.tsx';
-import PedidosCompra from './paginas/PedidosCompra.tsx';
-import { AuthProvider } from './context/AuthContext.tsx';
-import { EstoqueProvider } from './context/EstoqueProvider.tsx';
+import CriarEstoque from './features/estoque/pages/CriarEstoque';
+import GerenciarEstoque from './features/estoque/pages/GerenciarEstoque';
+import PaginalInicial from './pages/PaginalInicial';
+import PedidosCompra from '../src/features/pedidos/pages/PedidosCompra.tsx';
+import { AuthProvider } from './shared/context/AuthContext';
+import { EstoqueProvider } from '../src/features/estoque/provider/EstoqueProvider.tsx';
 import {MainLayout} from "./MainLayout.tsx";
-import { StatusServidor } from './utils/statusServidor.tsx';
-import { StatusServidorProvider } from './context/StatusServidorProvider.tsx';
+import { StatusServidor } from '../src/shared/status/statusServidor.tsx';
+import { StatusServidorProvider } from './providers/StatusServidorProvider';
 
 
 const router = createBrowserRouter([

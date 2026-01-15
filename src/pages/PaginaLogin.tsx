@@ -1,13 +1,10 @@
 import {  useState } from "react";
 import { useNavigate } from "react-router-dom";
-import alertaMensagem from "../utils/alertaMensagem";
+import alertaMensagem from "../shared/components/alertaMensagem";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../shared/context/AuthContext";
 import { supabase } from "../supabaseClient";
 import { Button } from "@mui/material";
-
-
-
 
 const PaginaLogin = () => {
 

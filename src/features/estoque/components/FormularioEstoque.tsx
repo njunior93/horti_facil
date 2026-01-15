@@ -1,12 +1,13 @@
-import {  Box, Button, Divider, FormControl, FormControlLabel, FormHelperText, MenuItem, Radio, RadioGroup, Select, Stack, Switch, TextField, Typography, type SelectChangeEvent } from '@mui/material';
+import {  Box, Button, FormControl, FormControlLabel, FormHelperText, MenuItem, Radio, RadioGroup, Select, Stack, Switch, TextField, Tooltip, Typography, type SelectChangeEvent } from '@mui/material';
 import { useContext, useEffect, useState } from 'react';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import { AppContext } from '../context/context';
-import type { iProduto } from '../type/iProduto';
+import { AppContext } from '../../../shared/context/context';
+import type { iProduto } from '../../../shared/type/iProduto';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
-import  alertaMensagem  from '../utils/alertaMensagem';
+import  alertaMensagem  from '../../../shared/components/alertaMensagem';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
-const formulario = () => {
+const FormularioEstoque = () => {
   const [estoqueAtual, setEstoqueAtual] = useState('');
   const [vendaMensal, setVendaMensal] = useState('');
   const [loteReposicao, setLoteReposicao] = useState('');
@@ -141,8 +142,8 @@ const formulario = () => {
 
   return (
     <div>
-      <FormControl className='w-full sm:w-5xl'>
-        <div className='flex flex-row justify-between items-center mb-4 mt-2'>
+      <FormControl className='w-full'>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 mt-2">
           <Stack direction="column" spacing={0}>
             <span className="mt-2">Categoria</span>
             <RadioGroup  row aria-label='Categoria' defaultValue='horta' name='formulario-estoque-categorias' onChange={selecaoCategoria}>
@@ -161,13 +162,31 @@ const formulario = () => {
             <Box display={'flex'} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%' }}>
               <Typography>Manual</Typography>
               <Switch checked={tipoInput === 'auto'} onChange={alterarTipoInput} defaultChecked inputProps={{ 'aria-label': 'ant design' }} />
-              <Typography>Auto</Typography>
-            </Box>
-         
+              <Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              Auto
+                              <Tooltip
+                                title={
+                                  <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                                    A opção "Auto" calcula automaticamente os valores de estoque mínimo e máximo com base na venda mensal, tempo de reposição e lote de reposição informados.
+                                    <br />
+                                    Venda Mensal: Quantidade vendida por mês.
+                                    <br />
+                                    Tempo de Reposição: Dias entre o pedido e a chegada do produto. 
+                                    <br />
+                                    Lote de Reposição: Quantidade padrão de compra (ex: caixa com 100 unidades).
+                                  </span>
+                                }
+                              >
+                                <HelpOutlineIcon sx={{ bgcolor: 'yellow', borderRadius: '100%' }} />
+                              </Tooltip>
+                </Box>
+                </Typography>
+            </Box>      
           </Stack>
         </div>
         
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} divider={<Divider orientation='vertical' flexItem/>}>
+        {/* <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} divider={<Divider orientation='vertical' flexItem/>}>
           <Select labelId="formulario-estoque-inputs-produto-label" id="formulario-estoque-inputs-produto" label="Produto" value={produtoNome} onChange={selecaoProduto} displayEmpty sx={{ width: { xs: '100%', sm: 'auto' } }}>
             <MenuItem value="" disabled>
               Produto
@@ -194,7 +213,69 @@ const formulario = () => {
             </>
           )} 
           <Button variant="contained" disabled={!produtoSelecionado.id} startIcon={<AddCircleIcon />} onClick={calcularEstoque} sx={{ backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#6FE6FC",},}}>Adicionar</Button>
-        </Stack>
+        </Stack> */}
+
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end"> 
+          <div className="sm:col-span-3">
+            <Select labelId="formulario-estoque-inputs-produto-label" id="formulario-estoque-inputs-produto" value={produtoNome}  onChange={selecaoProduto} displayEmpty fullWidth>
+              <MenuItem value="" disabled>Produto</MenuItem>
+              {produtosSelecionados.map((p) => (
+                <MenuItem key={p.id} value={p.nome}>
+                  {p.nome}
+                </MenuItem>
+              ))}
+            </Select>
+          </div>
+
+         {tipoInput === "auto" ? (
+            <>
+              <div className="sm:col-span-2">
+                <TextField fullWidth required disabled={!produtoSelecionado.id} type="number" value={estoqueAtual} onChange={(e) => setEstoqueAtual(e.target.value)} label="Estoque Atual" error={Number(estoqueAtual) < 0}/>
+              </div>
+
+              <div className="sm:col-span-2">
+                <TextField fullWidth required disabled={!produtoSelecionado.id} type="number" value={vendaMensal} onChange={(e) => setVendaMensal(e.target.value)} label="Venda Mensal" error={Number(vendaMensal) < 0}/>
+              </div>
+
+              <div className="sm:col-span-2">
+                <TextField fullWidth required disabled={!produtoSelecionado.id} type="number"value={loteReposicao} onChange={(e) => setLoteReposicao(e.target.value)} label="Lote de Repos." error={Number(loteReposicao) < 0}/>
+              </div>
+
+              <div className="sm:col-span-2">
+                <TextField fullWidth required disabled={!produtoSelecionado.id} type="number" value={tempoReposicao} onChange={(e) => setTempoReposicao(e.target.value)} label="Tempo de Repos." error={Number(tempoReposicao) < 0}/>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="sm:col-span-2">
+                <TextField fullWidth required disabled={!produtoSelecionado.id} type="number" value={estoqueAtual} onChange={(e) => setEstoqueAtual(e.target.value)} label="Estoque Atual" error={Number(estoqueAtual) < 0}/>
+              </div>
+
+              <div className="sm:col-span-3">
+                <TextField fullWidth required disabled={!produtoSelecionado.id} type="number" value={estoqueMinimoInput} onChange={(e) => setEstoqueMinimoInput(e.target.value)} label="Estoque Mínimo" error={Number(estoqueMinimoInput) < 0}/>
+              </div>
+
+              <div className="sm:col-span-3">
+                <TextField fullWidth required disabled={!produtoSelecionado.id} type="number" value={estoqueMaximoInput} onChange={(e) => setEstoqueMaximoInput(e.target.value)} label="Estoque Máximo" error={Number(estoqueMaximoInput) < 0}/>
+              </div>
+
+            </>
+          )}
+
+          <div className="sm:col-span-1">
+            <Button fullWidth variant="contained" disabled={!produtoSelecionado.id} startIcon={<AddCircleIcon />} onClick={calcularEstoque}
+              sx={{
+                backgroundColor: "#4ED7F1",
+                border: "2px solid #fff",
+                borderRadius: "1rem",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#6FE6FC" },
+                minHeight: 56,
+                whiteSpace: "nowrap",
+              }}>
+            </Button>
+          </div>
+        </div>
 
         <FormHelperText>
           {Number(estoqueAtual) < 0 || Number(vendaMensal) < 0 || Number(loteReposicao) < 0 || Number(tempoReposicao) < 0 || Number(estoqueMinimoInput) < 0 || Number(estoqueMinimoInput) < 0?<span style={{ color: 'red' }}>Os valores não podem ser negativos.</span> : "" }
@@ -216,4 +297,4 @@ const formulario = () => {
   
 }
 
-export default formulario
+export default FormularioEstoque

@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect } from "react";
 import axios from "axios";
 import { supabase } from "../supabaseClient";
-import { AppContext } from "./context";
-import {StatusServidor} from '../utils/statusServidor'
+import { AppContext } from "../shared/context/context";
+import {StatusServidor} from '../shared/status/statusServidor';
 import { useNavigate } from "react-router-dom";
 
 export type StatusServidorContextType = {

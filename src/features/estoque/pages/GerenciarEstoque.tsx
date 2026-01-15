@@ -1,14 +1,14 @@
-import  VisualizarEstoque  from '../componentes/VisualizarEstoque'
-import InformaçõesEstoque from '../componentes/InformaçõesEstoque'
+import  VisualizarEstoque  from '../components/VisualizarEstoque'
+import InformacoesEstoque from '../components/InformacoesEstoque'
 import { useContext, useEffect, useState } from 'react';
-import { AppContext } from '../context/context';
-import alertaMensagem from '../utils/alertaMensagem';
-import { supabase } from '../supabaseClient';
+import { AppContext } from '../../../shared/context/context';
+import alertaMensagem from '../../../shared/components/alertaMensagem';
+import { supabase } from '../../../supabaseClient';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import { useEstoque } from '../context/EstoqueProvider.tsx'
-import { useInternet } from '../context/StatusServidorProvider.tsx';
+import { useEstoque } from '../provider/EstoqueProvider.tsx';
+import { useInternet } from '../../../providers/StatusServidorProvider';
 
 const GerenciarEstoque = () => {
 
@@ -151,16 +151,31 @@ const GerenciarEstoque = () => {
   }
 
   return (
-    <div className='flex justify-center item-center h-screen w-screen'>
-      <div className='flex justify-center item-center flex-col-reverse sm:flex-row'>
-        <div className='flex justify-center items-center'>
-          <VisualizarEstoque/>
+    <div className="flex justify-center items-center min-h-dvh w-full bg-[#F6E7C8]">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-800">
+            Gerenciar Estoque
+          </h1>
+          <p className="text-sm text-gray-600">
+            Filtre produtos, faça entradas/saídas e acompanhe os indicadores.
+          </p>
         </div>
 
-        <div className='flex justify-center items-center'>
-          <InformaçõesEstoque telaAtual={'gerenciar-estoque'}/>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <section className="lg:col-span-9 min-w-0">
+            <div className="rounded-2xl bg-[#FCEED5] shadow-md border border-white/60 p-3 sm:p-5 min-w-0 overflow-hidden">
+              <VisualizarEstoque />
+            </div>
+          </section>
+
+          <aside className="lg:col-span-3 flex justify-center lg:justify-end">
+            <div className="w-full max-w-xs rounded-2xl bg-white shadow-md border border-gray-100 p-3 sm:p-4 flex justify-center">
+              <InformacoesEstoque telaAtual={"gerenciar-estoque"} />
+            </div>
+          </aside>
         </div>
-      </div>    
+      </div>
     </div>
     
   )

@@ -1,5 +1,5 @@
-import { Paper, CircularProgress,Box,Typography, Tooltip } from "@mui/material";
-import { StatusServidorContext } from "../context/StatusServidorProvider";
+import { Paper, Box,Typography, Tooltip } from "@mui/material";
+import { StatusServidorContext } from "../../providers/StatusServidorProvider";
 import { useContext } from "react";
 import { AppContext } from "../context/context";
 import { useNavigate } from "react-router-dom";

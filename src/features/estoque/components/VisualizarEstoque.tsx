@@ -2,13 +2,13 @@ import { Box, Button, FormControl, Menu, MenuItem, Select, TextField } from "@mu
 import UnarchiveOutlinedIcon from '@mui/icons-material/UnarchiveOutlined';
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
-import ListarProdutosVisualizar from './ListaProdutosVisualizar';
+import ListarProdutosVisualizar from '../../../shared/components/ListaProdutosVisualizar';
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../context/context";
-import ModalMov from '../utils/modalMov';
+import { AppContext } from "../../../shared/context/context";
+import ModalMov from '../../../shared/modals/modalMov';
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import alertaMensagem from "../utils/alertaMensagem";
+import alertaMensagem from "../../../shared/components/alertaMensagem";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 const VisualizarEstoque = () => {
@@ -124,57 +124,93 @@ const VisualizarEstoque = () => {
 
   return (
 
-    <div className="flex flex-col size-fit bg-[#FCEED5] p-4 rounded-lg shadow-lg">
-      
+    <div className="flex flex-col w-full min-w-0 gap-4"> 
       <div>
-        <Button
-          id="basic-button"
-          aria-controls={open ? 'basic-menu' : undefined}
-          aria-haspopup="true"
-          aria-expanded={open ? 'true' : undefined}
-          onClick={handleClick}
-          variant='contained'
-        >
-            RELATORIO
-        </Button>
-          <Menu
-            id="basic-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
+        <Button  id="basic-button" aria-controls={open ? 'basic-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined}  onClick={handleClick} variant='contained' > Relatorios </Button>
+          <Menu id="basic-menu"  anchorEl={anchorEl} open={open} onClose={handleClose}
             slotProps={{
               list: {
                 'aria-labelledby': 'basic-button',
               },
-            }}
-          >
+            }}>
             {opcoesMenu.map((opcao, idx) => (
                 <MenuItem key={idx} onClick={() => handleAbrirModalMovimentacao(opcao)}>{opcao}</MenuItem>
             ))}
           </Menu>
       </div>
 
-      <div className='flex sm:flex-row  w-full h-3/5 justify-around items-center p-4 gap-2'>
-        <FormControl>
-        <h1 className="text-lg font-semibold mb-2 text-gray-700">Filtros:</h1>
-        <div className="flex flex-col gap-4 w-full">       
-          <Select label="Todos" value={tipo} onChange={(e) => setTipo(e.target.value)}>
-            <MenuItem value="todos">Todos</MenuItem>
-            <MenuItem value="horta">Hortaliças</MenuItem>
-            <MenuItem value="fruta">Frutas</MenuItem>
-          </Select>
-          <TextField label="Produto" variant="outlined" value={nomeProduto} onChange={(e) => setNomeProduto(e.target.value)}></TextField>
-          <TextField label="Quantidade" variant="standard" type="number" size="small" sx={{width: 90}} value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))}></TextField>
-        </div>  
-        </FormControl>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        <div className="lg:col-span-7">
+          <FormControl className="w-full">
+            <h2 className="text-base font-semibold mb-2 text-gray-700">Filtros</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Select value={tipo} onChange={(e) => setTipo(e.target.value)} displayEmpty fullWidth>
+                <MenuItem value="todos">Todos</MenuItem>
+                <MenuItem value="horta">Hortaliças</MenuItem>
+                <MenuItem value="fruta">Frutas</MenuItem>
+              </Select>
 
-
-        <div className="flex flex-col gap-3 justify-center h-2/5 w-2/5 border-1 border-gray-500/50 sm:p-5">
-          <Button  variant="contained" startIcon={<ArchiveOutlinedIcon />} sx={{backgroundColor: "#f7931e",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#e67e00",},}} onClick={() => handleAbrirModalEntrada()}>Entrada</Button>
-          <Button  variant="contained" startIcon={<UnarchiveOutlinedIcon />} sx={{backgroundColor: "#f7931e",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#e67e00",},}} onClick={() => handleAbrirModalSaida()}>Saida</Button>
-          <Button  variant="contained" startIcon={<LogoutOutlinedIcon />} sx={{backgroundColor: "#f7931e",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#e67e00",},}} onClick={() => sairGerenciarEstoque()}>Voltar</Button>
-        </div>
+          <TextField label="Produto" variant="outlined" value={nomeProduto} onChange={(e) => setNomeProduto(e.target.value)} fullWidth/>
+          <TextField  label="Quantidade" variant="outlined" type="number" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} fullWidth/>
       </div>
+    </FormControl>
+  </div>
+
+  <div className="lg:col-span-5">
+    <div className="rounded-2xl border border-gray-400/30 bg-white/40 p-3 sm:p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <Button fullWidth variant="contained" startIcon={<ArchiveOutlinedIcon />}
+          sx={{
+            padding: '10px',
+            fontSize: '11px',
+            backgroundColor: "#f7931e",
+            color: "#fff",
+            fontWeight: "bold",
+            borderRadius: "20px",
+            border: "2px solid #fff",
+            "&:hover": { backgroundColor: "#e67e00" },
+          }}
+          onClick={handleAbrirModalEntrada}
+        >
+          Entrada
+        </Button>
+
+        <Button fullWidth variant="contained" startIcon={<UnarchiveOutlinedIcon />}
+          sx={{
+            padding: '10px',
+            fontSize: '11px',
+            backgroundColor: "#f7931e",
+            color: "#fff",
+            fontWeight: "bold",
+            borderRadius: "20px",
+            border: "2px solid #fff",
+            "&:hover": { backgroundColor: "#e67e00" },
+          }}
+          onClick={handleAbrirModalSaida}
+        >
+          Saída
+        </Button>
+
+        <Button fullWidth  variant="contained" startIcon={<LogoutOutlinedIcon />}
+          sx={{
+            padding: '10px',
+            fontSize: '11px',
+            backgroundColor: "#f7931e",
+            color: "#fff",
+            fontWeight: "bold",
+            borderRadius: "20px",
+            border: "2px solid #fff",
+            "&:hover": { backgroundColor: "#e67e00" },
+          }}
+          onClick={sairGerenciarEstoque}
+        >
+          Voltar
+        </Button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
       <ModalMov/>
 

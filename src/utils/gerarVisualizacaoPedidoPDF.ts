@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import type { iPedido } from '../type/iPedido';
+import type { iPedido } from '../features/pedidos/type/iPedido';
 
 export const gerarVisualizacaoPedidoPDF = (pedido: iPedido) => {
 

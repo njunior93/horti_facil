@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import type {iPedido} from '../type/iPedido';
-import type { iFiltrosPedido } from '../type/iFiltrosPedido';
+import type {iPedido} from '../features/pedidos/type/iPedido';
+import type { iFiltrosPedido } from '../features/pedidos/type/iFiltrosPedido';
 
 export const gerarFiltrosListaPedidosPDF = (listaPedidos : iPedido[], filtrosUtilizados: iFiltrosPedido) =>{
   const doc = new jsPDF();

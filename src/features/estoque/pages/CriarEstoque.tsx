@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import BotoesFinalizarCancelarEstoque from '../componentes/BotoesFinalizarCancelarEstoque.tsx'
-import Formulario from '../componentes/Formulario.tsx'
-import InformaçõesEstoque from '../componentes/InformaçõesEstoque.tsx'
-import ListaProdutos from '../componentes/ListaProdutos.tsx'
-import { useEstoque } from '../context/EstoqueProvider.tsx'
+import BotoesFinalizarCancelarEstoque from '../components/BotoesFinalizarCancelarEstoque.jsx'
+import FormularioEstoque from '../components/FormularioEstoque.jsx'
+import InformacoesEstoque from '../components/InformacoesEstoque.jsx'
+import ListaProdutosEstoque from '../components/ListaProdutosEstoque.jsx'
+import { useEstoque } from '../provider/EstoqueProvider.tsx'
 import { useNavigate } from "react-router-dom";
 
 
@@ -57,21 +57,43 @@ function CriarEstoque() {
 
   return (
     <>
-        <div className="flex justify-center items-center h-screen w-screen ">
-          <div className='flex justify-center items-center flex-col sm:flex-row'>
-            <div className="flex flex-col w-full sm:size-min p-4 rounded-lg shadow-md bg-[#FCEED5]  gap-2 sm:gap-1 justify-center ">
-              <Formulario />
-              <ListaProdutos />
-              <BotoesFinalizarCancelarEstoque/>      
-            </div>
+      <div className="flex justify-center items-center min-h-dvh w-full bg-[#F6E7C8]">
+        <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
           
-            <div className='flex justify-center items-center'>
-                <InformaçõesEstoque telaAtual={'criar-estoque'}  />
-            </div>
+          <div className="mb-4 sm:mb-6">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-800">
+              Criar Estoque
+            </h1>
+            <p className="text-sm text-gray-600">
+              Adicione produtos e defina mínimo/máximo para controle do estoque.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <section className="lg:col-span-9">
+              <div className="rounded-2xl bg-[#FCEED5] shadow-md border border-white/60 p-3 sm:p-5">
+                <FormularioEstoque />
+                <div className="mt-3 sm:mt-4">
+                  <ListaProdutosEstoque />
+                </div>
+                <div className="mt-3 sm:mt-4">
+                  <BotoesFinalizarCancelarEstoque />
+                </div>
+              </div>
+            </section>
+
+            <aside className="lg:col-span-3">
+              <div className="rounded-2xl bg-white shadow-md border border-gray-100 p-3 sm:p-4 flex justify-center">
+                <InformacoesEstoque telaAtual={"criar-estoque"} />
+              </div>
+            </aside>
+
           </div>
         </div>
+    </div>
     </>
-  )
+  );
 }
 
 export default CriarEstoque

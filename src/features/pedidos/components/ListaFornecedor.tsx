@@ -1,12 +1,12 @@
 import { useContext, useState } from "react";
-import { AppContext } from "../context/context";
+import { AppContext } from "../../../shared/context/context";
 import EditIcon from '@mui/icons-material/Edit';
 import { Box, Button, FormControlLabel, FormGroup, Modal, Stack, TextField, Typography } from "@mui/material";
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import type { iFornecedor } from "../type/iFornecedor";
-import { supabase } from "../supabaseClient";
+import type { iFornecedor } from "../../../shared/type/iFornecedor";
+import { supabase } from "../../../supabaseClient";
 import axios from "axios";
-import alertaMensagem from "../utils/alertaMensagem";
+import alertaMensagem from "../../../shared/components/alertaMensagem";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import {
   Dialog,
@@ -145,8 +145,7 @@ const ListaFornecedor = () => {
 
 
   }
-
-
+  
   const excluirFornecedor = async (fornecedor: iFornecedor) => {
 
     const { data: { session } } = await supabase.auth.getSession();

@@ -3,16 +3,16 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import CheckIcon from '@mui/icons-material/Check';
-import { AppContext } from '../context/context';
+import { AppContext } from '../../../shared/context/context';
 import { useContext, useState } from 'react';
-import CirculoProgresso from '../componentes/circuloProgresso';
+import CirculoProgresso from '../../../shared/components/circuloProgresso';
 import ErrorIcon from '@mui/icons-material/Error';
-import alertaMensagem from '../utils/alertaMensagem';
+import alertaMensagem from '../../../shared/components/alertaMensagem';
 import { useNavigate } from 'react-router-dom';
-import CaixaDialogo from '../utils/caixaDialogo';
+import CaixaDialogo from '../../../shared/dialogs/caixaDialogo';
 import axios from 'axios';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../../supabaseClient';
 
 
 const BotoesFinalizarCancelarEstoque = () => {
@@ -89,7 +89,7 @@ const BotoesFinalizarCancelarEstoque = () => {
 
     try{
 
-      const response = await axios.post ('http://localhost:3000/estoque/criar-estoque', novoEstoque,
+       await axios.post ('http://localhost:3000/estoque/criar-estoque', novoEstoque,
         {
           headers: {
             Authorization: `Bearer ${token}`

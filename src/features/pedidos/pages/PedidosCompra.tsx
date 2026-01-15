@@ -1,42 +1,42 @@
 import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext ,useGridSelector, type GridColDef, type GridRowModel} from '@mui/x-data-grid';
-import { Box, CardHeader, Checkbox, CircularProgress, FormControl, FormControlLabel, FormGroup, FormLabel, InputLabel, MenuItem, Select, Stack, Tooltip, Typography, type SelectChangeEvent } from '@mui/material';
+import { Box, CardHeader, Checkbox, CircularProgress, FormControl, FormControlLabel, FormGroup, FormLabel, InputLabel, MenuItem, Select, Stack, Tooltip, Typography } from '@mui/material';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import { useContext, useState } from 'react';
-import { AppContext } from '../context/context';
-import ModalMov from '../utils/modalMov';
+import { AppContext } from '../../../shared/context/context';
+import ModalMov from '../../../shared/modals/modalMov';
 import { useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../../supabaseClient';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import alertaMensagem from "../utils/alertaMensagem";
+import alertaMensagem from "../../../shared/components/alertaMensagem";
 import axios from 'axios';
 import { 
 } from '@mui/x-data-grid';
 import Pagination from '@mui/material/Pagination';
 import PaginationItem from '@mui/material/PaginationItem';
 import React from 'react';
-import { useEstoque } from '../context/EstoqueProvider.tsx'
+import { useEstoque } from '../../estoque/provider/EstoqueProvider.tsx';
 import { useNavigate } from "react-router-dom";
 import type { iPedido } from '../type/iPedido.ts';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import type {LinhaItem} from '../type/iLinhaItem';
+import type {LinhaItem} from '../type/iLinhaItem.ts';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { useInternet } from '../context/StatusServidorProvider.tsx';
-import { gerarVisualizacaoPedidoPDF } from '../utils/gerarVisualizacaoPedidoPDF.ts';
+import { useInternet } from '../../../providers/StatusServidorProvider';
+import { gerarVisualizacaoPedidoPDF } from '../../../utils/gerarVisualizacaoPedidoPDF.ts';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale/pt-BR'
-import {gerarFiltrosListaPedidosPDF} from '../utils/gerarFiltrosListaPedidosPDF.ts'
+import {gerarFiltrosListaPedidosPDF} from '../../../utils/gerarFiltrosListaPedidosPDF'
 
 const PedidosCompra = () => {
 
 const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
 const setTipoModal = useContext(AppContext).setTipoModal;
 const { setHandleModal} = useContext(AppContext);
-const {estoqueSalvo, setEstoqueSalvo} = useContext(AppContext);
+const {setEstoqueSalvo} = useContext(AppContext);
 const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
 const {listaPedidosCompra, setListaPedidosCompra } = useContext(AppContext);
 const [listaPedidoFiltrados, setListaPedidoFiltrados] = useState<iPedido[]>([]);
