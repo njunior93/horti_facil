@@ -1,17 +1,17 @@
 import { Paper, Box,Typography, Tooltip } from "@mui/material";
 import { StatusServidorContext } from "../../providers/StatusServidorProvider";
 import { useContext } from "react";
-import { AppContext } from "../context/context";
-import { useNavigate } from "react-router-dom";
+// import { AppContext } from "../context/context";
+// import { useNavigate } from "react-router-dom";
 import { WifiOff, CloudOff, CloudDone, Wifi } from "@mui/icons-material";
 
 
 
 export const StatusServidor = () => {
-  const navigate = useNavigate();
-  const {setListaProdutoEstoque} = useContext(AppContext);
-  const {setContQtdEstoque} = useContext(AppContext);
-  const{setTipoInput} = useContext(AppContext);
+  // const navigate = useNavigate();
+  // const {setListaProdutoEstoque} = useContext(AppContext);
+  // const {setContQtdEstoque} = useContext(AppContext);
+  // const{setTipoInput} = useContext(AppContext);
   const context = useContext(StatusServidorContext)
 
   // const telaPrincipal = location.pathname === "/pagina-inicial"
@@ -22,29 +22,29 @@ export const StatusServidor = () => {
 
   const { servidorOnline, conexaoInternet } = context;
 
-  const getStatus = () =>{
-    if (!conexaoInternet){
-      return {
-        cor: "#f44336",
-        texto: "Sem conexão com a Internet",
-        icone: <WifiOff fontSize="small" />, 
-      }
-    }
+  // const getStatus = () =>{
+  //   if (!conexaoInternet){
+  //     return {
+  //       cor: "#f44336",
+  //       texto: "Sem conexão com a Internet",
+  //       icone: <WifiOff fontSize="small" />, 
+  //     }
+  //   }
 
-    if (!servidorOnline){
-      return {
-        cor: "#f44336",
-        texto: "Sem conexão com o servidor",
-        icone: <CloudOff fontSize="small" />,
-      }
+  //   if (!servidorOnline){
+  //     return {
+  //       cor: "#f44336",
+  //       texto: "Sem conexão com o servidor",
+  //       icone: <CloudOff fontSize="small" />,
+  //     }
 
-      return {
-        cor: "#4caf50",
-        texto: "Conectado",
-        icone: <CloudDone fontSize="small" />,
-      }
-    }
-  }
+  //     return {
+  //       cor: "#4caf50",
+  //       texto: "Conectado",
+  //       icone: <CloudDone fontSize="small" />,
+  //     }
+  //   }
+  // }
 
   // const status = getStatus();
 

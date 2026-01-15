@@ -22,7 +22,6 @@ import ListaFornecedor from '../../features/pedidos/components/ListaFornecedor';
 import DoneIcon from '@mui/icons-material/Done';
 import type { iPedido } from '../../features/pedidos/type/iPedido';
 import { useInternet } from '../../providers/StatusServidorProvider.tsx';
-import { useEstoque } from '../../features/estoque/provider/EstoqueProvider.tsx';
 
 interface ModalMovProps{
   atualizarPedidos?: () => void;

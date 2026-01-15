@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@date-io/date-fns": "^3.2.1",
     "@emotion/react": "^11.14.0",
@@ -20,7 +23,6 @@
     "@mui/x-date-pickers": "^8.9.0",
     "@supabase/supabase-js": "^2.55.0",
     "@tailwindcss/vite": "^4.1.8",
-    "@types/react-router-dom": "^5.3.3",
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
