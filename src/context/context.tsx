@@ -5,7 +5,6 @@ import type { iProdutoMov } from '../shared/type/iProdutoMov';
 import type { iFornecedor } from '../shared/type/iFornecedor';
 import type { iPedido } from '../features/pedidos/type/iPedido';
 
-
 interface IContext {
   setConexaoInternet: (internet: true | false) => void;
   conexaoInternet: true | false;
@@ -148,8 +147,8 @@ export const AppProvider = ({ children }: AppProvideProps) => {
   const [sessaoAtiva, setSessaoAtiva] = useState<true | false>(true);
   const [listaFornecedores, setListaFornecedores] = useState<iFornecedor[]>([]);
   const [listaPedidosCompra, setListaPedidosCompra] = useState<iPedido[]>([]);
-  const [conexaoInternet, setConexaoInternet] = useState<true | false>(false);
   const [origemDoModal, setOrigemDoModal] = useState<'paginaPedido' | 'modalCriarPedido'>('paginaPedido');
+  const [conexaoInternet, setConexaoInternet] = useState<true | false>(false);
 
 
 
