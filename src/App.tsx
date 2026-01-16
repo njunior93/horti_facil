@@ -4,7 +4,7 @@ import PaginaLogin from './pages/PaginaLogin';
 function App() {
   return (
     <>
-        <PaginaLogin />
+      <PaginaLogin />
     </>
   )
 }
