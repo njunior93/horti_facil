@@ -11,14 +11,14 @@ import PedidosCompra from '../src/features/pedidos/pages/PedidosCompra.tsx';
 import { AuthProvider } from './shared/context/AuthContext';
 import { EstoqueProvider } from '../src/features/estoque/provider/EstoqueProvider.tsx';
 import {MainLayout} from "./MainLayout.tsx";
-import { StatusServidorProvider } from './providers/StatusServidorProvider';
+import { StatusServidorProvider } from './providers/StatusServidorProvider.tsx';
 
 
 const router = createBrowserRouter([
 
   {
     path: "/",
-    element: <App/>
+    element:  <StatusServidorProvider><App/></StatusServidorProvider>
   },
 
   {
