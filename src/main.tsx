@@ -11,7 +11,6 @@ import PedidosCompra from '../src/features/pedidos/pages/PedidosCompra.tsx';
 import { AuthProvider } from './shared/context/AuthContext';
 import { EstoqueProvider } from '../src/features/estoque/provider/EstoqueProvider.tsx';
 import {MainLayout} from "./MainLayout.tsx";
-import { StatusServidor } from '../src/shared/status/statusServidor.tsx';
 import { StatusServidorProvider } from './providers/StatusServidorProvider';
 
 
@@ -19,7 +18,7 @@ const router = createBrowserRouter([
 
   {
     path: "/",
-    element: <StatusServidorProvider><App/><StatusServidor /></StatusServidorProvider>
+    element: <App/>
   },
 
   {
@@ -54,7 +53,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
       <AppProvider>
-        <RouterProvider router={router} />
+        <StatusServidorProvider>
+          <RouterProvider router={router} />
+        </StatusServidorProvider>
       </AppProvider>
     </AuthProvider>
   </StrictMode>,

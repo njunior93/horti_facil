@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, useRef } from "react";
 import axios from "axios";
 import { supabase } from "../supabaseClient";
 import { AppContext } from "../shared/context/context";
@@ -20,110 +20,105 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
 
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const tempoRef = useRef<number | null>(null);
+  const tentativasRef = useRef<number>(0);
 
-    const verificarInternet = async (): Promise<boolean> => {
-      try {
-        await fetch("https://1.1.1.1", { mode: "no-cors" });
-        return true;
-      } catch {
-        return false;
-      }
-}
+  const backoff = [2000,5000,10000,30000,60000];
+  const normalIntervalo = 15000;
 
-    const verificarSessao = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-
-        if (error) {
-          setSessaoAtiva(false);
-        if (location.pathname !== "/") {
-          navigate("/");
-        }
-        return; 
-        }
-
-      if (!session) {
-        setSessaoAtiva(false);
-        if (location.pathname !== "/") {
-          navigate("/");
-        }
-        return; 
-      }
-
-      setSessaoAtiva(true);
-      } catch (err) {
-        setSessaoAtiva(false);
-        navigate('/')
-      }
-    };
-
-    const verificarServidor = async () => {
-
-      try{
-        const internetOk = await verificarInternet();
-        setConexaoInternet(internetOk)
-        
-        if (!internetOk) {
-          setServidorOnline(false);
-        return;
+  const proximoAgendamento = (tempo: number) =>{
+    if(tempoRef.current){
+      clearTimeout(tempoRef.current);
     }
 
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/status-servidor`, { timeout: 5000 });
+    tempoRef.current = window.setTimeout(() => {
+      verificarServidor();
+    }, tempo);
+  };
 
-        if (response.data.status === 'ok') {
-          if (!servidorOnline) setServidorOnline(true);
-        } else{
-          if (servidorOnline) setServidorOnline(false);
-        }
+  const verificarInternet = async (): Promise<boolean> => {
+    try {
+      await fetch('https://www.google.com', { mode: 'no-cors' });
+      return true;
+    }catch{
+      return false;
+    }
+  }
 
-      } catch (err: any) {
-        if (axios.isAxiosError(err)) {
-          const codigoErro = err.code;
-          const mensagemErro = err.message;
+  const verificarServidor = async () =>{
+    const online = navigator.onLine || await verificarInternet();
+    setConexaoInternet(online);
 
-          if(!conexaoInternet){
-            return;
-          }
+    if(!online){
+      setServidorOnline(false);
 
-          if (codigoErro === 'ECONNABORTED') {
-            console.error("Servidor demorou para responder", mensagemErro);
-            if (servidorOnline) setServidorOnline(false);
-            return;
-          }
+      const tempo = backoff[Math.min(tentativasRef.current, backoff.length -1)];
+      tentativasRef.current += 1;
+      proximoAgendamento(tempo);
+      return;
+    }
 
-          if (codigoErro === 'ERR_NETWORK' && conexaoInternet) {
-            console.error("Servidor fora do ar", mensagemErro);        
-            if (servidorOnline) setServidorOnline(false);
-            return;
-          }
+    try{
+      const servidorURL = import.meta.env.VITE_API_URL
 
-          if (codigoErro === 'ERR_NETWORK' && !conexaoInternet) {
-            console.error("Sem conexão com a internet", mensagemErro);        
-            if (conexaoInternet) setConexaoInternet(false);
-            return;
-          }
-        }
-          
-          console.error("Falha ao verificar servidor:", err);
-          if (servidorOnline) setServidorOnline(false);    
+      const response = await axios.get(`${servidorURL}/status-servidor`, { timeout: 5000 });
+
+      const ok = response.data?.status === 'ok';
+      setServidorOnline(ok);
+
+      tentativasRef.current = 0;
+      proximoAgendamento(normalIntervalo);
+    }catch (error){
+      setServidorOnline(false);
+
+      const tempo = backoff[Math.min(tentativasRef.current, backoff.length -1)];
+      tentativasRef.current += 1;
+      proximoAgendamento(tempo);
+    }
+  };
+
+  const forcarLogin = () =>{
+    if (location.pathname !== "/") {
+      navigate("/");
+    }
+  }
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data,error }) => {
+      const ativa = !!data.session && !error;
+      setSessaoAtiva(ativa);
+
+      if(!ativa){
+        forcarLogin();
       }
-    };
+    });
 
-      verificarInternet();
-      verificarServidor();
-      verificarSessao();
-    
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      const ativa = !!session;
+      setSessaoAtiva(ativa);
 
-    const intervalo = setInterval(() => {
-      verificarInternet();
-      verificarServidor();
-      verificarSessao();        
-    }, 2000);
+      if (!ativa) {
+        forcarLogin();
+      }
+    });
 
-    return () => clearInterval(intervalo);
+    verificarServidor();
 
-  }, [conexaoInternet, servidorOnline]);
+    const onOn = () => verificarServidor();
+    const onOff = () => verificarServidor();
+
+    window.addEventListener("online", onOn);
+    window.addEventListener("offline", onOff);
+
+    return () => {
+      sub.subscription.unsubscribe();
+      if (tempoRef.current) {
+        clearTimeout(tempoRef.current);
+      }
+      window.removeEventListener("online", onOn);
+      window.removeEventListener("offline", onOff);
+    }
+  },[]);
 
   const carregando = conexaoInternet === null || servidorOnline === null || sessaoAtiva === null;
 
