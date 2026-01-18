@@ -38,7 +38,7 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
 
   const verificarInternet = async (): Promise<boolean> => {
     try {
-      await fetch('https://www.google.com', { mode: 'no-cors' });
+      await fetch('https://1.1.1.1', { mode: 'no-cors' });
       return true;
     }catch{
       return false;
