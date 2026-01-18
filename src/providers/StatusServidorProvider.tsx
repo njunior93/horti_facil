@@ -46,7 +46,7 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
   }
 
   const verificarServidor = async () =>{
-    const online = navigator.onLine || await verificarInternet();
+    const online = navigator.onLine ? true : await verificarInternet();
     setConexaoInternet(online);
 
     if(!online){
@@ -61,13 +61,43 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
     try{
       const servidorURL = import.meta.env.VITE_API_URL
 
-      const response = await axios.get(`${servidorURL}/status-servidor`, { timeout: 5000 });
+      if (!servidorURL) {
+        console.error("VITE_API_URL não foi definido");
+        setServidorOnline(false);
 
-      const ok = response.data?.status === 'ok';
-      setServidorOnline(ok);
+        const tempo = backoff[Math.min(tentativasRef.current, backoff.length - 1)];
+        tentativasRef.current += 1;
+        proximoAgendamento(tempo);
+        return;
+      }
 
-      tentativasRef.current = 0;
-      proximoAgendamento(normalIntervalo);
+      const apiResponse = await axios.get(`${servidorURL}/api-status`, { timeout: 5000 });
+
+      const apiOk = apiResponse.data?.api === 'ok' 
+
+      if (!apiOk){
+        setServidorOnline(false);
+
+        const tempo = backoff[Math.min(tentativasRef.current, backoff.length - 1)];
+        tentativasRef.current += 1;
+        proximoAgendamento(tempo);
+        return;
+      }
+
+      const dbResponse = await axios.get(`${servidorURL}/db-status`, { timeout: 5000 });
+
+      const dbOk = dbResponse.data?.db === 'ok'
+
+      setServidorOnline(dbOk);
+
+      if (dbOk) {
+        tentativasRef.current = 0;
+        proximoAgendamento(normalIntervalo);
+      } else {
+        const tempo = backoff[Math.min(tentativasRef.current, backoff.length - 1)];
+        tentativasRef.current += 1;
+        proximoAgendamento(tempo);
+      }
     }catch (error){
       setServidorOnline(false);
 
