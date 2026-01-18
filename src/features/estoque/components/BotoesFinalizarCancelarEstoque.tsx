@@ -89,7 +89,7 @@ const BotoesFinalizarCancelarEstoque = () => {
 
     try{
 
-       await axios.post (`${import.meta.env.VITE_API_URL}/criar-estoque`, novoEstoque,
+       await axios.post (`${import.meta.env.VITE_API_URL}/estoque/criar-estoque`, novoEstoque,
         {
           headers: {
             Authorization: `Bearer ${token}`

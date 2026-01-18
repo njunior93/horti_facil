@@ -214,7 +214,7 @@ const fetchListaPedidosCompra = async () => {
         return;
       }
 
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}pedido/listar-pedidos`,
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/pedido/listar-pedidos`,
         { headers: {Authorization: `Bearer ${token}`}}
       );
 
