@@ -29,7 +29,7 @@ export const gerarVisualizacaoPedidoPDF = (pedido: iPedido) => {
   doc.text(`Pedido Nº: ${pedidoId}`, 14, 35);
   doc.text(`Status: ${statusFormatado}`, 14, 42);
   doc.text(`Fornecedor: ${nomeFornecedor}`, 14, 49);
-  const dtPedido = new Date(data_criacao + 'Z');
+  const dtPedido = new Date(data_criacao);
   doc.text(`Data de Criação: ${dtPedido.toLocaleDateString('pt-BR', timeZone)} - ${dtPedido.toLocaleTimeString('pt-BR', timeZone)}`, 14, 56);
   if(data_efetivacao){
     const dtEfetivacao = new Date(data_efetivacao + 'Z');
