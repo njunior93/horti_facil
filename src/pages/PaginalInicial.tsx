@@ -226,7 +226,6 @@ const PaginalInicial = () => {
             <List>
             <ListItem disablePadding>
               <ListItemButton
-              disabled={existeEstoque === null}
               onClick={criarEstoque}
               sx={{
                 backgroundColor: "#FDEFD6",
@@ -244,7 +243,6 @@ const PaginalInicial = () => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
-              disabled={existeEstoque === null}
               onClick={(gerenciarEstoque)}
               sx={{
                 backgroundColor: "#FDEFD6",
@@ -262,7 +260,6 @@ const PaginalInicial = () => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
-              disabled={existeEstoque === null}
               onClick={() => { pedidoCompra(); }}
               sx={{
                 backgroundColor: "#FDEFD6",

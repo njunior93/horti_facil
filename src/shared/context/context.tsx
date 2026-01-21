@@ -114,10 +114,14 @@ const tipoMovimentacoes: string[] = [
 
 export const movimentacoesEstoque: string[] = [
   "Todas as movimentações",
+  "Todas as Entradas",
   "Entrada Manual",
   "Entrada Pedido",
-  "Saída Manual - AVARIA",
-  'Saída Manual - VENDA',
+  "Todas as Saídas",
+  "Saída Manual (Avaria)",
+  'Saída Manual (Venda)',
+  'Saída Manual (Devolução)',
+  'Saída Devolução'
 ]
 
 const produtos: iProduto[] = [...frutas, ...hortalicas];

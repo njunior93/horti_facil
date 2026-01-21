@@ -235,8 +235,8 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
       setAlertaAddProduto(alertaMensagem("Digite um valor", "warning", <ReportProblemIcon/>));
       return;
     }
-  
-    if (tipoModal === "Entrada" && !qtdMov  ||  qtdMov <= 0){
+
+    if (tipoModal === "Entrada" && (!qtdMov || qtdMov <= 0)){
       setAlertaAddProduto(alertaMensagem("Valor incorreto", "warning", <ReportProblemIcon/>));
       return;
     }
@@ -264,7 +264,6 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     setListaProdutoMov([...listaProdutoMov, { produto, qtdMov, tipoSaida, tipoEntrada, tipoMov , dataMov}]);
     setValorMov('')
     setTipoSaida(null);
-    setTipoEntrada(null);
     setAlertaAddProduto(null)
     setProdutoSelecionado(null)
   }
@@ -660,10 +659,14 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
 
         const filtroTipoSaida =
         tipoMovSelecionado === 'Saída'
-          ? movimentacaoSelecionada === 'Saída Manual - AVARIA'
+          ? movimentacaoSelecionada === 'Saída Manual (Avaria)'
             ? mov.tipoSaida === 'Avaria'
-          : movimentacaoSelecionada === 'Saída Manual - VENDA'
+          : movimentacaoSelecionada === 'Saída Manual (Venda)'
             ? mov.tipoSaida === 'Venda'
+          : movimentacaoSelecionada === 'Saída Manual (Devolução)'
+            ? mov.tipoSaida === 'Manual-Devolucao'
+          : movimentacaoSelecionada === 'Todas as Saídas'
+            ? mov.tipoSaida === 'Todas-Saidas'
           : true
         : true;
 
@@ -673,6 +676,8 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
             ? mov.tipoEntrada === 'Manual'
           : movimentacaoSelecionada === 'Entrada Pedido'
             ? mov.tipoEntrada === 'Pedido'
+          : movimentacaoSelecionada === 'Todas as Entradas'
+            ? mov.tipoEntrada === 'Todas-Entradas'
           : true
         : true;
 
@@ -1107,6 +1112,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                     >
                       <FormControlLabel disabled={!valorMov} value="Venda" control={<Radio />} label="Venda" />
                       <FormControlLabel disabled={!valorMov} value="Avaria" control={<Radio />} label="Avaria" />
+                      <FormControlLabel disabled={!valorMov} value="Manual-Devolucao" control={<Radio />} label="Devolução" />
                     </RadioGroup>  
                   </>
               )}       
