@@ -19,14 +19,13 @@ export const gerarRelatorioPDF = (listaDeProdutosMov: iProdutoMov[], tipoMovSele
     doc.setFontSize(10);
     doc.text(`Período: ${dtInicio.toLocaleDateString()} até  ${dtFim.toLocaleDateString()}`, 14, 30);
 
-
     const Colunas = () => {
       if (tipoMovSelecionado === 'Entrada') {
-        return ['Produto', 'Estoque', 'Quantidade', 'Entrada', 'Periodo', 'Hora', 'Saldo'];
+        return ['Produto', 'Estoque', 'Qtd', 'Entrada', 'Periodo', 'Hora', 'Saldo'];
       } else if (tipoMovSelecionado === 'Saída') {
-        return ['Produto', 'Estoque', 'Quantidade', 'Saída', 'Periodo','Hora','Saldo'];
+        return ['Produto', 'Estoque', 'Qtd', 'Saída', 'Periodo','Hora','Saldo'];
       } else {
-        return ['Produto', 'Estoque', 'Quantidade', 'Saída', 'Entrada','Periodo','Hora','Saldo'];
+        return ['Produto', 'Estoque', 'Qtd', 'Saída', 'Entrada','Periodo','Hora','Saldo'];
       }
     }  
 
@@ -37,19 +36,21 @@ export const gerarRelatorioPDF = (listaDeProdutosMov: iProdutoMov[], tipoMovSele
             produto.produto.nome,
             produto.saldo_anterior,
             produto.qtdMov.toString(),
-            produto.tipoEntrada || '',
-            new Date(produto.dataMov).toLocaleDateString(),
-            new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            produto.saldo_atual
+            `${produto.tipoEntrada === 'Pedido' ? `Pedido ${produto.pedido_compra_id}` : produto.tipoEntrada === 'Manual' ? 'Manual' : ''}`,
+            new Date(produto.dataMov).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}),
+            new Date(produto.dataMov).toLocaleTimeString([], {timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
+            produto.saldo_atual,
+
           ];
         } else if (tipoMovSelecionado === 'Saída') {
           return [
             produto.produto.nome,
             produto.saldo_anterior,
             produto.qtdMov.toString(),
+            `${produto.tipoSaida === 'Devolucao' ? `Devolucao (${produto.pedido_compra_id})` : produto.tipoSaida === 'Venda' ? 'Venda' : produto.tipoSaida === 'Avaria' ? 'Avaria' : ''}`,
             produto.tipoSaida || '',
-            new Date(produto.dataMov).toLocaleDateString(),
-            new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            new Date(produto.dataMov).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}),
+            new Date(produto.dataMov).toLocaleTimeString([], {timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
             produto.saldo_atual
           ];
         } else {
@@ -57,10 +58,10 @@ export const gerarRelatorioPDF = (listaDeProdutosMov: iProdutoMov[], tipoMovSele
             produto.produto.nome,
             produto.saldo_anterior,
             produto.qtdMov.toString(),
-            produto.tipoSaida || '',
-            produto.tipoEntrada || '',
-            new Date(produto.dataMov).toLocaleDateString(),
-             new Date(produto.dataMov).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            `${produto.tipoSaida === 'Devolucao' ? `Devolucao (${produto.pedido_compra_id})` : produto.tipoSaida === 'Venda' ? 'Venda' : produto.tipoSaida === 'Avaria' ? 'Avaria' : ''}`,
+            `${produto.tipoEntrada === 'Pedido' ? `Pedido (${produto.pedido_compra_id})` : produto.tipoEntrada === 'Manual' ? 'Manual' : ''}`,
+            new Date(produto.dataMov).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}),
+            new Date(produto.dataMov).toLocaleTimeString([], {timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
             produto.saldo_atual
           ];
         }
