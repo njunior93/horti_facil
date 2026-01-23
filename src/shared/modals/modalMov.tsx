@@ -146,12 +146,12 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
       } else if (tipoMovSelecionado === "Saída") {
         setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("saída")));
       } else {
-        setListaMovimentacoesEstoque(movimentacoesEstoque.filter(mov => mov.toLowerCase().includes("todas")));
+        setListaMovimentacoesEstoque(['Todas as movimentações']);
       }
 
       setMovimentacaoSelecionada?.('');
 
-      listarMovimentacoes(); 
+      listarMovimentacoes();
     }
 
   },[tipoMovSelecionado, estoqueSalvo, tipoModal]);
@@ -665,8 +665,10 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
             ? mov.tipoSaida === 'Venda'
           : movimentacaoSelecionada === 'Saída Manual (Devolução)'
             ? mov.tipoSaida === 'Manual-Devolucao'
+          : movimentacaoSelecionada === 'Saída Devolução'
+            ? mov.tipoSaida === 'Devolucao'
           : movimentacaoSelecionada === 'Todas as Saídas'
-            ? mov.tipoSaida === 'Todas-Saidas'
+            ? (mov.tipoSaida === 'Avaria' || mov.tipoSaida === 'Venda' || mov.tipoSaida === 'Manual-Devolucao' || mov.tipoSaida === 'Devolucao')
           : true
         : true;
 
@@ -677,7 +679,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
           : movimentacaoSelecionada === 'Entrada Pedido'
             ? mov.tipoEntrada === 'Pedido'
           : movimentacaoSelecionada === 'Todas as Entradas'
-            ? mov.tipoEntrada === 'Todas-Entradas'
+            ? (mov.tipoEntrada === 'Manual' || mov.tipoEntrada === 'Pedido')
           : true
         : true;
 

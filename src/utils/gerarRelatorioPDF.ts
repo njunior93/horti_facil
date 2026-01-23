@@ -47,8 +47,7 @@ export const gerarRelatorioPDF = (listaDeProdutosMov: iProdutoMov[], tipoMovSele
             produto.produto.nome,
             produto.saldo_anterior,
             produto.qtdMov.toString(),
-            `${produto.tipoSaida === 'Devolucao' ? `Devolucao (${produto.pedido_compra_id})` : produto.tipoSaida === 'Venda' ? 'Venda' : produto.tipoSaida === 'Avaria' ? 'Avaria' : ''}`,
-            produto.tipoSaida || '',
+            `${produto.tipoSaida === 'Devolucao' ? `Devolucao (${produto.pedido_compra_id})` : produto.tipoSaida === 'Venda' ? 'Venda' : produto.tipoSaida === 'Avaria' ? 'Avaria' : produto.tipoSaida === 'Manual-Devolucao' ? 'Devolução' : ''}`,
             new Date(produto.dataMov).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}),
             new Date(produto.dataMov).toLocaleTimeString([], {timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
             produto.saldo_atual

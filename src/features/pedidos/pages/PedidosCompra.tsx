@@ -665,18 +665,40 @@ const efetivarPedido = async (pedidoId: number) => {
 
   let novoStatus = statusPedido;
 
-  if(!novoStatus || novoStatus === 'pendente'){
-    const todosEntregues = linhaPedidoItens.every((item) => item.recebido >= item.reposicao);
-    const algumEntregue = linhaPedidoItens.some((item) => item.recebido > 0 && item.recebido < item.reposicao);
+  if (!novoStatus || novoStatus === 'pendente') {
+    console.log('ENTROU NO CÁLCULO?', { novoStatus });
+    console.table(
+  linhaPedidoItens.map((i) => ({
+    recebido: i.recebido,
+    reposicao: i.reposicao,
+    recebidoType: typeof i.recebido,
+    reposicaoType: typeof i.reposicao,
+    recebidoNum: Number(i.recebido),
+    reposicaoNum: Number(i.reposicao),
+    falta: Number(i.recebido) < Number(i.reposicao),
+  }))
+);  
+  const todosZero = linhaPedidoItens.every(item => Number(item.recebido) === 0);
+  const temFalta  = linhaPedidoItens.some(item => Number(item.recebido) < Number(item.reposicao));
 
-    if(todosEntregues){
-      novoStatus = 'entregue';
-    } else if (algumEntregue){
-      novoStatus = 'entregue_parcialmente';
-    } else {
-      novoStatus = 'entregue_parcialmente';
-    }
+  if (todosZero) {
+    novoStatus = 'pendente';
+  } else if (temFalta) {
+    novoStatus = 'entregue_parcialmente';
+  } else {
+    novoStatus = 'entregue';
   }
+}
+
+
+  //   if(todosEntregues){
+  //     novoStatus = 'entregue';
+  //   } else if (algumEntregue){
+  //     novoStatus = 'entregue_parcialmente';
+  //   } else {
+  //     novoStatus = 'entregue_parcialmente';
+  //   }
+  // }
 
   try{
     await axios.patch(`${import.meta.env.VITE_API_URL}/pedido/efetivar-pedido/${pedidoId}`,
