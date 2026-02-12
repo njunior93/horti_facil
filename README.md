@@ -26,8 +26,7 @@ Este projeto foi desenvolvido com foco em **aprendizado prático**, aplicando co
 - 🔍 Filtros por tipo de movimentação e período  
 - 📱 Interface responsiva (desktop e mobile)  
 
-> ⚠️ O projeto ainda está em desenvolvimento. Algumas funcionalidades estão sendo ajustadas e melhorias estão em andamento.<br>
->⚠️ Esta aplicação utiliza recursos gratuitos para o banco de dados e o servidor. Por esse motivo, esses serviços podem ficar inativos após um período sem uso, fazendo com que o sistema fique temporariamente fora do ar.
+> ⚠️ O projeto ainda está em desenvolvimento. Algumas funcionalidades estão sendo ajustadas e melhorias estão em andamento.<br> Esta aplicação utiliza recursos gratuitos para o banco de dados e o servidor. Por esse motivo, esses serviços podem ficar inativos após um período sem uso, fazendo com que o sistema fique temporariamente fora do ar.
 Mesmo assim, vou procurar manter o sistema ativo sempre que possível para que todos consigam visualizar e testar a aplicação
 
 ---
