@@ -1,5 +1,5 @@
 import { Button } from "@mui/material"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Box, Typography, List, ListItem, ListItemButton, ListItemText } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import alertaMensagem from "../shared/components/alertaMensagem";
@@ -23,15 +23,19 @@ const PaginalInicial = () => {
 
   const existeEstoque = estoqueContext?.existeEstoque;
   // const verificarInternet = StatusServidorContext?.conexaoInternet;
-  const servidorOnline  = StatusServidorContext?.servidorOnline;
+  const servidorOnline  = StatusServidorContext?.servidorOnline ?? false;
 
   const dadosUsuario: any | undefined = session?.user.user_metadata;
 
-  setTimeout(() =>{
-    if(alerta){
-      setAlerta(null)
-    }
-  },4000);
+  useEffect(() => {
+       if (!alerta) return;
+  
+      const timer = setTimeout(() => {
+        setAlerta(null);
+      }, 4000);
+  
+      return () => clearTimeout(timer);
+      }, [alerta]);
 
   if (loading){
     return (
@@ -145,7 +149,7 @@ const PaginalInicial = () => {
     <div className="flex justify-center items-center h-screen w-screen bg-[#FDEFD6] px-4">
       <div className="flex flex-col items-center justify-center gap-3 max-w-xs text-center w-3/5 sm:1/2">  
           <h1 className="font-bold text-gray-800 leading-tight">
-            <span className="block text-2xl sm:text-3xl md:text-4xl">Bem-vindo {dadosUsuario.name}</span>
+            <span className="block text-2xl sm:text-3xl md:text-4xl">Bem-vindo {dadosUsuario?.name}</span>
           </h1>   
         <p className="mt-4 text-xs sm:text-sm md:text-lg text-gray-600 leading-tight">Sua plataforma de gestão de estoque de hortifrúti.</p>
         <div className="flex gap-3">

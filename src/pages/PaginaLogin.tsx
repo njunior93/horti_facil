@@ -1,4 +1,4 @@
-import {  useState } from "react";
+import {  useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import alertaMensagem from "../shared/components/alertaMensagem";
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
@@ -13,11 +13,21 @@ const PaginaLogin = () => {
   const [loading, setLoading] = useState(false);
   const {session} = useAuth();
 
-  setTimeout(() =>{
-    if(alerta){
-      setAlerta(null)
+   useEffect(() => {
+     if (!alerta) return;
+
+    const timer = setTimeout(() => {
+      setAlerta(null);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+    }, [alerta]);
+
+   useEffect(() => {
+    if (session) {
+      navigate('/pagina-inicial');
     }
-  },4000);
+  }, [session, navigate]);
 
   if(loading){
     return (
@@ -27,11 +37,6 @@ const PaginaLogin = () => {
         </p>
       </div>
     );
-  }
-
-  if (session){
-    navigate('/pagina-inicial');
-    return null;
   }
 
   const entrarLogin = async () =>{
