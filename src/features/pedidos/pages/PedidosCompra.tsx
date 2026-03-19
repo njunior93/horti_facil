@@ -666,18 +666,7 @@ const efetivarPedido = async (pedidoId: number) => {
   let novoStatus = statusPedido;
 
   if (!novoStatus || novoStatus === 'pendente') {
-    console.log('ENTROU NO CÁLCULO?', { novoStatus });
-    console.table(
-  linhaPedidoItens.map((i) => ({
-    recebido: i.recebido,
-    reposicao: i.reposicao,
-    recebidoType: typeof i.recebido,
-    reposicaoType: typeof i.reposicao,
-    recebidoNum: Number(i.recebido),
-    reposicaoNum: Number(i.reposicao),
-    falta: Number(i.recebido) < Number(i.reposicao),
-  }))
-);  
+
   const todosZero = linhaPedidoItens.every(item => Number(item.recebido) === 0);
   const temFalta  = linhaPedidoItens.some(item => Number(item.recebido) < Number(item.reposicao));
 
@@ -689,7 +678,6 @@ const efetivarPedido = async (pedidoId: number) => {
     novoStatus = 'entregue';
   }
 }
-
 
   //   if(todosEntregues){
   //     novoStatus = 'entregue';

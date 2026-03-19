@@ -23,7 +23,7 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
   const tempoRef = useRef<number | null>(null);
   const tentativasRef = useRef<number>(0);
 
-  const backoff = [2000,5000,10000,30000,60000];
+  const backoff = [1000, 2000, 5000, 10000];
   const normalIntervalo = 15000;
 
   const proximoAgendamento = (tempo: number) =>{
@@ -36,27 +36,17 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
     }, tempo);
   };
 
-  const verificarInternet = async (): Promise<boolean> => {
-    try {
-      await fetch('https://1.1.1.1', { mode: 'no-cors' });
-      return true;
-    }catch{
-      return false;
-    }
-  }
+  // const verificarInternet = async (): Promise<boolean> => {
+  //   try {
+  //     await fetch('https://1.1.1.1', { mode: 'no-cors' });
+  //     return true;
+  //   }catch{
+  //     return false;
+  //   }
+  // }
 
   const verificarServidor = async () =>{
-    const online = navigator.onLine ? true : await verificarInternet();
-    setConexaoInternet(online);
-
-    if(!online){
-      setServidorOnline(false);
-
-      const tempo = backoff[Math.min(tentativasRef.current, backoff.length -1)];
-      tentativasRef.current += 1;
-      proximoAgendamento(tempo);
-      return;
-    }
+    setConexaoInternet(navigator.onLine);
 
     try{
       const servidorURL = import.meta.env.VITE_API_URL
@@ -71,26 +61,13 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
         return;
       }
 
-      const apiResponse = await axios.get(`${servidorURL}/api-status`, { timeout: 5000 });
+      const response = await axios.get(`${servidorURL}/health`, { timeout: 3000 });
 
-      const apiOk = apiResponse.data?.api === 'ok' 
+      const ok = response.data?.status === 'ok';
 
-      if (!apiOk){
-        setServidorOnline(false);
+      setServidorOnline(ok);
 
-        const tempo = backoff[Math.min(tentativasRef.current, backoff.length - 1)];
-        tentativasRef.current += 1;
-        proximoAgendamento(tempo);
-        return;
-      }
-
-      const dbResponse = await axios.get(`${servidorURL}/db-status`, { timeout: 5000 });
-
-      const dbOk = dbResponse.data?.db === 'ok'
-
-      setServidorOnline(dbOk);
-
-      if (dbOk) {
+      if (ok) {
         tentativasRef.current = 0;
         proximoAgendamento(normalIntervalo);
       } else {
@@ -132,7 +109,7 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
       }
     });
 
-    verificarServidor();
+    setTimeout(verificarServidor, 0);
 
     const onOn = () => verificarServidor();
     const onOff = () => verificarServidor();

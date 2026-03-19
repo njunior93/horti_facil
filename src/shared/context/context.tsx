@@ -7,12 +7,12 @@ import type { iPedido } from '../../features/pedidos/type/iPedido';
 
 
 interface IContext {
-  setConexaoInternet: (internet: true | false) => void;
-  conexaoInternet: true | false;
-  setServidorOnline: (online: true | false) => void;
-  servidorOnline: true | false;
-  sessaoAtiva: true | false;
-  setSessaoAtiva: (ativa: true | false) => void;
+  setConexaoInternet: (internet: boolean | null) => void;
+  conexaoInternet: boolean | null;
+  setServidorOnline: (online: boolean | null) => void;
+  servidorOnline: boolean | null;
+  sessaoAtiva: boolean | null;
+  setSessaoAtiva: (ativa: boolean | null) => void;
   listaTipoProdutos: iProduto[];
   setlistaTipoProdutos: (produto: iProduto[]) => void;
   categoria: string;
@@ -68,7 +68,7 @@ interface AppProvideProps{
     children: ReactNode
 }
 
-const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: null , setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: null, setTipoEntrada: () => {}, tipoSaida: null, setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {}, tipoInput: 'auto', setTipoInput: () => {}, estoqueId: 0, setEstoqueId: () => {}, servidorOnline: false, setServidorOnline: () => {}, sessaoAtiva: true, setSessaoAtiva: () => {}, listaFornecedores: [], setListaFornecedores: () => {}, listaPedidosCompra: [], setListaPedidosCompra: () => {}, conexaoInternet: false, setConexaoInternet: () => {}, origemDoModal: 'paginaPedido', setOrigemDoModal: () => {}};
+const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: null , setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: null, setTipoEntrada: () => {}, tipoSaida: null, setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {}, tipoInput: 'auto', setTipoInput: () => {}, estoqueId: 0, setEstoqueId: () => {}, servidorOnline: null, setServidorOnline: () => {}, sessaoAtiva: null, setSessaoAtiva: () => {}, listaFornecedores: [], setListaFornecedores: () => {}, listaPedidosCompra: [], setListaPedidosCompra: () => {}, conexaoInternet: null, setConexaoInternet: () => {}, origemDoModal: 'paginaPedido', setOrigemDoModal: () => {}};
 
 export const AppContext = createContext<IContext>(inicial);
 
@@ -148,11 +148,11 @@ export const AppProvider = ({ children }: AppProvideProps) => {
   const [mostrarCaixaDialogo, setMostrarCaixaDialogo] = useState(false);
   const [tipoInput, setTipoInput] = useState<"auto" | "manual">('auto');
   const [estoqueId, setEstoqueId] = useState<number>(0);
-  const [servidorOnline, setServidorOnline] = useState<true | false>(false);
-  const [sessaoAtiva, setSessaoAtiva] = useState<true | false>(true);
+  const [servidorOnline, setServidorOnline] = useState<boolean | null>(null);
+  const [sessaoAtiva, setSessaoAtiva] = useState<boolean | null>(null);
   const [listaFornecedores, setListaFornecedores] = useState<iFornecedor[]>([]);
   const [listaPedidosCompra, setListaPedidosCompra] = useState<iPedido[]>([]);
-  const [conexaoInternet, setConexaoInternet] = useState<true | false>(false);
+  const [conexaoInternet, setConexaoInternet] = useState<boolean | null>(null);
   const [origemDoModal, setOrigemDoModal] = useState<'paginaPedido' | 'modalCriarPedido'>('paginaPedido');
 
 
