@@ -6,9 +6,9 @@ import {StatusServidor} from '../shared/status/statusServidor';
 import { useNavigate } from "react-router-dom";
 
 export type StatusServidorContextType = {
-  servidorOnline: boolean;
-  sessaoAtiva: boolean;
-  conexaoInternet: boolean;
+  servidorOnline: boolean | null;
+  sessaoAtiva:  boolean | null;
+  conexaoInternet:  boolean | null;
 };
 
 export const StatusServidorContext = createContext<StatusServidorContextType | undefined>(undefined);
@@ -91,47 +91,25 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data,error }) => {
-      const ativa = !!data.session && !error;
-      setSessaoAtiva(ativa);
 
-      if(!ativa){
-        forcarLogin();
-      }
-    });
+  // dispara verificação imediata
+  setTimeout(verificarServidor, 0);
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      const ativa = !!session;
-      setSessaoAtiva(ativa);
+  const onOn = () => verificarServidor();
+  const onOff = () => verificarServidor();
 
-      if (!ativa) {
-        forcarLogin();
-      }
-    });
+  window.addEventListener("online", onOn);
+  window.addEventListener("offline", onOff);
 
-    setTimeout(verificarServidor, 0);
-
-    const onOn = () => verificarServidor();
-    const onOff = () => verificarServidor();
-
-    window.addEventListener("online", onOn);
-    window.addEventListener("offline", onOff);
-
-    return () => {
-      sub.subscription.unsubscribe();
-      if (tempoRef.current) {
-        clearTimeout(tempoRef.current);
-      }
-      window.removeEventListener("online", onOn);
-      window.removeEventListener("offline", onOff);
+  return () => {
+    if (tempoRef.current) {
+      clearTimeout(tempoRef.current);
     }
-  },[]);
+    window.removeEventListener("online", onOn);
+    window.removeEventListener("offline", onOff);
+  };
 
-  const carregando = conexaoInternet === null || servidorOnline === null || sessaoAtiva === null;
-
-  if(carregando) {
-    return<div>Carregando status do sistema...</div>
-  }
+}, []);
 
   return (
     <StatusServidorContext.Provider value={{conexaoInternet,servidorOnline, sessaoAtiva }}>
