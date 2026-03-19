@@ -1,9 +1,8 @@
 import { createContext, useContext, useEffect, useRef } from "react";
 import axios from "axios";
-import { supabase } from "../supabaseClient";
 import { AppContext } from "../shared/context/context";
 import {StatusServidor} from '../shared/status/statusServidor';
-import { useNavigate } from "react-router-dom";
+
 
 export type StatusServidorContextType = {
   servidorOnline: boolean | null;
@@ -15,7 +14,7 @@ export const StatusServidorContext = createContext<StatusServidorContextType | u
 
 export const StatusServidorProvider = ({ children }: { children: React.ReactNode }) => {
   const { servidorOnline, setServidorOnline } = useContext(AppContext);
-  const { sessaoAtiva, setSessaoAtiva } = useContext(AppContext);
+  const { sessaoAtiva } = useContext(AppContext);
   const {conexaoInternet, setConexaoInternet} = useContext(AppContext);
 
   const tempoRef = useRef<number | null>(null);
