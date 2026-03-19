@@ -18,8 +18,6 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
   const { sessaoAtiva, setSessaoAtiva } = useContext(AppContext);
   const {conexaoInternet, setConexaoInternet} = useContext(AppContext);
 
-  const navigate = useNavigate();
-
   const tempoRef = useRef<number | null>(null);
   const tentativasRef = useRef<number>(0);
 
@@ -83,12 +81,6 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
       proximoAgendamento(tempo);
     }
   };
-
-  const forcarLogin = () =>{
-    if (location.pathname !== "/") {
-      navigate("/");
-    }
-  }
 
   useEffect(() => {
 
