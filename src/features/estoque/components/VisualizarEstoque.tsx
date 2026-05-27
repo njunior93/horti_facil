@@ -30,40 +30,6 @@ const VisualizarEstoque = () => {
     }
   },4000);
 
-  // useEffect(() => {
-  //   const fetchListaProdutos = async () => {
-
-  //     setLoading(true);
-
-  //     const {data : {session}} = await supabase.auth.getSession();
-  //     const token = session?.access_token;
-
-  //     if (!token){
-  //       setLoading(false);
-  //       setMensagemErro(alertaMensagem('Token de acesso não encontrado.', 'warning', <ReportProblemIcon/>));
-  //       navigate("/pagina-login")
-  //       return;
-  //     }
-
-  //     try{
-  //       const response = await axios.get('http://localhost:3000/estoque/lista-produtos', {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`
-  //         }
-  //       });
-
-  //       setEstoqueSalvo(response.data);
-
-  //     } catch (error){
-  //       setMensagemErro(alertaMensagem(`Erro ao buscar lista de produtos. ${error}`, 'warning', <ReportProblemIcon/>));
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchListaProdutos();
-  // }, []);
-
   useEffect(() => {
   if (handleModal === true) {
     if (!estoqueId){

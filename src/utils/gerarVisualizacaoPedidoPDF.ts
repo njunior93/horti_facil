@@ -9,7 +9,6 @@ export const gerarVisualizacaoPedidoPDF = (pedido: iPedido) => {
 
   const doc = new jsPDF();
   const timeZone = {timeZone:'America/Sao_Paulo'};
-  // const dtPedido = toZonedTime(new Date(dataPedido),timeZone);
 
   doc.setFontSize(20);
   doc.setFont("helvetica","bold");

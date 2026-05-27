@@ -29,7 +29,6 @@ const ListaMovManual = () => {
         {tipoModal === 'CriarPedidoCompra' && (<div>Maximo</div>)}
         {tipoModal === 'Entrada' ? (<div>Entrada</div>) : tipoModal === 'Saída' ? (<div>Saida</div>) : ''}
         {tipoModal === 'Saída' && (<div>Tipo</div>)}
-        {/* <div>{tipoModal === 'Entrada' ? 'Entrada' : tipoModal === 'Saida' ? 'Saida' : ''}</div> */}
         {tipoModal === 'Saída' || tipoModal === 'CriarPedidoCompra' && (<div className="bg-[#f7931e] text-white text-bold">Reposicao</div>)}
         <div>Excluir</div>
       </div>

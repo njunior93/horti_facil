@@ -46,8 +46,6 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
 
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    // Verifica backend e Supabase em paralelo.
-    // Supabase: /auth/v1/health exige o header apikey mesmo sendo health check.
     const [backendResult, supabaseResult] = await Promise.allSettled([
       axios.get(`${backendURL}/health`, { timeout: 5000 }),
       axios.get(`${supabaseURL}/auth/v1/health`, {
@@ -56,16 +54,12 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
       }),
     ]);
 
-    // Backend retorna { status: "ok" } no /health
     const backendOk =
       backendResult.status === "fulfilled" &&
       backendResult.value.data?.status === "ok";
 
-    // Supabase Cloud retorna HTTP 200 em /auth/v1/health (sem campo status:"ok" no body).
-    // Basta confirmar que a requisição foi bem-sucedida (axios só chega em "fulfilled" com 2xx).
     const supabaseOk = supabaseResult.status === "fulfilled";
 
-    // Servidor online somente quando AMBOS estiverem disponíveis
     const tudo = backendOk && supabaseOk;
     setServidorOnline(tudo);
 

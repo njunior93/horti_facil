@@ -62,10 +62,8 @@ const PaginaLogin = () => {
   return (
     <div className="flex justify-center items-center min-h-screen w-screen bg-[#FDEFD6] px-6 py-10">
 
-      {/* Container de conteúdo com largura máxima para não se expandir em telas grandes */}
       <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12 w-full max-w-4xl">
 
-        {/* Conteúdo: título, descrição e botão — abaixo no mobile, à esquerda no desktop */}
         <div className="flex flex-col items-center justify-center gap-4 text-center w-full md:w-1/2 order-2 md:order-1">
           <h1 className="font-bold text-gray-800 leading-tight">
             <span className="block text-3xl sm:text-4xl md:text-5xl">HortiFácil</span>
@@ -90,7 +88,6 @@ const PaginaLogin = () => {
           </Button>
         </div>
 
-        {/* Imagem — no topo no mobile, à direita no desktop */}
         <div className="flex justify-center items-center w-full md:w-1/2 order-1 md:order-2">
           <img
             src="/logo.png"

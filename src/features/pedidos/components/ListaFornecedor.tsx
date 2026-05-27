@@ -278,7 +278,7 @@ const ListaFornecedor = () => {
         </DialogContent>
         <DialogActions>
           <Button sx={{
-            backgroundColor: "#f44336", // vermelho
+            backgroundColor: "#f44336",
             color: "#fff",
             fontWeight: "bold",
             borderRadius: "20px",
@@ -289,7 +289,7 @@ const ListaFornecedor = () => {
             },}}  
             onClick={handleFecharDialog} color="error" autoFocus>Cancelar</Button>
           <Button sx={{
-            backgroundColor: "#f7931e", // laranja
+            backgroundColor: "#f7931e",
             color: "#fff",
             fontWeight: "bold",
             borderRadius: "20px",

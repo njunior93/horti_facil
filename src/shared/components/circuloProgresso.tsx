@@ -2,7 +2,6 @@ import CircularProgress, { type CircularProgressProps } from '@mui/material/Circ
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
-// Componente que exibe o progresso com o número no centro
 function CircularProgressWithLabel(
   props: CircularProgressProps & { value: number },
 ) {

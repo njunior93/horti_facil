@@ -8,7 +8,6 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { useEstoque } from '../provider/EstoqueProvider.tsx';
-// import { useInternet } from '../../../providers/StatusServidorProvider';
 
 const GerenciarEstoque = () => {
 
@@ -19,7 +18,6 @@ const GerenciarEstoque = () => {
   const [, setLoadingProdutos] = useState(false)
 
   const estoqueContext = useEstoque();
-  // const servidorContext = useInternet();
   const verificarEstoque = estoqueContext?.verificarEstoque;
   const existeEstoque = estoqueContext?.existeEstoque;
   const loading = estoqueContext?.loading;
@@ -119,16 +117,6 @@ const GerenciarEstoque = () => {
       </div>
     );
   }
-
-  // if (loadingProdutos){
-  //   return (
-  //     <div className="flex justify-center items-center h-screen w-screen bg-[#FDEFD6]">
-  //       <p className="text-xs md:text-6xl font-extrabold bg-gradient-to-r from-orange-500 via-red-500 to-red-700 text-transparent bg-clip-text drop-shadow-lg leading-snug">
-  //         Carregando produtos...
-  //       </p>
-  //     </div>
-  //   );
-  // }
 
   if (!existeEstoque){
     return (

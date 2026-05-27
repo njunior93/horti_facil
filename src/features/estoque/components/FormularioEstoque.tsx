@@ -187,35 +187,6 @@ const FormularioEstoque = () => {
           </Stack>
         </div>
         
-        {/* <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} divider={<Divider orientation='vertical' flexItem/>}>
-          <Select labelId="formulario-estoque-inputs-produto-label" id="formulario-estoque-inputs-produto" label="Produto" value={produtoNome} onChange={selecaoProduto} displayEmpty sx={{ width: { xs: '100%', sm: 'auto' } }}>
-            <MenuItem value="" disabled>
-              Produto
-            </MenuItem>
-            {produtosSelecionados.map((p) => (
-              <MenuItem key={p.id} value={p.nome}>
-                {p.nome}
-              </MenuItem>
-            ))}
-          </Select>
-
-          {tipoInput === 'auto' ? (
-            <>
-              <TextField required id="formulario-estoque-inputs-atual" disabled={!produtoSelecionado.id || salvandoEstoque} type='number' value={estoqueAtual}  onChange={(e) => setEstoqueAtual(e.target.value)}  label="Estoque Atual" variant="outlined" error={Number(estoqueAtual) < 0}/>
-              <TextField required id="formulario-estoque-inputs-venda" disabled={!produtoSelecionado.id || salvandoEstoque} type='number' value={vendaMensal} onChange={(e) => setVendaMensal(e.target.value)}  label="Venda Mensal" variant="outlined" error={Number(vendaMensal) < 0}/>
-              <TextField required id="formulario-estoque-inputs-lote" disabled={!produtoSelecionado.id || salvandoEstoque}  type='number' value={loteReposicao} onChange={(e) => setLoteReposicao(e.target.value)} label="Lote de Repos." variant="outlined" error={Number(loteReposicao) < 0}/>
-              <TextField required id="formulario-estoque-inputs-tempo" disabled={!produtoSelecionado.id || salvandoEstoque} type='number' value= {tempoReposicao}  onChange={(e) => setTempoReposicao(e.target.value)} label="Tempo de Repos." variant="outlined" error={Number(tempoReposicao) < 0}/>
-            </>
-          ) : (
-            <>
-              <TextField required id="formulario-estoque-inputs-atual" disabled={!produtoSelecionado.id || salvandoEstoque} type='number' value={estoqueAtual}  onChange={(e) => setEstoqueAtual(e.target.value)}  label="Estoque Atual" variant="outlined" error={Number(estoqueAtual) < 0}/>
-              <TextField required id="formulario-estoque-inputs-minimo" disabled={!produtoSelecionado.id || salvandoEstoque} type='number' value={estoqueMinimoInput} onChange={(e) => setEstoqueMinimoInput(e.target.value)}  label="Estoque Mínimo" variant="outlined" error={Number(estoqueMinimoInput) < 0}/>
-              <TextField required id="formulario-estoque-inputs-maximo" disabled={!produtoSelecionado.id || salvandoEstoque} type='number' value={estoqueMaximoInput} onChange={(e) => setEstoqueMaximoInput(e.target.value)} label="Estoque Máximo" variant="outlined" error={Number(estoqueMaximoInput) < 0}/>
-            </>
-          )} 
-          <Button variant="contained" disabled={!produtoSelecionado.id || salvandoEstoque} startIcon={<AddCircleIcon />} onClick={calcularEstoque} sx={{ backgroundColor: "#4ED7F1", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#6FE6FC",},}}>Adicionar</Button>
-        </Stack> */}
-
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end"> 
           <div className="sm:col-span-3">
             <Select labelId="formulario-estoque-inputs-produto-label" id="formulario-estoque-inputs-produto" value={produtoNome}  onChange={selecaoProduto} displayEmpty fullWidth disabled={salvandoEstoque}>

@@ -1,6 +1,5 @@
 import { DataGrid, gridPageCountSelector, gridPageSelector, useGridApiContext ,useGridSelector, type GridColDef, type GridRowModel} from '@mui/x-data-grid';
 import { Box, CardHeader, Checkbox, CircularProgress, FormControl, FormControlLabel, FormGroup, FormLabel, InputLabel, MenuItem, Select, Stack, Tooltip, Typography } from '@mui/material';
-import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import { useContext, useState } from 'react';
 import { AppContext } from '../../../shared/context/context';
@@ -102,20 +101,6 @@ useEffect(() => {
     
     
 }, []); 
-
-// useEffect(() => {
-//   if (idsSelecionados.length === 0) {
-//     setSelectedRows([]);
-//     return;
-//   }
-
-//   const atualizados = idsSelecionados.map(id => listaPedidosCompra.find(p => String(p.id) === String(id))).filter(Boolean);
-
-//   setSelectedRows(atualizados);
-
-// }, [listaPedidosCompra]);
-
-
 
 useEffect(() => {
 
@@ -221,7 +206,6 @@ const fetchListaPedidosCompra = async () => {
       );
 
       setListaPedidosCompra(response.data);
-      // setListaPedidoFiltrados(response.data);
 
       return response.data;
 
@@ -249,8 +233,6 @@ const atualizarLista = () =>{
 
     if(!passaStatus) return false;
 
-    //------------------
-
     if(fornecedorFiltro && fornecedorFiltro !== 'Todos'){
       const fornecedorAchado = listaFornecedores.find(f => f.nome === fornecedorFiltro);
 
@@ -265,10 +247,6 @@ const atualizarLista = () =>{
       }
 
     }
-    
-
-
-    //-------------------
 
     const inicioCriacao = dataFiltroInicioCriacao ? new Date(new Date(dataFiltroInicioCriacao).setHours(0, 0, 0, 0)) : null;
 
@@ -281,8 +259,6 @@ const atualizarLista = () =>{
     const inicioCanc = dataFiltroInicioCancelamento ? new Date(new Date(dataFiltroInicioCancelamento).setHours(0,0,0,0)) : null;
 
     const fimCanc = dataFiltroFimCancelamento ? new Date(new Date(dataFiltroFimCancelamento).setHours(23,59,59,999)) : null
-
-    //-------------------
 
     const dataCriacao = new Date(pedido.data_criacao);
 
@@ -342,10 +318,7 @@ const fecharPedido = () =>{
   setLinhaPedidoItens([]);
   setbtnOperacao(undefined);
   setAlerta(null);
-  // setSelectedRows([]);
-  // setIdsSelecionados([]);
   setMensagemErro(null);
-  // setStatusAtualPedidoSelecionado('');
   setOpenCancelamento(false);
   setPedidoIdParaCancelar(null);
 }
@@ -484,12 +457,7 @@ const valorRecebido = (novoValor: GridRowModel, antigoValor:GridRowModel) =>{
 }
 
 const colunasPedidoItens: GridColDef[] = [
-  // { 
-  //   field: 'id',
-  //   headerName: 'ID', 
-  //   width: 90 
-  // },
-  { 
+  {
     field: 'produto',
     headerName: 'Produto', 
     width: 100,
@@ -680,15 +648,6 @@ const efetivarPedido = async (pedidoId: number) => {
     novoStatus = 'entregue';
   }
 }
-
-  //   if(todosEntregues){
-  //     novoStatus = 'entregue';
-  //   } else if (algumEntregue){
-  //     novoStatus = 'entregue_parcialmente';
-  //   } else {
-  //     novoStatus = 'entregue_parcialmente';
-  //   }
-  // }
 
   setIsLoadingEfetivar(true);
 
@@ -1244,7 +1203,7 @@ if (loading){
               onClick={() => {handlecriarPedido(); setOrigemDoModal('modalCriarPedido');}}
               disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0 || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'pendente'}
               sx={{
-                backgroundColor: "#f7931e", // laranja
+                backgroundColor: "#f7931e",
                 color: "#fff",
                 fontWeight: "bold",
                 borderRadius: "20px",
@@ -1359,7 +1318,7 @@ if (loading){
                 setOrigemDoModal('paginaPedido')
               }}
               sx={{
-                backgroundColor: "#f7931e", // laranja
+                backgroundColor: "#f7931e",
                 color: "#fff",
                 fontWeight: "bold",
                 borderRadius: "20px",
@@ -1383,7 +1342,7 @@ if (loading){
 
               }}
               sx={{
-                backgroundColor: "#494949ff", // laranja
+                backgroundColor: "#494949ff",
                 color: "#fff",
                 fontWeight: "bold",
                 borderRadius: "20px",

@@ -54,16 +54,13 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     const [errorCel, setErrorCel] = useState(false);
     const [errorEmail, setErrorEmail] = useState(false);
     const [notiEmail, setNotiEmail] = useState(false);
-    // const [notiWhats, setNotiWhats] = useState(false);
     const {listaFornecedores, setListaFornecedores} = useContext(AppContext);
     const [iDfornecedorSelecionado, setiDFornecedorSelecionado] = useState<string>('');
     const {listaPedidosCompra, setListaPedidosCompra} = useContext(AppContext);
     const StatusServidorContext = useInternet();
-    // const estoqueContext = useEstoque();
     const {origemDoModal} = useContext(AppContext);
     const [loadingModal, setLoadingModal] = useState(false);
 
-    // const existeEstoque = estoqueContext?.existeEstoque;
     const conexaoInternet = StatusServidorContext?.conexaoInternet;
     const servidorOnline = StatusServidorContext?.servidorOnline;
 
@@ -168,7 +165,6 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     setErrorCel(false);
     setErrorEmail(false);
     setNotiEmail(false);
-    // setNotiWhats(false);
     setHandleModal(false)
     setTipoModal("");
     setProdutoSelecionado(null)
@@ -202,7 +198,6 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     setErrorCel(false);
     setErrorEmail(false);
     setNotiEmail(false);
-    // setNotiWhats(false);
     if(origemDoModal === 'modalCriarPedido'){
       setTipoModal('CriarPedidoCompra');
     }else{
@@ -553,7 +548,6 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
       setErrorCel(false);
       setErrorEmail(false);
       setNotiEmail(false);
-      // setNotiWhats(false);
       if(origemDoModal === 'modalCriarPedido'){
         setTipoModal('CriarPedidoCompra');
       }else{
@@ -715,16 +709,11 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
   const checkNotificacao = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.checked;
     setNotiEmail(value);
-    // setNotiWhats(value);
   };
 
   const checkEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNotiEmail(event.target.checked);
   };
-
-  // const checkWhats = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   setNotiWhats(event.target.checked);
-  // };
 
   const inputTelefone = (value: string) => {
     const somenteNumeros = value.replace(/\D/g, "");
@@ -793,8 +782,8 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     setErrorEmail(!regex.test(email));
   }
 
-  const todosNotificacoes = notiEmail /*&& notiWhats*/; 
-  const algumaNotificacao = notiEmail /*|| notiWhats*/;
+  const todosNotificacoes = notiEmail;
+  const algumaNotificacao = notiEmail;
 
   const children = (
     <Box sx={{ display: 'flex', flexDirection: 'row', ml: 3 }}>
@@ -804,7 +793,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
       />
       <FormControlLabel disabled={true}
         label="WhatsApp"
-        control={<Checkbox /*checked={notiWhats} onChange={checkWhats}*/ />}
+        control={<Checkbox />}
       />
     </Box>
   );

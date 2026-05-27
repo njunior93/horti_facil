@@ -95,7 +95,6 @@ export const StatusServidor = () => {
         Status do Sistema
       </Typography>
 
-      {/* Conexão com a internet */}
       <StatusIndicador
         status={conexaoInternet}
         tooltipOnline="Conexão com a Internet ativa"
@@ -107,10 +106,8 @@ export const StatusServidor = () => {
         iconeOffline={<WifiOff sx={{ color: "#f44336", position: "absolute", fontSize: 12 }} />}
       />
 
-      {/* Separador */}
       <Box sx={{ width: "1px", height: 16, backgroundColor: "#ccc" }} />
 
-      {/* Servidor (backend + Supabase unificados) */}
       <StatusIndicador
         status={servidorOnline}
         tooltipOnline="Servidor e banco de dados disponíveis"
