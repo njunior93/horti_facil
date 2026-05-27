@@ -1145,7 +1145,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                   onClick={criarPedidoCompra}
                   disabled={listaProdutoMov.length === 0 || loadingModal}
                   startIcon={loadingModal ? <CircularProgress size={18} color="inherit" /> : undefined}
-                  sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black", minWidth: 120 }}
+                  sx={{ backgroundColor: "#f7931e", color: "#fff", fontWeight: "bold", borderRadius: "20px", border: "2px solid #fff", paddingX: 3, minWidth: 120, "&:hover": { backgroundColor: "#e67e00" } }}
                 >
                   {loadingModal ? 'Criando...' : 'Criar Pedido'}
                 </Button>

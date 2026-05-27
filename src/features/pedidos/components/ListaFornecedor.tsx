@@ -41,17 +41,19 @@ const ListaFornecedor = () => {
     }
   },4000);
 
-  const estiloModal: React.CSSProperties = {
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 400,
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
-          padding: '24px',
-    };
+  const estiloModal = {
+    position: 'absolute' as const,
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: { xs: '92vw', sm: 420 },
+    maxHeight: '90vh',
+    overflowY: 'auto' as const,
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+    padding: '24px',
+  };
 
   const handleAbrirDialog = (fornecedor: iFornecedor) => {
     setFornecedorSelecionado(fornecedor);
@@ -241,28 +243,61 @@ const ListaFornecedor = () => {
   }
  
   return (
-    <div className='bg-[#EAEFEF] h-32 mt-2 overflow-auto text-sm' >
-      <div className={`grid grid-cols-6 items-center p-2 border-b text-center`}>
-        <div className="font-medium">Razão</div>
+    <div className='bg-[#EAEFEF] mt-2 overflow-auto text-sm max-h-40'>
+
+      {/* Cabeçalho — visível apenas em sm+ */}
+      <div className="hidden sm:grid sm:grid-cols-6 items-center p-2 border-b text-center font-semibold bg-[#d4d9d9] sticky top-0">
+        <div>Razão Social</div>
         <div>Celular</div>
-        <div>Email</div>  
-        <div>Noti whats</div>
-        <div>Noti email</div>
+        <div>Email</div>
+        <div>Noti Whats</div>
+        <div>Noti Email</div>
         <div>Ação</div>
       </div>
 
-       {listaFornecedores.map((fornecedor) => (
-        <div key={fornecedor.id} className={`grid grid-cols-6 items-center p-2 border-b text-center`}>
-          <div>{fornecedor.nome}</div>
-          <div>{fornecedor.whatsApp}</div>
-          <div>{fornecedor.email}</div>         
-          <div>{fornecedor.noti_whatsapp ? "Sim" : "Não"}</div>
-          <div>{fornecedor.noti_email ? "Sim" : "Não"}</div>
-          <div>
-          <Button onClick={() => abrirModalEditar(fornecedor)} startIcon={<EditIcon/>}></Button>
-          <Button onClick={() => handleAbrirDialog(fornecedor)}  startIcon={<PersonRemoveIcon/>}></Button>
+      {listaFornecedores.map((fornecedor) => (
+        <div key={fornecedor.id} className="border-b last:border-b-0">
+
+          {/* Layout mobile: card empilhado */}
+          <div className="sm:hidden flex flex-col gap-1 p-2">
+            <div className="flex justify-between items-start">
+              <span className="font-semibold text-gray-800 break-words max-w-[65%]">
+                {fornecedor.nome}
+              </span>
+              <div className="flex gap-0 shrink-0">
+                <Button size="small" onClick={() => abrirModalEditar(fornecedor)} sx={{ minWidth: 32, p: 0.5 }}>
+                  <EditIcon fontSize="small" />
+                </Button>
+                <Button size="small" onClick={() => handleAbrirDialog(fornecedor)} sx={{ minWidth: 32, p: 0.5 }}>
+                  <PersonRemoveIcon fontSize="small" />
+                </Button>
+              </div>
+            </div>
+            <div className="text-xs text-gray-600">{fornecedor.whatsApp || '—'}</div>
+            <div className="text-xs text-gray-600 break-all">{fornecedor.email || '—'}</div>
+            <div className="flex gap-3 text-xs text-gray-500">
+              <span>Noti Whats: <strong>{fornecedor.noti_whatsapp ? 'Sim' : 'Não'}</strong></span>
+              <span>Noti Email: <strong>{fornecedor.noti_email ? 'Sim' : 'Não'}</strong></span>
+            </div>
           </div>
-          
+
+          {/* Layout desktop: linha de tabela */}
+          <div className="hidden sm:grid sm:grid-cols-6 items-center p-2 text-center">
+            <div className="truncate px-1" title={fornecedor.nome}>{fornecedor.nome}</div>
+            <div className="truncate px-1">{fornecedor.whatsApp || '—'}</div>
+            <div className="truncate px-1 text-xs" title={fornecedor.email}>{fornecedor.email || '—'}</div>
+            <div>{fornecedor.noti_whatsapp ? 'Sim' : 'Não'}</div>
+            <div>{fornecedor.noti_email ? 'Sim' : 'Não'}</div>
+            <div className="flex justify-center">
+              <Button onClick={() => abrirModalEditar(fornecedor)} sx={{ minWidth: 32, p: 0.5 }}>
+                <EditIcon fontSize="small" />
+              </Button>
+              <Button onClick={() => handleAbrirDialog(fornecedor)} sx={{ minWidth: 32, p: 0.5 }}>
+                <PersonRemoveIcon fontSize="small" />
+              </Button>
+            </div>
+          </div>
+
         </div>
       ))}
       
@@ -366,10 +401,19 @@ const ListaFornecedor = () => {
                  </FormGroup>
                           
                 <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-                  <Button variant="outlined" onClick={fecharModalEditar}>
+                  <Button
+                    variant="contained"
+                    onClick={fecharModalEditar}
+                    sx={{ backgroundColor: "#f44336", color: "#fff", fontWeight: "bold", borderRadius: "20px", border: "2px solid #fff", paddingX: 3, "&:hover": { backgroundColor: "#d32f2f" } }}
+                  >
                     Cancelar
                   </Button>
-                  <Button disabled={!nome} variant="contained" color="primary" onClick={() => salvarEdicao(fornecedorSelecionado!)}>
+                  <Button
+                    disabled={!nome}
+                    variant="contained"
+                    onClick={() => salvarEdicao(fornecedorSelecionado!)}
+                    sx={{ backgroundColor: "#f7931e", color: "#fff", fontWeight: "bold", borderRadius: "20px", border: "2px solid #fff", paddingX: 3, "&:hover": { backgroundColor: "#e67e00" } }}
+                  >
                     Salvar
                   </Button>
                 </Stack>
