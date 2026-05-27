@@ -1,21 +1,18 @@
 import { createContext, useContext, useEffect, useRef } from "react";
 import axios from "axios";
 import { AppContext } from "../shared/context/context";
-import {StatusServidor} from '../shared/status/statusServidor';
-
+import { StatusServidor } from '../shared/status/statusServidor';
 
 export type StatusServidorContextType = {
   servidorOnline: boolean | null;
-  sessaoAtiva:  boolean | null;
-  conexaoInternet:  boolean | null;
+  conexaoInternet: boolean | null;
 };
 
 export const StatusServidorContext = createContext<StatusServidorContextType | undefined>(undefined);
 
 export const StatusServidorProvider = ({ children }: { children: React.ReactNode }) => {
   const { servidorOnline, setServidorOnline } = useContext(AppContext);
-  const { sessaoAtiva } = useContext(AppContext);
-  const {conexaoInternet, setConexaoInternet} = useContext(AppContext);
+  const { conexaoInternet, setConexaoInternet } = useContext(AppContext);
 
   const tempoRef = useRef<number | null>(null);
   const tentativasRef = useRef<number>(0);
@@ -23,91 +20,87 @@ export const StatusServidorProvider = ({ children }: { children: React.ReactNode
   const backoff = [1000, 2000, 5000, 10000];
   const normalIntervalo = 15000;
 
-  const proximoAgendamento = (tempo: number) =>{
-    if(tempoRef.current){
+  const proximoAgendamento = (tempo: number) => {
+    if (tempoRef.current) {
       clearTimeout(tempoRef.current);
     }
-
     tempoRef.current = window.setTimeout(() => {
       verificarServidor();
     }, tempo);
   };
 
-  // const verificarInternet = async (): Promise<boolean> => {
-  //   try {
-  //     await fetch('https://1.1.1.1', { mode: 'no-cors' });
-  //     return true;
-  //   }catch{
-  //     return false;
-  //   }
-  // }
-
-  const verificarServidor = async () =>{
+  const verificarServidor = async () => {
     setConexaoInternet(navigator.onLine);
 
-    try{
-      const servidorURL = import.meta.env.VITE_API_URL
+    const backendURL = import.meta.env.VITE_API_URL;
+    const supabaseURL = import.meta.env.VITE_SUPABASE_URL;
 
-      if (!servidorURL) {
-        console.error("VITE_API_URL não foi definido");
-        setServidorOnline(false);
-
-        const tempo = backoff[Math.min(tentativasRef.current, backoff.length - 1)];
-        tentativasRef.current += 1;
-        proximoAgendamento(tempo);
-        return;
-      }
-
-      const response = await axios.get(`${servidorURL}/health`, { timeout: 3000 });
-
-      const ok = response.data?.status === 'ok';
-
-      setServidorOnline(ok);
-
-      if (ok) {
-        tentativasRef.current = 0;
-        proximoAgendamento(normalIntervalo);
-      } else {
-        const tempo = backoff[Math.min(tentativasRef.current, backoff.length - 1)];
-        tentativasRef.current += 1;
-        proximoAgendamento(tempo);
-      }
-    }catch (error){
+    if (!backendURL || !supabaseURL) {
+      console.error("VITE_API_URL ou VITE_SUPABASE_URL não configurados");
       setServidorOnline(false);
+      const tempo = backoff[Math.min(tentativasRef.current, backoff.length - 1)];
+      tentativasRef.current += 1;
+      proximoAgendamento(tempo);
+      return;
+    }
 
-      const tempo = backoff[Math.min(tentativasRef.current, backoff.length -1)];
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    // Verifica backend e Supabase em paralelo.
+    // Supabase: /auth/v1/health exige o header apikey mesmo sendo health check.
+    const [backendResult, supabaseResult] = await Promise.allSettled([
+      axios.get(`${backendURL}/health`, { timeout: 5000 }),
+      axios.get(`${supabaseURL}/auth/v1/health`, {
+        timeout: 5000,
+        headers: { apikey: supabaseAnonKey },
+      }),
+    ]);
+
+    // Backend retorna { status: "ok" } no /health
+    const backendOk =
+      backendResult.status === "fulfilled" &&
+      backendResult.value.data?.status === "ok";
+
+    // Supabase Cloud retorna HTTP 200 em /auth/v1/health (sem campo status:"ok" no body).
+    // Basta confirmar que a requisição foi bem-sucedida (axios só chega em "fulfilled" com 2xx).
+    const supabaseOk = supabaseResult.status === "fulfilled";
+
+    // Servidor online somente quando AMBOS estiverem disponíveis
+    const tudo = backendOk && supabaseOk;
+    setServidorOnline(tudo);
+
+    if (tudo) {
+      tentativasRef.current = 0;
+      proximoAgendamento(normalIntervalo);
+    } else {
+      const tempo = backoff[Math.min(tentativasRef.current, backoff.length - 1)];
       tentativasRef.current += 1;
       proximoAgendamento(tempo);
     }
   };
 
   useEffect(() => {
+    setTimeout(verificarServidor, 0);
 
-  // dispara verificação imediata
-  setTimeout(verificarServidor, 0);
+    const onOn = () => verificarServidor();
+    const onOff = () => verificarServidor();
 
-  const onOn = () => verificarServidor();
-  const onOff = () => verificarServidor();
+    window.addEventListener("online", onOn);
+    window.addEventListener("offline", onOff);
 
-  window.addEventListener("online", onOn);
-  window.addEventListener("offline", onOff);
-
-  return () => {
-    if (tempoRef.current) {
-      clearTimeout(tempoRef.current);
-    }
-    window.removeEventListener("online", onOn);
-    window.removeEventListener("offline", onOff);
-  };
-
-}, []);
+    return () => {
+      if (tempoRef.current) clearTimeout(tempoRef.current);
+      window.removeEventListener("online", onOn);
+      window.removeEventListener("offline", onOff);
+    };
+  }, []);
 
   return (
-    <StatusServidorContext.Provider value={{conexaoInternet,servidorOnline, sessaoAtiva }}>
+    <StatusServidorContext.Provider value={{ conexaoInternet, servidorOnline }}>
       {children}
       <StatusServidor />
     </StatusServidorContext.Provider>
   );
 };
 
-export const useInternet = () => useContext(StatusServidorContext)
+export const useInternet = () => useContext(StatusServidorContext);

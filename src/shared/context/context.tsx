@@ -61,6 +61,8 @@ interface IContext {
   setListaPedidosCompra: (pedidos: iPedido[]) => void;
   origemDoModal: 'paginaPedido' | 'modalCriarPedido'
   setOrigemDoModal: (origem: 'paginaPedido' | 'modalCriarPedido') => void
+  salvandoEstoque: boolean;
+  setSalvandoEstoque: (saving: boolean) => void;
 
 }
 
@@ -68,7 +70,7 @@ interface AppProvideProps{
     children: ReactNode
 }
 
-const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: null , setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: null, setTipoEntrada: () => {}, tipoSaida: null, setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {}, tipoInput: 'auto', setTipoInput: () => {}, estoqueId: 0, setEstoqueId: () => {}, servidorOnline: null, setServidorOnline: () => {}, sessaoAtiva: null, setSessaoAtiva: () => {}, listaFornecedores: [], setListaFornecedores: () => {}, listaPedidosCompra: [], setListaPedidosCompra: () => {}, conexaoInternet: null, setConexaoInternet: () => {}, origemDoModal: 'paginaPedido', setOrigemDoModal: () => {}};
+const inicial: IContext = {listaProdutoEstoque: [], setListaProdutoEstoque: () => {}, categoria: '', setCategoria: () => {}, listaTipoProdutos: [], setlistaTipoProdutos: () => {}, contSuficiente: 0, setContSuficiente: () => {}, contInsuficiente: 0, setContInsuficiente: () => {}, contQtdEstoque: 0, setContQtdEstoque: () => {} , estoqueSalvo: null , setEstoqueSalvo: () => {}, listaProdutoMovTemp: [], setListaProdutoMovTemp: () => {}, tipoModal: "", setTipoModal: () => {}, handleModal: false, setHandleModal: () => {}, listaHistoricoMovEstoque: [], setListaHistoricoMovEstoque: () => {}, listaTipoMovimentacoes: [], setListaTipoMovimentacoes: () => {}, listaMovimentacoesEstoque: [], setListaMovimentacoesEstoque: () => {}, tipoMovSelecionado: '', setTipoMovSelecionado: () => {}, movimentacaoSelecionada: '', setMovimentacaoSelecionada: () => {}, tipoEntrada: null, setTipoEntrada: () => {}, tipoSaida: null, setTipoSaida: () => {}, listaProdutoMov: [], setListaProdutoMov: () => {}, mostrarCaixaDialogo: false, setMostrarCaixaDialogo: () => {}, tipoInput: 'auto', setTipoInput: () => {}, estoqueId: 0, setEstoqueId: () => {}, servidorOnline: null, setServidorOnline: () => {}, sessaoAtiva: null, setSessaoAtiva: () => {},  listaFornecedores: [], setListaFornecedores: () => {}, listaPedidosCompra: [], setListaPedidosCompra: () => {}, conexaoInternet: null, setConexaoInternet: () => {}, origemDoModal: 'paginaPedido', setOrigemDoModal: () => {}, salvandoEstoque: false, setSalvandoEstoque: () => {}};
 
 export const AppContext = createContext<IContext>(inicial);
 
@@ -154,11 +156,12 @@ export const AppProvider = ({ children }: AppProvideProps) => {
   const [listaPedidosCompra, setListaPedidosCompra] = useState<iPedido[]>([]);
   const [conexaoInternet, setConexaoInternet] = useState<boolean | null>(null);
   const [origemDoModal, setOrigemDoModal] = useState<'paginaPedido' | 'modalCriarPedido'>('paginaPedido');
+  const [salvandoEstoque, setSalvandoEstoque] = useState<boolean>(false);
 
 
 
   return (
-    <AppContext.Provider value={{conexaoInternet, setConexaoInternet,servidorOnline, setServidorOnline,sessaoAtiva, setSessaoAtiva,handleModal, setHandleModal, listaProdutoMovTemp, setListaProdutoMovTemp, listaTipoProdutos, setlistaTipoProdutos, categoria, setCategoria, listaProdutoEstoque, setListaProdutoEstoque, contSuficiente, setContSuficiente, contInsuficiente, setContInsuficiente, contQtdEstoque, setContQtdEstoque, estoqueSalvo, setEstoqueSalvo, tipoModal, setTipoModal, listaHistoricoMovEstoque, setListaHistoricoMovEstoque, listaTipoMovimentacoes, setListaTipoMovimentacoes, listaMovimentacoesEstoque, setListaMovimentacoesEstoque, tipoMovSelecionado, setTipoMovSelecionado, movimentacaoSelecionada, setMovimentacaoSelecionada, tipoEntrada, setTipoEntrada, tipoSaida, setTipoSaida, listaProdutoMov, setListaProdutoMov, mostrarCaixaDialogo, setMostrarCaixaDialogo, tipoInput, setTipoInput, estoqueId, setEstoqueId, listaFornecedores, setListaFornecedores, listaPedidosCompra, setListaPedidosCompra, origemDoModal, setOrigemDoModal}}>
+    <AppContext.Provider value={{conexaoInternet, setConexaoInternet,servidorOnline, setServidorOnline,sessaoAtiva, setSessaoAtiva,handleModal, setHandleModal, listaProdutoMovTemp, setListaProdutoMovTemp, listaTipoProdutos, setlistaTipoProdutos, categoria, setCategoria, listaProdutoEstoque, setListaProdutoEstoque, contSuficiente, setContSuficiente, contInsuficiente, setContInsuficiente, contQtdEstoque, setContQtdEstoque, estoqueSalvo, setEstoqueSalvo, tipoModal, setTipoModal, listaHistoricoMovEstoque, setListaHistoricoMovEstoque, listaTipoMovimentacoes, setListaTipoMovimentacoes, listaMovimentacoesEstoque, setListaMovimentacoesEstoque, tipoMovSelecionado, setTipoMovSelecionado, movimentacaoSelecionada, setMovimentacaoSelecionada, tipoEntrada, setTipoEntrada, tipoSaida, setTipoSaida, listaProdutoMov, setListaProdutoMov, mostrarCaixaDialogo, setMostrarCaixaDialogo, tipoInput, setTipoInput, estoqueId, setEstoqueId, listaFornecedores, setListaFornecedores, listaPedidosCompra, setListaPedidosCompra, origemDoModal, setOrigemDoModal, salvandoEstoque, setSalvandoEstoque}}>
       {children}
     </AppContext.Provider>
   );

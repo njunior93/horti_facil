@@ -1,4 +1,4 @@
-import {  Box, Button, Stack } from '@mui/material'
+import {  Box, Button, CircularProgress, Stack } from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
@@ -20,8 +20,8 @@ const BotoesFinalizarCancelarEstoque = () => {
   const navigate = useNavigate();
   const {setListaProdutoEstoque, listaProdutoEstoque} = useContext(AppContext);
   const {contQtdEstoque, setContQtdEstoque} = useContext(AppContext);
+  const {salvandoEstoque, setSalvandoEstoque} = useContext(AppContext);
   const [progresso, setProgresso] = useState(0);
-  const [mostraProgresso, setMostraProgresso] = useState(false);
   const [mensagemEstoqueSalvo, setMensagemEstoqueSalvo] = useState(false);
   const [mensagemErro, setMensagemErro] = useState<React.ReactNode | null>(null);
   const setMostrarCaixaDialogo = useContext(AppContext).setMostrarCaixaDialogo;
@@ -75,8 +75,7 @@ const BotoesFinalizarCancelarEstoque = () => {
         contQtdEstoque: Number(contQtdEstoque)
       };
 
-      document.body.style.pointerEvents = "none";
-      setMostraProgresso(true);
+      setSalvandoEstoque(true);
       setProgresso(0);
 
       let progressoAtual = 0;
@@ -116,10 +115,8 @@ const BotoesFinalizarCancelarEstoque = () => {
         setMensagemErro(alertaMensagem(`Ocorreu um erro ao salvar o estoque. Tente novamente. ${error}`, 'error', <ErrorIcon />));
       } 
     } finally {
-      setMostraProgresso(false);
-      setTipoInput('auto')
-      document.body.style.pointerEvents = "";
-
+      setSalvandoEstoque(false);
+      setTipoInput('auto');
     }
   }
   
@@ -139,17 +136,41 @@ const BotoesFinalizarCancelarEstoque = () => {
   return (
     <>
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
-      {mostraProgresso && (
-        <div className="bg-white/80 rounded-full shadow-lg p-6 pointer-events-auto">
-        <CirculoProgresso progresso={progresso} />
-        </div>
-      )}
+        {salvandoEstoque && (
+          <div className="bg-white/80 rounded-full shadow-lg p-6 pointer-events-auto">
+            <CirculoProgresso progresso={progresso} />
+          </div>
+        )}
       </div>
-      
-      <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end"}}>     
-        <Button variant="contained" startIcon={<SaveIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#06D001", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#059212",},}} onClick={salvarEstoque}>Finalizar</Button>
-        <Button variant="contained" startIcon={<CancelIcon/>} disabled={listaProdutoEstoque.length === 0} sx={{ backgroundColor: "#C70039", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#900C3F",},}} onClick={cancelarEstoque}>Cancelar</Button>
-        <Button variant="contained" startIcon={<ExitToAppIcon/>} sx={{ backgroundColor: "#393E46", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#222831",},}} onClick={sairEstoque} >Sair</Button>
+
+      <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+        <Button
+          variant="contained"
+          startIcon={salvandoEstoque ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
+          disabled={listaProdutoEstoque.length === 0 || salvandoEstoque}
+          sx={{ backgroundColor: "#06D001", border: "2px solid #fff", borderRadius: "1rem", color: "#fff", minWidth: 120, '&:hover': { backgroundColor: "#059212" } }}
+          onClick={salvarEstoque}
+        >
+          {salvandoEstoque ? 'Salvando...' : 'Finalizar'}
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<CancelIcon />}
+          disabled={listaProdutoEstoque.length === 0 || salvandoEstoque}
+          sx={{ backgroundColor: "#C70039", border: "2px solid #fff", borderRadius: "1rem", color: "#fff", '&:hover': { backgroundColor: "#900C3F" } }}
+          onClick={cancelarEstoque}
+        >
+          Cancelar
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<ExitToAppIcon />}
+          disabled={salvandoEstoque}
+          sx={{ backgroundColor: "#393E46", border: "2px solid #fff", borderRadius: "1rem", color: "#fff", '&:hover': { backgroundColor: "#222831" } }}
+          onClick={sairEstoque}
+        >
+          Sair
+        </Button>
       </Stack>
 
       {mensagemEstoqueSalvo && (

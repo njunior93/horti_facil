@@ -60,19 +60,46 @@ const PaginaLogin = () => {
       };
 
   return (
-    <div className="flex justify-center items-center h-screen w-screen bg-[#FDEFD6] px-4">
-      <div className="flex flex-col items-center justify-center gap-3 max-w-xs text-center w-3/5 sm:1/2">  
-          <h1 className="font-bold text-gray-800 leading-tight">
-            <span className="block text-2xl sm:text-3xl md:text-4xl">HortiFácil</span>
-          </h1>   
-        <p className="mt-4 text-xs sm:text-sm md:text-lg text-gray-600 leading-tight">Sua plataforma de gestão de estoque de hortifrúti.</p>
-        <Button onClick={entrarLogin} variant="contained" sx={{ backgroundColor: "#FB9E3A", border: "2px solid #fff", borderRadius: "1rem" ,color: "#fff", '&:hover': { backgroundColor: "#E6521F",},}}>Faça seu Login</Button>
-      </div>
+    <div className="flex justify-center items-center min-h-screen w-screen bg-[#FDEFD6] px-6 py-10">
 
-      <div className="w-2/5 sm:w-1/2">
-        <img src="/logo.png" alt="Logo Inicial" width="600" height="400"/>
+      {/* Container de conteúdo com largura máxima para não se expandir em telas grandes */}
+      <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12 w-full max-w-4xl">
+
+        {/* Conteúdo: título, descrição e botão — abaixo no mobile, à esquerda no desktop */}
+        <div className="flex flex-col items-center justify-center gap-4 text-center w-full md:w-1/2 order-2 md:order-1">
+          <h1 className="font-bold text-gray-800 leading-tight">
+            <span className="block text-3xl sm:text-4xl md:text-5xl">HortiFácil</span>
+          </h1>
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 leading-snug max-w-xs">
+            Sua plataforma de gestão de estoque de hortifrúti.
+          </p>
+          <Button
+            onClick={entrarLogin}
+            variant="contained"
+            sx={{
+              backgroundColor: "#FB9E3A",
+              border: "2px solid #fff",
+              borderRadius: "1rem",
+              color: "#fff",
+              px: 3,
+              py: 1,
+              '&:hover': { backgroundColor: "#E6521F" },
+            }}
+          >
+            Faça seu Login
+          </Button>
+        </div>
+
+        {/* Imagem — no topo no mobile, à direita no desktop */}
+        <div className="flex justify-center items-center w-full md:w-1/2 order-1 md:order-2">
+          <img
+            src="/logo.png"
+            alt="Logo Inicial"
+            className="w-52 sm:w-72 md:w-full max-w-sm object-contain"
+          />
+        </div>
+
       </div>
-      
     </div>
   )
 }

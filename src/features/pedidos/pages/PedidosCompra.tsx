@@ -57,6 +57,8 @@ const [statusAtualPedidoSelecionado, setStatusAtualPedidoSelecionado] = useState
 const [openCancelamento, setOpenCancelamento] = useState(false);
 const [pedidoIdParaCancelar, setPedidoIdParaCancelar] = useState<number | null>(null);
 const {setOrigemDoModal} = useContext(AppContext);
+const [isLoadingEfetivar, setIsLoadingEfetivar] = useState(false);
+const [isLoadingCancelar, setIsLoadingCancelar] = useState(false);
 
 const [todos, setTodos] = useState(true);
 const [pendente, setPendente] = useState(true);
@@ -688,6 +690,8 @@ const efetivarPedido = async (pedidoId: number) => {
   //   }
   // }
 
+  setIsLoadingEfetivar(true);
+
   try{
     await axios.patch(`${import.meta.env.VITE_API_URL}/pedido/efetivar-pedido/${pedidoId}`,
       {
@@ -757,10 +761,12 @@ const efetivarPedido = async (pedidoId: number) => {
       }
 
       setAlerta(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
-      return; 
+      return;
     }
-    
+
     fecharPedido();
+  } finally {
+    setIsLoadingEfetivar(false);
   }
 
 }
@@ -899,6 +905,8 @@ const cancelamentoPedido = async () =>{
     return;
   }
 
+  setIsLoadingCancelar(true);
+
   try{
     const response = await axios.get(`${import.meta.env.VITE_API_URL}/pedido/localizar-pedido/${pedidoIdParaCancelar}`,{
       headers: {
@@ -987,11 +995,12 @@ const cancelamentoPedido = async () =>{
       }
 
       setAlerta(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
-      return; 
+      return;
     }
 
     fecharPedido();
-
+  } finally {
+    setIsLoadingCancelar(false);
   }
 
 }
@@ -1226,11 +1235,11 @@ if (loading){
   }
 
   return (
-  <div className='flex justify-center items-center min-h-screen w-full bg-gray-100 py-6'>
-    <div className='max-w-7xl mx-auto bg-white p-6 rounded shadow'>
-      <div className='w-5/5'>
-        <div className='flex justify-between border-b-4 border-[#FDEFD6]'>
-          <ButtonGroup sx={{height: 60 ,width: '100%', backgroundColor: '#FFF', padding: 1}}>
+  <div className='flex justify-center items-start min-h-screen w-full bg-gray-100 py-4 sm:py-6 px-2 sm:px-4'>
+    <div className='w-full max-w-7xl mx-auto bg-white p-3 sm:p-6 rounded-xl shadow'>
+      <div className='w-full'>
+        <div className='flex flex-col sm:flex-row flex-wrap gap-2 border-b-4 border-[#FDEFD6] p-2 pb-3 mb-2'>
+          <div className='flex flex-wrap gap-2 flex-1'>
             <Button 
               onClick={() => {handlecriarPedido(); setOrigemDoModal('modalCriarPedido');}}
               disabled={selectedRows.length !== 0 || idsSelecionados.length !== 0 || statusAtualPedidoSelecionado === 'entregue' || statusAtualPedidoSelecionado === 'entregue_parcialmente' || statusAtualPedidoSelecionado === 'cancelado' || statusAtualPedidoSelecionado === 'pendente'}
@@ -1340,9 +1349,9 @@ if (loading){
             >
               Visualizar
             </Button>
-          </ButtonGroup>
+          </div>
 
-          <ButtonGroup>
+          <div className='flex flex-wrap gap-2'>
             <Button
               onClick={() => {
                 setTipoModal('CadastroFornecedor');
@@ -1387,10 +1396,10 @@ if (loading){
             >
               Sair
             </Button>
-          </ButtonGroup>
+          </div>
         </div>
 
-        <div className="p-6 bg-white rounded-xl shadow-md w-full">
+        <div className="p-3 sm:p-6 bg-white rounded-xl shadow-md w-full">
           <h3 className="text-xl font-semibold mb-4 text-gray-700">
             Filtros
           </h3>
@@ -1699,7 +1708,8 @@ if (loading){
 
               <Stack direction="row" justifyContent="flex-end" spacing={2}>
                 <Button
-                  onClick={fecharPedido} 
+                  onClick={fecharPedido}
+                  disabled={isLoadingEfetivar}
                   sx={{
                   backgroundColor: "#f44336",
                   color: "#fff",
@@ -1712,7 +1722,8 @@ if (loading){
                   },
                 }}>Cancelar</Button>
                 <Button
-                  onClick={() => efetivarPedido(pedidoSelecionado!.id)} 
+                  onClick={() => efetivarPedido(pedidoSelecionado!.id)}
+                  disabled={isLoadingEfetivar}
                   sx={{
                   backgroundColor: "#4caf50",
                   color: "#fff",
@@ -1720,15 +1731,28 @@ if (loading){
                   borderRadius: "20px",
                   border: "2px solid #fff",
                   paddingX: 3,
+                  minWidth: 110,
                   "&:hover": {
                     backgroundColor: "#388e3c",
                   },
-                }}>Finalizar</Button>
+                }}>
+                  {isLoadingEfetivar
+                    ? <CircularProgress size={20} sx={{ color: '#fff' }} />
+                    : 'Finalizar'
+                  }
+                </Button>
               </Stack>
           </>
           
         )}
         
+      </Box>
+    )}
+
+    {isLoadingCancelar && (
+      <Box sx={{ position: 'fixed', inset: 0, zIndex: 1400, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(0,0,0,0.35)', gap: 2 }}>
+        <CircularProgress size={56} sx={{ color: '#f7931e' }} />
+        <Typography sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Cancelando pedido...</Typography>
       </Box>
     )}
 

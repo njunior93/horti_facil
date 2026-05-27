@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Box, Button, Checkbox, FormControl, FormControlLabel, FormHelperText, FormLabel, InputLabel, MenuItem, Modal, Radio, RadioGroup, Select, TextField, Typography, type SelectChangeEvent } from '@mui/material';
+import { Box, Button, Checkbox, CircularProgress, FormControl, FormControlLabel, FormHelperText, FormLabel, InputLabel, MenuItem, Modal, Radio, RadioGroup, Select, TextField, Typography, type SelectChangeEvent } from '@mui/material';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useContext, useState } from "react";
@@ -61,6 +61,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
     const StatusServidorContext = useInternet();
     // const estoqueContext = useEstoque();
     const {origemDoModal} = useContext(AppContext);
+    const [loadingModal, setLoadingModal] = useState(false);
 
     // const existeEstoque = estoqueContext?.existeEstoque;
     const conexaoInternet = StatusServidorContext?.conexaoInternet;
@@ -270,20 +271,21 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
 
   const atualizarEstoque = async () =>{
 
+    if (listaProdutoMov.length === 0) {
+      setAlertaAddProduto(alertaMensagem("Adicione produtos para atualizar o estoque", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
+    const {data: {session}} = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    if (!token) {
+      setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+      return;
+    }
+
+    setLoadingModal(true);
     try{
-
-      if (listaProdutoMov.length === 0) {
-        setAlertaAddProduto(alertaMensagem("Adicione produtos para atualizar o estoque", "warning", <ReportProblemIcon/>));
-        return;
-      }
-
-      const {data: {session}} = await supabase.auth.getSession();
-      const token = session?.access_token;
-
-      if (!token) {
-        setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
-        return;
-      }    
 
       const promises = listaProdutoMov.map((mov)=>{
 
@@ -331,6 +333,15 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
         setEstoqueSalvo({ ...estoqueSalvo, listaProdutos: produtosAtualizados });
       }
 
+      setHandleModal(false);
+      setTipoModal('');
+      setProdutoSelecionado({} as iProduto);
+      setListaProdutoMov([]);
+      setValorMov('');
+      setTipoSaida(null);
+      setTipoEntrada(null);
+      setAlertaAddProduto(null);
+
     } catch (error) {
       console.error("Erro ao atualizar o estoque:", error);
       setAlertaAddProduto(alertaMensagem("Erro ao atualizar estoque", "error", <ReportProblemIcon/>));
@@ -374,78 +385,74 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
         }
 
         setAlertaAddProduto(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
-        return;    
+        return;
       }
 
       setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
-      return;
+    } finally {
+      setLoadingModal(false);
     }
-      
-    
-    setHandleModal(false)
-    setTipoModal('')
-    setProdutoSelecionado({} as iProduto)
-    setListaProdutoMov([]);
-    setValorMov('')
-    setTipoSaida(null)
-    setTipoEntrada(null)
-    setAlertaAddProduto(null)
-
   }
 
   const criarPedidoCompra = async () =>{
 
     if (listaProdutoMov.length === 0) {
-        setAlertaAddProduto(alertaMensagem("Adicione produtos para atualizar o estoque", "warning", <ReportProblemIcon/>));
-        return;
+      setAlertaAddProduto(alertaMensagem("Adicione produtos para atualizar o estoque", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
+    const {data: {session}} = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    if (!token) {
+      setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
+      return;
+    }
+
+    if (!session){
+      setAlertaAddProduto(alertaMensagem('Faça login para salvar um estoque.', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+
+    setLoadingModal(true);
+    const dtCriacao = new Date().toISOString();
+
+    const pedidoNovo = {
+      data_criacao: dtCriacao,
+      status: "pendente",
+      fornecedor_id: iDfornecedorSelecionado,
+      estoque_id: estoqueId,
+      itens: listaProdutoMov.map((mov) => ({
+        produto_id: mov.produto?.id,
+        qtd_solicitado: mov.qtdMov
+      }))
+    };
+
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/pedido/criar-pedido`, pedidoNovo,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const pedidoCriado: iPedido = response.data;
+
+      setAlertaAddProduto(alertaMensagem("Pedido de compra criado com sucesso", "success", <DoneIcon/>));
+
+      if(atualizarPedidos){
+        atualizarPedidos();
       }
 
-      const {data: {session}} = await supabase.auth.getSession();
-      const token = session?.access_token;
+      const novaListaPedidos = [...listaPedidosCompra, pedidoCriado];
+      setListaPedidosCompra(novaListaPedidos);
 
-      if (!token) {
-        setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
-        return;
-      }
+      setProdutoSelecionado({} as iProduto);
+      setListaProdutoMov([]);
+      setValorMov('');
+      setTipoSaida(null);
+      setTipoEntrada(null);
+      setiDFornecedorSelecionado('');
 
-      if (!session){
-          setAlertaAddProduto(alertaMensagem('Faça login para salvar um estoque.', 'warning', <ReportProblemIcon/>));
-          return;
-      }
-
-      const dtCriacao = new Date().toISOString();
-
-      const pedidoNovo = {       
-        data_criacao: dtCriacao, 
-        status: "pendente", 
-        fornecedor_id: iDfornecedorSelecionado, 
-        estoque_id: estoqueId,
-        itens: listaProdutoMov.map((mov) => ({
-          produto_id: mov.produto?.id,
-          qtd_solicitado: mov.qtdMov
-        }))
-      };
-
-      try {
-        const response = await axios.post(`${import.meta.env.VITE_API_URL}/pedido/criar-pedido`,pedidoNovo,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        const pedidoCriado: iPedido = response.data;
-
-        setAlertaAddProduto(alertaMensagem("Pedido de compra criado com sucesso", "success", <DoneIcon/>));
-
-        if(atualizarPedidos){
-          atualizarPedidos();
-        }
-        
-        const novaListaPedidos = [...listaPedidosCompra, pedidoCriado];
-        setListaPedidosCompra(novaListaPedidos);
-        
-
-
-      } catch (error) {
+    } catch (error) {
       console.error("Erro ao criar pedido de compra", error);
       setAlertaAddProduto(alertaMensagem("Erro ao criar pedido de compra", "error", <ReportProblemIcon/>));
 
@@ -474,11 +481,11 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
             console.error(`Erro ao criar pedido de compra ${status} ${mensagem}`)
             setAlertaAddProduto(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
           } else {
-            console.error(`Erro ao criar pedido de compra${status} ${mensagem}`)
+            console.error(`Erro ao criar pedido de compra ${status} ${mensagem}`)
             setAlertaAddProduto(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
           }
 
-           return;
+          return;
         }
 
         if(error.code === 'ECONNABORTED'){
@@ -488,21 +495,13 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
         }
 
         setAlertaAddProduto(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
-        return;    
+        return;
       }
 
       setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
-      return;
-      }
-
-
-    setProdutoSelecionado({} as iProduto)
-    setListaProdutoMov([]);
-    setValorMov('')
-    setTipoSaida(null)
-    setTipoEntrada(null)
-    setiDFornecedorSelecionado('');
-        
+    } finally {
+      setLoadingModal(false);
+    }
   }
 
   const CadastroFornecedor = () => {
@@ -512,87 +511,39 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
 
   const criarFornecedor = async () =>{
 
-      const {data: {session}} = await supabase.auth.getSession();
-      const token = session?.access_token;
+    const {data: {session}} = await supabase.auth.getSession();
+    const token = session?.access_token;
 
-      if (!token) {
-        setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
-        return;
-      }
-
-      if (!session){
-          setAlertaAddProduto(alertaMensagem('Faça login para salvar o fornecedor.', 'warning', <ReportProblemIcon/>));
-           return;
-      }
-
-      if(errorTel || errorCel || errorEmail){
-        setAlertaAddProduto(alertaMensagem("Corrija os erros nos campos", "warning", <ReportProblemIcon/>));
-        return;
-      }
-
-      const fornecedorNovo = {
-        nome: razaoSocial,
-        telefone: telefone,
-        whatsApp: celular,
-        email: email,
-        noti_email: notiEmail,
-        noti_whatsapp: false
-      }
-
-      try {
-          await axios.post(`${import.meta.env.VITE_API_URL}/fornecedor/criar-fornecedor`, fornecedorNovo,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-        } catch (error) {
-          console.error("Erro ao criar fornecedor", error);
-          setAlertaAddProduto(alertaMensagem("Erro ao criar fornecedor", "error", <ReportProblemIcon/>));
-
-          if(axios.isAxiosError(error)){
-
-            if(!conexaoInternet ){
-              console.error("Sem acesso a internet. Verifique sua conexão", error);
-              setAlertaAddProduto(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
-              return;
-            }
-
-            if(!servidorOnline){
-              console.error("Servidor fora do ar. Tente novamente em instantes", error);
-              setAlertaAddProduto(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
-              return;
-            }
-
-            if(error.response){
-              const status = error.response.status;
-              const mensagem = error.response.data?.message || error.message;
-
-              if(status >= 500){
-                console.error(`Erro ao criar fornecedor ${status} ${mensagem}`)
-                setAlertaAddProduto(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
-              } else if (status === 404){
-                console.error(`Erro ao criar fornecedor ${status} ${mensagem}`)
-                setAlertaAddProduto(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
-              } else {
-                console.error(`Erro ao criar fornecedor ${status} ${mensagem}`)
-                setAlertaAddProduto(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
-              }
-
-              return;
-            }
-
-            if(error.code === 'ECONNABORTED'){
-              console.error(`Erro ao criar fornecedor ${error}`)
-              setAlertaAddProduto(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
-              return;
-            }
-
-            setAlertaAddProduto(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
-            return;    
-          }
-
-      setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
+    if (!token) {
+      setAlertaAddProduto(alertaMensagem("Token de acesso não encontrado.", 'warning', <ReportProblemIcon />));
       return;
-        }
+    }
+
+    if (!session){
+      setAlertaAddProduto(alertaMensagem('Faça login para salvar o fornecedor.', 'warning', <ReportProblemIcon/>));
+      return;
+    }
+
+    if(errorTel || errorCel || errorEmail){
+      setAlertaAddProduto(alertaMensagem("Corrija os erros nos campos", "warning", <ReportProblemIcon/>));
+      return;
+    }
+
+    setLoadingModal(true);
+    const fornecedorNovo = {
+      nome: razaoSocial,
+      telefone: telefone,
+      whatsApp: celular,
+      email: email,
+      noti_email: notiEmail,
+      noti_whatsapp: false
+    };
+
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/fornecedor/criar-fornecedor`, fornecedorNovo,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       setRazaoSocial('');
       setTelefone('');
@@ -609,6 +560,56 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
         btnCancelar();
       }
 
+    } catch (error) {
+      console.error("Erro ao criar fornecedor", error);
+      setAlertaAddProduto(alertaMensagem("Erro ao criar fornecedor", "error", <ReportProblemIcon/>));
+
+      if(axios.isAxiosError(error)){
+
+        if(!conexaoInternet ){
+          console.error("Sem acesso a internet. Verifique sua conexão", error);
+          setAlertaAddProduto(alertaMensagem("Sem acesso a internet. Verifique sua conexão", 'warning', <ReportProblemIcon/>));
+          return;
+        }
+
+        if(!servidorOnline){
+          console.error("Servidor fora do ar. Tente novamente em instantes", error);
+          setAlertaAddProduto(alertaMensagem("Servidor fora do ar. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          return;
+        }
+
+        if(error.response){
+          const status = error.response.status;
+          const mensagem = error.response.data?.message || error.message;
+
+          if(status >= 500){
+            console.error(`Erro ao criar fornecedor ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem("Erro interno no servidor. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          } else if (status === 404){
+            console.error(`Erro ao criar fornecedor ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem("Recurso não encontrado. Tente novamente em instantes", 'warning', <ReportProblemIcon/>));
+          } else {
+            console.error(`Erro ao criar fornecedor ${status} ${mensagem}`)
+            setAlertaAddProduto(alertaMensagem(`Erro na API: ${status || mensagem}`, 'warning', <ReportProblemIcon/>));
+          }
+
+          return;
+        }
+
+        if(error.code === 'ECONNABORTED'){
+          console.error(`Erro ao criar fornecedor ${error}`)
+          setAlertaAddProduto(alertaMensagem("Tempo de resposta excedido. Tente novamente.", "warning",  <ReportProblemIcon/>));
+          return;
+        }
+
+        setAlertaAddProduto(alertaMensagem(`Erro de rede: ${error.message}`, "warning",  <ReportProblemIcon/>));
+        return;
+      }
+
+      setAlertaAddProduto(alertaMensagem(`Erro inesperado. Tente novamente. ${String(error)}`, "error", <ReportProblemIcon />));
+    } finally {
+      setLoadingModal(false);
+    }
   }
 
   const selecaoTipoSaida = (e: React.ChangeEvent<HTMLInputElement>) =>{
@@ -797,7 +798,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
 
   const children = (
     <Box sx={{ display: 'flex', flexDirection: 'row', ml: 3 }}>
-      <FormControlLabel disabled={!razaoSocial}
+      <FormControlLabel disabled={!razaoSocial || loadingModal}
         label="Email"
         control={<Checkbox checked={notiEmail} onChange={checkEmail} />}
       />
@@ -841,15 +842,15 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                 <Stack direction="column"  justifyContent={"center"} alignItems={"center"}>
                     <FormControl  fullWidth required>
                       <Stack direction={"column"}  justifyContent="center" alignItems="start" spacing={1}>
-                        <TextField fullWidth required label='Razão Social' type='text' value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)}></TextField>
+                        <TextField fullWidth required label='Razão Social' type='text' value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)} disabled={loadingModal}></TextField>
                         
                         <Stack direction="row" spacing={2} sx={{ width: '100%' }}>                        
-                          <TextField  disabled={!razaoSocial} fullWidth label='Telefone' placeholder='(99) 9999-9999' value={telefone} onChange={(e) => inputTelefone(e.target.value)} onBlur={verificaTel} error={errorTel} helperText={errorTel ? "Número inválido" : ""}/>
-                          <TextField disabled={!razaoSocial} fullWidth label='Celular' placeholder='(99) 99999-9999' value={celular} onChange={(e) => inputCelular(e.target.value)} onBlur={verificaCel} error={errorCel} helperText={errorCel ? "Número inválido" : ""}/>
+                          <TextField  disabled={!razaoSocial || loadingModal} fullWidth label='Telefone' placeholder='(99) 9999-9999' value={telefone} onChange={(e) => inputTelefone(e.target.value)} onBlur={verificaTel} error={errorTel} helperText={errorTel ? "Número inválido" : ""}/>
+                          <TextField disabled={!razaoSocial || loadingModal} fullWidth label='Celular' placeholder='(99) 99999-9999' value={celular} onChange={(e) => inputCelular(e.target.value)} onBlur={verificaCel} error={errorCel} helperText={errorCel ? "Número inválido" : ""}/>
                         </Stack>                       
                         
-                        <TextField disabled={!razaoSocial} fullWidth label='Email' type='email' value={email} onChange={(e) => setEmail(e.target.value)} onBlur={verificaEmail} error={errorEmail} helperText={errorEmail ? "Email inválido" : ""}></TextField>
-                        <FormControlLabel disabled={!razaoSocial} 
+                        <TextField disabled={!razaoSocial || loadingModal} fullWidth label='Email' type='email' value={email} onChange={(e) => setEmail(e.target.value)} onBlur={verificaEmail} error={errorEmail} helperText={errorEmail ? "Email inválido" : ""}></TextField>
+                        <FormControlLabel disabled={!razaoSocial || loadingModal} 
                           label={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                               Notificações 
@@ -890,6 +891,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                           value={iDfornecedorSelecionado}
                           onChange={(e) => setiDFornecedorSelecionado(e.target.value)}
                           displayEmpty
+                          disabled={loadingModal}
                           label="Selecione o fornecedor">
                             {listaFornecedores.map((fornecedor) => (
                               <MenuItem key={fornecedor.id} value={fornecedor.id}>{fornecedor.nome}</MenuItem>
@@ -897,7 +899,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                         </Select>
                       </FormControl>
 
-                      <Button onClick={CadastroFornecedor} startIcon={<PersonAddIcon/>} sx={{backgroundColor: "#e78a11ff",color: "#fff",minWidth: "40px",'&:hover': { backgroundColor: "#6b3e03ff" },}}></Button>
+                      <Button onClick={CadastroFornecedor} startIcon={<PersonAddIcon/>} disabled={loadingModal} sx={{backgroundColor: "#e78a11ff",color: "#fff",minWidth: "40px",'&:hover': { backgroundColor: "#6b3e03ff" },}}></Button>
                     </Stack>
                   </FormControl>
 
@@ -910,7 +912,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                           onChange={selecaoProduto}
                           displayEmpty
                           labelId="produto-label"
-                          disabled={!iDfornecedorSelecionado}
+                          disabled={!iDfornecedorSelecionado || loadingModal}
                           id="produto-select"
                           label="Selecione o produto"
                         >
@@ -947,7 +949,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
 
                       <FormControl fullWidth required error={Number(valorMov) < 0}>
                         <Stack direction={"row"} spacing={2} justifyContent="start">
-                          <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id} label={tipoModal === 'CriarPedidoCompra' ? 'Reposição' : ''} error={Number(valorMov) < 0}></TextField>
+                          <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id || loadingModal} label={tipoModal === 'CriarPedidoCompra' ? 'Reposição' : ''} error={Number(valorMov) < 0}></TextField>
                           <Button
                             onClick={() => {
                               if (produtoSelecionado) {
@@ -955,7 +957,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                               }
                             }}
                             sx={{ backgroundColor: "#4CAF50", color: "#fff", '&:hover': { backgroundColor: "#388E3C" } }}
-                            disabled={!produtoSelecionado || !produtoSelecionado.id}
+                            disabled={!produtoSelecionado || !produtoSelecionado.id || loadingModal}
                           >
                             <span className="text-xl">+</span>
                           </Button>
@@ -1064,6 +1066,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                         labelId="produto-label"
                         id="produto-select"
                         label="Selecione o produto"
+                        disabled={loadingModal}
                       >
                         {estoqueSalvo && estoqueSalvo.listaProdutos && estoqueSalvo.listaProdutos.length > 0 ? (
                           estoqueSalvo.listaProdutos.map((produto: iProduto) => (
@@ -1079,7 +1082,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
 
                     <FormControl fullWidth required error={Number(valorMov) < 0}>
                       <Stack direction={"row"} spacing={2} justifyContent="start" alignItems="center">
-                        <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id} label={tipoModal === 'Entrada' ? 'Entrada Manual' : tipoModal === 'Saída' ? 'Saida Manual' : ''} error={Number(valorMov) < 0}></TextField>
+                        <TextField  required  type='number'  value={valorMov === null ? '' : valorMov} onChange={(e) => setValorMov(e.target.value)} disabled={!produtoSelecionado || !produtoSelecionado.id || loadingModal} label={tipoModal === 'Entrada' ? 'Entrada Manual' : tipoModal === 'Saída' ? 'Saida Manual' : ''} error={Number(valorMov) < 0}></TextField>
                         <Button
                           onClick={() => {
                             if (produtoSelecionado) {
@@ -1087,7 +1090,7 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                             }
                           }}
                           sx={{ backgroundColor: "#4CAF50", color: "#fff", '&:hover': { backgroundColor: "#388E3C" } }}
-                          disabled={!produtoSelecionado || !produtoSelecionado.id}
+                          disabled={!produtoSelecionado || !produtoSelecionado.id || loadingModal}
                         >
                           <span className="text-xl">+</span>
                         </Button>
@@ -1112,9 +1115,9 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
                     value={tipoSaida}
                     onChange={selecaoTipoSaida}
                     >
-                      <FormControlLabel disabled={!valorMov} value="Venda" control={<Radio />} label="Venda" />
-                      <FormControlLabel disabled={!valorMov} value="Avaria" control={<Radio />} label="Avaria" />
-                      <FormControlLabel disabled={!valorMov} value="Manual-Devolucao" control={<Radio />} label="Devolução" />
+                      <FormControlLabel disabled={!valorMov || loadingModal} value="Venda" control={<Radio />} label="Venda" />
+                      <FormControlLabel disabled={!valorMov || loadingModal} value="Avaria" control={<Radio />} label="Avaria" />
+                      <FormControlLabel disabled={!valorMov || loadingModal} value="Manual-Devolucao" control={<Radio />} label="Devolução" />
                     </RadioGroup>  
                   </>
               )}       
@@ -1131,18 +1134,42 @@ const ModalMov = ({atualizarPedidos}: ModalMovProps ) => {
             
             <div className="flex flex-row gap-2">
               {tipoModal !== 'CadastroFornecedor' ? (
-                <Button  variant="contained" onClick={btnCancelar} sx={{backgroundColor: "#f44336",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#d32f2f",},}}>Cancelar</Button>         
+                <Button variant="contained" onClick={btnCancelar} disabled={loadingModal} sx={{backgroundColor: "#f44336",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#d32f2f",},}}>Cancelar</Button>
               ) : (
-                <Button  variant="contained" onClick={btnCancelarFornecedor} sx={{backgroundColor: "#f44336",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#d32f2f",},}}>Cancelar</Button>
+                <Button variant="contained" onClick={btnCancelarFornecedor} disabled={loadingModal} sx={{backgroundColor: "#f44336",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#d32f2f",},}}>Cancelar</Button>
               )}
-              { tipoModal === 'MovimentacaoEstoque' ? (
-                <Button variant="contained" onClick={gerarRelatorioMovimentacao} sx={{backgroundColor: "#4caf50",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#388e3c",},}} >Gerar</Button>
-              ) : tipoModal === 'Entrada' || tipoModal === 'Saída' ?  (
-                <Button variant="contained" onClick={atualizarEstoque} sx={{backgroundColor: "#4caf50",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#388e3c",},}} disabled={listaProdutoMov.length === 0}>Confirmar</Button>
+              {tipoModal === 'MovimentacaoEstoque' ? (
+                <Button variant="contained" onClick={gerarRelatorioMovimentacao} sx={{backgroundColor: "#4caf50",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3,"&:hover": {backgroundColor: "#388e3c",},}}>Gerar</Button>
+              ) : tipoModal === 'Entrada' || tipoModal === 'Saída' ? (
+                <Button
+                  variant="contained"
+                  onClick={atualizarEstoque}
+                  disabled={listaProdutoMov.length === 0 || loadingModal}
+                  startIcon={loadingModal ? <CircularProgress size={18} color="inherit" /> : undefined}
+                  sx={{backgroundColor: "#4caf50",color: "#fff",fontWeight: "bold", borderRadius: "20px",border: "2px solid #fff",paddingX: 3, minWidth: 120,"&:hover": {backgroundColor: "#388e3c",},}}
+                >
+                  {loadingModal ? 'Confirmando...' : 'Confirmar'}
+                </Button>
               ) : tipoModal === 'CriarPedidoCompra' ? (
-                <Button variant="contained" onClick={criarPedidoCompra} sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black" }} disabled={listaProdutoMov.length === 0}>Criar Pedido</Button>
+                <Button
+                  variant="contained"
+                  onClick={criarPedidoCompra}
+                  disabled={listaProdutoMov.length === 0 || loadingModal}
+                  startIcon={loadingModal ? <CircularProgress size={18} color="inherit" /> : undefined}
+                  sx={{ mt: 2, backgroundColor: "#4ED7F1", color: "black", minWidth: 120 }}
+                >
+                  {loadingModal ? 'Criando...' : 'Criar Pedido'}
+                </Button>
               ) : tipoModal === 'CadastroFornecedor' ? (
-                <Button variant="contained" onClick={criarFornecedor} sx={{backgroundColor: "#f1941aff", color: "#fff", fontWeight: "bold", borderRadius: "20px",border: "2px solid #ffffffff",paddingX: 3,"&:hover": {backgroundColor: "#fc9208ff",},}}  disabled={!razaoSocial} >Criar Fornecedor</Button>
+                <Button
+                  variant="contained"
+                  onClick={criarFornecedor}
+                  disabled={!razaoSocial || loadingModal}
+                  startIcon={loadingModal ? <CircularProgress size={18} color="inherit" /> : undefined}
+                  sx={{backgroundColor: "#f1941aff", color: "#fff", fontWeight: "bold", borderRadius: "20px",border: "2px solid #ffffffff",paddingX: 3, minWidth: 140,"&:hover": {backgroundColor: "#fc9208ff",},}}
+                >
+                  {loadingModal ? 'Criando...' : 'Criar Fornecedor'}
+                </Button>
               ) : null}
             </div>
             
