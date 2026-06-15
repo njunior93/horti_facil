@@ -2,6 +2,10 @@
 
 Este arquivo fornece orientações ao Claude Code (claude.ai/code) ao trabalhar com o código deste repositório.
 
+## Regras Gerais
+
+- **Sempre utilize o Context7 (`use context7`) ao gerar código que envolva bibliotecas ou frameworks externos** (ex: MUI, React, Supabase, Axios, React Router, date-fns, jsPDF, Tailwind CSS, Vite, etc.). Isso garante que a documentação utilizada seja a mais atualizada.
+
 ## Comandos
 
 ```bash
@@ -19,6 +23,20 @@ npm run preview
 ```
 
 Nenhum framework de testes está configurado neste projeto.
+
+## Deploy (Vercel)
+
+O projeto possui um arquivo [`vercel.json`](vercel.json) na raiz com o seguinte conteúdo:
+
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+Esse rewrite é necessário para que o React Router funcione corretamente na Vercel: qualquer rota não encontrada como arquivo estático (ex: `/pedidos-compra`, `/gerenciar-estoque`) é redirecionada para o `index.html`, evitando erro 404 ao recarregar (F5) qualquer rota da SPA.
 
 ## Variáveis de Ambiente
 
