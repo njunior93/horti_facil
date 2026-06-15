@@ -414,14 +414,14 @@ const colunas: GridColDef<(typeof linhas)[number]>[] = [
 const linhas = listaPedidoFiltrados.map((pedido) => {
   
   const data = pedido.data_criacao ? new Date(pedido.data_criacao) : null;
-  const dataFormatada = data ? data.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : null;
+  const dataFormatada = data ? data.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : null;
 
   return {
     id: pedido.id,
     status: pedido.status,
     dataPedido: dataFormatada,
-    dataEfetivacao: pedido.data_efetivacao ? new Date(pedido.data_efetivacao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : null,
-    dataCancelamento: pedido.data_cancelamento ? new Date(pedido.data_cancelamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : null,
+    dataEfetivacao: pedido.data_efetivacao ? new Date(pedido.data_efetivacao).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : null,
+    dataCancelamento: pedido.data_cancelamento ? new Date(pedido.data_cancelamento).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : null,
     fornecedor: pedido.fornecedor?.nome ?? '-'
   };
 
